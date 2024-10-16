@@ -7,22 +7,22 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="dds.dll">
+    <None Remove="dds.exp" />
+    <None Remove="dds.lib" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="dds.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </EmbeddedResource>
   </ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Bridge.Fundamentals" Version="2024.10.16.1" />
 	</ItemGroup>
-
 	<ItemGroup>
-		<None Update="dds.exp">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="dds.lib">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
+		<Reference Include="dds">
+			<HintPath>dds.dll</HintPath>
+		</Reference>
 	</ItemGroup>
-
 </Project>
