@@ -23,6 +23,16 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore --configuration Release
     - name: Test
       run: dotnet test --no-build --verbosity normal
+    - name: Pack
+      run: dotnet pack --configuration Release
+    - name: Publish
+      run: dotnet nuget push "bin/Release/ddsWrapper.1.0.0.nupkg" --api-key YOUR_GITHUB_PAT --source "github"
+#    command: pack
+#    verbosityRestore: Detailed
+#    packagesToPack: '**/Bridge.Fundamentals.csproj'
+#    nobuild: true
+#    versioningScheme: byBuildNumber
+#    verbosityPack: Detailed
