@@ -28,8 +28,8 @@ jobs:
       run: dotnet test --no-build --verbosity normal --configuration Release
     - name: Pack
       run: dotnet pack --configuration Release
-    - name: Publish
-      run: dotnet nuget push "bin/Release/ddsWrapper.1.0.0.nupkg" --api-key YOUR_GITHUB_PAT --source "github"
+#    - name: Publish
+#      run: dotnet nuget push "bin/Release/ddsWrapper.1.0.0.nupkg" --api-key YOUR_GITHUB_PAT --source "github"
 #    command: pack
 #    verbosityRestore: Detailed
 #    packagesToPack: '**/Bridge.Fundamentals.csproj'
