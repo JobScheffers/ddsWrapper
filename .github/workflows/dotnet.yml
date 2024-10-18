@@ -16,16 +16,21 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+  
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
+
     - name: Restore dependencies
       run: dotnet restore
+
     - name: Build
       run: dotnet build --no-restore --configuration Release
+
     - name: Test
       run: dotnet test --no-build --verbosity normal --configuration Release --logger trx --results-directory "TestResults-${{ matrix.dotnet-version }}"
+
     - name: Upload test results
       uses: actions/upload-artifact@v4
       with:
@@ -35,27 +40,7 @@ jobs:
       if: ${{ always() }}
  
     - name: Pack
-      run: dotnet pack --configuration Release --versioningScheme byBuildNumber
+      run: dotnet pack --configuration Release #--versioningScheme byBuildNumber
 
-
-    # - name: Publish the package to GPR
-    #   run: dotnet nuget push ddsWrapper/bin/Release/*.nupkg 
-    #   with: # Set the secret as an input
-    #     super_secret: ${{ secrets.nuget }}
-
-    #           - name: Push generated package to GitHub registry
-    #     run: nuget push .\SOLUTION_FOLDER\PROJECT_FOLDER\out\*.nupkg -Source "GPR" -SkipDuplicate
-
-    # - name: set key
-    #   run: nuget setapikey ${{secrets.NUGET}} -source https://api.nuget.org/v3/index.json
-
-    # - name: Setup .NET Core @ Latest
-    #   uses: actions/setup-dotnet@v1
-    #   with:
-    #     #source-url: https://nuget.pkg.github.com/sodes/index.json
-    #     source-url: https://api.nuget.org/v3/index.json
-    #   env:
-    #     NUGET_AUTH_TOKEN: ${{secrets.NUGET}}        
-          
     - name: Push generated package to GitHub registry
       run: nuget push .\ddsWrapper\bin\release\*.nupkg -ApiKey ${{secrets.NUGET}} -Source https://api.nuget.org/v3/index.json
