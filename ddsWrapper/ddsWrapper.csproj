@@ -4,25 +4,14 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-  </PropertyGroup>
+		<PackageProjectUrl>https://github.com/JobScheffers/ddsWrapper</PackageProjectUrl>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	</PropertyGroup>
 
   <ItemGroup>
-    <None Remove="dds.exp" />
-    <None Remove="dds.lib" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="dds.dll">
+    <EmbeddedResource Include="dds\dds.dll">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Bridge.Fundamentals" Version="2024.10.16.1" />
-	</ItemGroup>
-	<ItemGroup>
-		<Reference Include="dds">
-			<HintPath>dds.dll</HintPath>
-		</Reference>
-	</ItemGroup>
 </Project>
