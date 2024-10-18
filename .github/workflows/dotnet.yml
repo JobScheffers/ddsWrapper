@@ -54,7 +54,7 @@ jobs:
         NUGET_AUTH_TOKEN: ${{secrets.NUGET}}        
           
     - name: Push generated package to GitHub registry
-      run: dotnet nuget push ./ddsWrapper/ddsWrapper/bin/release/*.nupkg --skip-duplicate --no-symbols true
+      run: dotnet nuget push bin/release/*.nupkg --skip-duplicate --no-symbols true
 
 
 #    - name: Publish
