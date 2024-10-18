@@ -45,8 +45,8 @@ jobs:
     #           - name: Push generated package to GitHub registry
     #     run: nuget push .\SOLUTION_FOLDER\PROJECT_FOLDER\out\*.nupkg -Source "GPR" -SkipDuplicate
 
-    - name: set key
-      run: nuget setapikey ${{secrets.NUGET}} -source https://api.nuget.org/v3/index.json
+    # - name: set key
+    #   run: nuget setapikey ${{secrets.NUGET}} -source https://api.nuget.org/v3/index.json
 
     # - name: Setup .NET Core @ Latest
     #   uses: actions/setup-dotnet@v1
@@ -57,7 +57,8 @@ jobs:
     #     NUGET_AUTH_TOKEN: ${{secrets.NUGET}}        
           
     - name: Push generated package to GitHub registry
-      run: dotnet nuget push .\ddsWrapper\bin\release\*.nupkg --skip-duplicate --no-symbols true
+      #run: dotnet nuget push .\ddsWrapper\bin\release\*.nupkg --skip-duplicate --no-symbols true
+      run: nuget push .\ddsWrapper\bin\release\*.nupkg -ApiKey ${{secrets.NUGET}} -Source https://api.nuget.org/v3/index.json
 
 
 #    - name: Publish
