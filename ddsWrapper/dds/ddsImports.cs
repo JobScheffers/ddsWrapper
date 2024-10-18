@@ -6,8 +6,9 @@ namespace DDS
     {
         public const int ddsMaxNumberOfBoards = 200;
         public const int ddsStrains = 5;
+        public const string dllPath = "dds8a.dll";
 
-        [DllImport("dds")]
+        [DllImport(dllPath)]
         public static extern int CalcDDtablePBN(ddTableDealPBN tableDealPbn, ref ddTableResults tablep);
 
         /// <summary>
@@ -24,21 +25,21 @@ namespace DDS
         /// <param name="futureTricks"></param>
         /// <param name="threadIndex"></param>
         /// <returns></returns>
-        [DllImport("dds")]
+        [DllImport(dllPath)]
         public static extern int SolveBoardPBN(dealPBN dealPBN, int target, int solutions, int mode, ref FutureTricks futureTricks, int threadIndex);
 
-        [DllImport("dds", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern int CalcAllTablesPBN(ddTableDealsPBN deals, int mode, int[] trumpFilter, ref ddTablesResult tableResults, ref allParResults parResults);
 
-        [DllImport("dds", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern int CalcAllTables(ddTableDeals deals, int mode, int[] trumpFilter, ref ddTablesResult tableResults, ref allParResults parResults);
 
-        [DllImport("dds", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern int DealerPar(ref ddTableResults tablep, ref parResultsDealer presp, int dealer, int vulnerable);
 
         static ddsImports()
         {
-            ResourceExtractor.ExtractResourceToFile("ddsWrapper.dds.dll", "dds.dll");
+            ResourceExtractor.ExtractResourceToFile("ddsWrapper.dds.dds.dll", dllPath);
         }
     }
 
@@ -47,6 +48,8 @@ namespace DDS
         public static void ExtractResourceToFile(string resourceName, string filename)
         {
             if (!File.Exists(filename))
+            {
+                //var resources = typeof(ddsWrapper).Assembly.GetManifestResourceNames();
                 using (Stream s = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName)!)
                 using (FileStream fs = new FileStream(filename, FileMode.Create))
                 {
@@ -54,6 +57,7 @@ namespace DDS
                     s.Read(b, 0, b.Length);
                     fs.Write(b, 0, b.Length);
                 }
+            }
         }
     }
 }
