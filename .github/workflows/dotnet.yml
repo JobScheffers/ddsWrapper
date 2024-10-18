@@ -26,17 +26,37 @@ jobs:
       run: dotnet build --no-restore --configuration Release
     - name: Test
       run: dotnet test --no-build --verbosity normal --configuration Release --logger trx --results-directory "TestResults-${{ matrix.dotnet-version }}"
-    - name: Upload dotnet test results
+    - name: Upload test results
       uses: actions/upload-artifact@v4
       with:
         name: dotnet-results-${{ matrix.dotnet-version }}
         path: TestResults-${{ matrix.dotnet-version }}
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
+ 
     - name: Pack
       run: dotnet pack --configuration Release
-    - name: Publish the package to GPR
-      run: dotnet nuget push ddsWrapper/bin/Release/*.nupkg
+
+    # - name: Publish the package to GPR
+    #   run: dotnet nuget push ddsWrapper/bin/Release/*.nupkg 
+    #   with: # Set the secret as an input
+    #     super_secret: ${{ secrets.nuget }}
+
+    #           - name: Push generated package to GitHub registry
+    #     run: nuget push .\SOLUTION_FOLDER\PROJECT_FOLDER\out\*.nupkg -Source "GPR" -SkipDuplicate
+
+
+    - name: Setup .NET Core @ Latest
+      uses: actions/setup-dotnet@v1
+      with:
+        source-url: https://nuget.pkg.github.com/sodes/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.NUGET}}        
+          
+    - name: Push generated package to GitHub registry
+      run: dotnet nuget push ./ddsWrapper/bin/release/*.nupkg --skip-duplicate --no-symbols true
+
+
 #    - name: Publish
 #      run: dotnet nuget push "bin/Release/ddsWrapper.1.0.0.nupkg" --api-key YOUR_GITHUB_PAT --source "github"
 #    command: pack
