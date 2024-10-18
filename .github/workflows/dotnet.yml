@@ -35,7 +35,8 @@ jobs:
       if: ${{ always() }}
  
     - name: Pack
-      run: dotnet pack --configuration Release
+      run: dotnet pack --configuration Release --versioningScheme byBuildNumber
+
 
     # - name: Publish the package to GPR
     #   run: dotnet nuget push ddsWrapper/bin/Release/*.nupkg 
@@ -57,15 +58,4 @@ jobs:
     #     NUGET_AUTH_TOKEN: ${{secrets.NUGET}}        
           
     - name: Push generated package to GitHub registry
-      #run: dotnet nuget push .\ddsWrapper\bin\release\*.nupkg --skip-duplicate --no-symbols true
       run: nuget push .\ddsWrapper\bin\release\*.nupkg -ApiKey ${{secrets.NUGET}} -Source https://api.nuget.org/v3/index.json
-
-
-#    - name: Publish
-#      run: dotnet nuget push "bin/Release/ddsWrapper.1.0.0.nupkg" --api-key YOUR_GITHUB_PAT --source "github"
-#    command: pack
-#    verbosityRestore: Detailed
-#    packagesToPack: '**/Bridge.Fundamentals.csproj'
-#    nobuild: true
-#    versioningScheme: byBuildNumber
-#    verbosityPack: Detailed
