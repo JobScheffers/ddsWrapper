@@ -9,9 +9,10 @@ namespace Tests
         [TestMethod]
         public void SolveBoard()
         {
-            string gamestate3 = "N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432";
+            string gamestate3 = "N:K95.QJT3.AKJ.AQJ JT42.87..K98765 AQ86.K652.86432. 73.A94.QT97.T432";
 
-            var result2 = ddsWrapper.SolveBoard(new GameState { Trump = Suit.Hearts, TrickLeader = Hand.East, RemainingCards = new Deal(gamestate3) });
+            var result = ddsWrapper.SolveBoard(new GameState { Trump = Suit.Hearts, TrickLeader = Hand.East, RemainingCards = new Deal(gamestate3), TrickCards = [ new Card { Suit = Suit.Diamonds, Rank = Rank.Five }] });
+            Assert.AreEqual(11, result[0].Tricks);
         }
 
         //[TestMethod]
@@ -21,7 +22,7 @@ namespace Tests
             string gamestate2 = "N:954.QJT3.AKJ.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.QT97.T432";
             string gamestate3 = "N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432";
 
-            var result3 = DDS.ddsWrapper.PossibleTricks2(new List<Deal> { new Deal(gamestate1), new Deal(gamestate2), new Deal(gamestate3) }, new SuitCollection<bool>(new bool[5] { true, false, true, false, false }));
+            var result3 = ddsWrapper.PossibleTricks2(new List<Deal> { new Deal(gamestate1), new Deal(gamestate2), new Deal(gamestate3) }, new SuitCollection<bool>(new bool[5] { true, false, true, false, false }));
             foreach (var deal in result3)
             {
                 Trace.WriteLine(gamestate1);

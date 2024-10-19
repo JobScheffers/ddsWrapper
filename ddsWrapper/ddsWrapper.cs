@@ -62,12 +62,12 @@ namespace DDS
             return result;
         }
 
-        public static List<ddTableResults> PossibleTricks(List<string> pbns)
+        public static List<TableResults> PossibleTricks(List<string> pbns)
         {
             return PossibleTricks(pbns, new SuitCollection<bool>([true, true, true, true, true]));
         }
 
-        public static List<ddTableResults> PossibleTricks(List<string> pbns, SuitCollection<bool> trumps)
+        public static List<TableResults> PossibleTricks(List<string> pbns, SuitCollection<bool> trumps)
         {
             var deals = new ddTableDealsPBN(pbns);
             var results = new ddTablesResult(pbns.Count);
@@ -83,10 +83,18 @@ namespace DDS
 #endif
             Inspect(hresult);
 
-            var result = new List<ddTableResults>();
+            var result = new List<TableResults>();
             for (int deal = 0; deal < pbns.Count; deal++)
             {
-                result.Add(results.results[deal]);
+                TableResults tableResult;
+                DdsEnum.ForEachHand(hand =>
+                {
+                    DdsEnum.ForEachTrump(suit =>
+                    {
+                        tableResult[hand, suit] = (results.results[deal])[hand, suit];
+                    });
+                });
+                result.Add(tableResult);
             }
 
             return result;
@@ -102,7 +110,7 @@ namespace DDS
             }
         }
 
-        public static List<ddTableResults> PossibleTricks2(List<Deal> deals, SuitCollection<bool> trumps)
+        public static List<TableResults> PossibleTricks2(List<Deal> deals, SuitCollection<bool> trumps)
         {
             var tableDeals = new ddTableDeals(deals);
             var results = new ddTablesResult(deals.Count);
@@ -118,10 +126,18 @@ namespace DDS
 #endif
             Inspect(hresult);
 
-            var result = new List<ddTableResults>();
+            var result = new List<TableResults>();
             for (int deal = 0; deal < deals.Count; deal++)
             {
-                result.Add(results.results[deal]);
+                TableResults tableResult;
+                DdsEnum.ForEachHand(hand =>
+                {
+                    DdsEnum.ForEachTrump(suit =>
+                    {
+                        tableResult[hand, suit] = (results.results[deal])[hand, suit];
+                    });
+                });
+                result.Add(tableResult);
             }
 
             return result;
