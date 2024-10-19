@@ -12,7 +12,7 @@ namespace DDS
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct ddTableResults
+    internal struct ddTableResults
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
         private int[] resTable;
@@ -164,8 +164,6 @@ namespace DDS
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
         public int[] currentTrickRank;
 
-        //[MarshalAs(UnmanagedType.ByValArray, SizeConst = 80)]
-        //public char[] remainCards;
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
         public string remainCards;
 
@@ -185,7 +183,7 @@ namespace DDS
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct FutureTricks
+    internal struct FutureTricks
     {
         /// <summary>
         /// /* Number of searched nodes */
@@ -237,5 +235,6 @@ namespace DDS
     {
         public Suit Suit { get; set; }
         public Rank Rank { get; set; }
+        public override string ToString() => $"{Suit.ToString()[0]}{(Rank < Rank.Ten ? ((int)Rank).ToString() : Rank.ToString()[0])}";
     }
 }

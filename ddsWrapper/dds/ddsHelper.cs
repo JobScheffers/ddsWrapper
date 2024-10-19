@@ -1,8 +1,26 @@
 ﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace DDS
 {
+    public struct GameState
+    {
+        public Deal RemainingCards { get; set; }
+        public Suit Trump { get; set; }
+        public Hand TrickLeader { get; set; }
+        public List<Card> TrickCards { get; set; }
+
+        public GameState() { TrickCards = []; }
+    }
+
+    public struct CardPotential
+    {
+        public Card Card { get; set; }
+        public int Tricks { get; set; }
+        public override string ToString() => $"{Card.ToString()}:{Tricks.ToString()}";
+    }
+
     public struct SuitCollection<T>
     {
         private T[] data;
@@ -21,6 +39,23 @@ namespace DDS
             set
             {
                 data[(int)suit] = value;
+            }
+        }
+    }
+
+    public unsafe struct TableResults
+    {
+        private fixed byte data[20];
+
+        public int this[Hand hand, Suit suit]
+        {
+            get
+            {
+                return data[4 * (int)suit + (int)hand];
+            }
+            set
+            {
+                data[4 * (int)suit + (int)hand] = (byte)value;
             }
         }
     }

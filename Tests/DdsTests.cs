@@ -11,7 +11,7 @@ namespace Tests
         {
             string gamestate3 = "N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432";
 
-            var result2 = ddsWrapper.SolveBoard(Suit.Hearts, Hand.East, gamestate3);
+            var result2 = ddsWrapper.SolveBoard(new GameState { Trump = Suit.Hearts, TrickLeader = Hand.East, RemainingCards = new Deal(gamestate3) });
         }
 
         //[TestMethod]
