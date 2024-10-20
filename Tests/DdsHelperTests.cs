@@ -15,5 +15,13 @@ namespace Tests
             Assert.AreEqual(deal, dealPBN);
         }
 
+        [TestMethod]
+        public void Profiler_Time_EmptyBlock()
+        {
+            Profiler.Time(() =>
+            {
+                return 0;
+            }, 100000);
+        }
     }
 }

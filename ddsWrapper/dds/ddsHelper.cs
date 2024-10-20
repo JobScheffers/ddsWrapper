@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace DDS
@@ -317,6 +316,24 @@ namespace DDS
                 case Rank.Two: return "2";
                 default: throw new ArgumentOutOfRangeException(nameof(rank), $"unknown {rank}");
             }
+        }
+    }
+
+    public static class Profiler
+    {
+        public static T Time<T>(Func<T> toDo, int repetitions = 1)
+        {
+            var startTime = Stopwatch.GetTimestamp();
+            var result = toDo();
+            for (int i = 1; i < repetitions; i++) toDo();
+#if NET7_0_OR_GREATER
+            var elapsedTime = Stopwatch.GetElapsedTime(startTime);
+#else
+            var stopTime = Stopwatch.GetTimestamp();
+            var elapsedTime = TimeSpan.FromTicks(stopTime - startTime);
+#endif
+            Trace.WriteLine($"Elapsed time: {elapsedTime.TotalMilliseconds} ms, avg= {(elapsedTime.TotalMilliseconds / repetitions) - 0.000002} ms");
+            return result;
         }
     }
 }

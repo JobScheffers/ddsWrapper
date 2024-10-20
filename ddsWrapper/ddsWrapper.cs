@@ -19,14 +19,7 @@ namespace DDS
             int mode = 0;
             int threadIndex = 0;
             var futureTricks = new FutureTricks();
-#if DEBUG
-            var stopwatch = Stopwatch.StartNew();
-#endif
             var hresult = ddsImports.SolveBoardPBN(deal, target, solutions, mode, ref futureTricks, threadIndex);
-#if DEBUG
-            stopwatch.Stop();
-            Trace.WriteLine($"Elapsed time: {stopwatch.ElapsedMilliseconds} ms");
-#endif
             Inspect(hresult);
 
             var result = new List<CardPotential>();
@@ -41,14 +34,7 @@ namespace DDS
         {
             var deal = new ddTableDealPBN { cards = pbn };
             var results = new ddTableResults();
-#if DEBUG
-            var stopwatch = Stopwatch.StartNew();
-#endif
             var hresult = ddsImports.CalcDDtablePBN(deal, ref results);
-#if DEBUG
-            stopwatch.Stop();
-            Trace.WriteLine($"Elapsed time: {stopwatch.ElapsedMilliseconds} ms");
-#endif
             Inspect(hresult);
 
             TableResults result;
@@ -73,14 +59,7 @@ namespace DDS
             var results = new ddTablesResult(pbns.Count);
             var parResults = new allParResults();
 
-#if DEBUG
-            var stopwatch = Stopwatch.StartNew();
-#endif
             var hresult = ddsImports.CalcAllTablesPBN(deals, -1, Convert(trumps), ref results, ref parResults);
-#if DEBUG
-            stopwatch.Stop();
-            Trace.WriteLine($"Elapsed time: {stopwatch.ElapsedMilliseconds} ms");
-#endif
             Inspect(hresult);
 
             var result = new List<TableResults>();
@@ -116,14 +95,7 @@ namespace DDS
             var results = new ddTablesResult(deals.Count);
             var parResults = new allParResults();
 
-#if DEBUG
-            var stopwatch = Stopwatch.StartNew();
-#endif
             var hresult = ddsImports.CalcAllTables(tableDeals, -1, Convert(trumps), ref results, ref parResults);
-#if DEBUG
-            stopwatch.Stop();
-            Trace.WriteLine($"Elapsed time: {stopwatch.ElapsedMilliseconds} ms");
-#endif
             Inspect(hresult);
 
             var result = new List<TableResults>();
