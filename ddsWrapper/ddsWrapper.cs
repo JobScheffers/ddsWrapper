@@ -48,22 +48,18 @@ namespace DDS
             return result;
         }
 
-        public static List<TableResults> PossibleTricks(List<string> pbns)
+        public static List<TableResults> PossibleTricks(List<Deal> deals, List<Suit> trumps)
         {
-            return PossibleTricks(pbns, new SuitCollection<bool>([true, true, true, true, true]));
-        }
-
-        public static List<TableResults> PossibleTricks(List<string> pbns, SuitCollection<bool> trumps)
-        {
-            var deals = new ddTableDealsPBN(pbns);
-            var results = new ddTablesResult(pbns.Count);
+            if (trumps == null || trumps.Count == 0) trumps = [ Suit.Clubs, Suit.Diamonds, Suit.Hearts, Suit.Spades, Suit.NT ];
+            var tableDeals = new ddTableDealsPBN(deals.Select(d => d.ToPBN()).ToList());
+            var results = new ddTablesResult(deals.Count);
             var parResults = new allParResults();
 
-            var hresult = ddsImports.CalcAllTablesPBN(deals, -1, Convert(trumps), ref results, ref parResults);
+            var hresult = ddsImports.CalcAllTablesPBN(tableDeals, -1, Convert(trumps), ref results, ref parResults);
             Inspect(hresult);
 
             var result = new List<TableResults>();
-            for (int deal = 0; deal < pbns.Count; deal++)
+            for (int deal = 0; deal < deals.Count; deal++)
             {
                 TableResults tableResult;
                 DdsEnum.ForEachHand(hand =>
@@ -77,19 +73,9 @@ namespace DDS
             }
 
             return result;
-
-            int[] Convert(SuitCollection<bool> trump)
-            {
-                var result = new int[5];
-                DdsEnum.ForEachTrump(suit =>
-                {
-                    result[(int)suit] = trump[suit] ? 0 : 1;
-                });
-                return result;
-            }
         }
 
-        public static List<TableResults> PossibleTricks2(List<Deal> deals, SuitCollection<bool> trumps)
+        public static List<TableResults> PossibleTricks2(List<Deal> deals, List<Suit> trumps)
         {
             var tableDeals = new ddTableDeals(deals);
             var results = new ddTablesResult(deals.Count);
@@ -113,16 +99,16 @@ namespace DDS
             }
 
             return result;
+        }
 
-            int[] Convert(SuitCollection<bool> trump)
+        private static int[] Convert(List<Suit> trumps)
+        {
+            var result = new int[5] { 1, 1, 1, 1, 1 };
+            foreach (Suit suit in trumps)
             {
-                var result = new int[5];
-                DdsEnum.ForEachTrump(suit =>
-                {
-                    result[(int)suit] = trump[suit] ? 0 : 1;
-                });
-                return result;
+                result[(int)suit] = 0;
             }
+            return result;
         }
 
         private static void Inspect(int returnCode)

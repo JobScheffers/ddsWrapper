@@ -281,8 +281,10 @@ namespace DDS
             switch (Char.ToUpper(rank))
             {
                 case 'A': return Rank.Ace;
+                case 'H':
                 case 'K': return Rank.King;
                 case 'Q': return Rank.Queen;
+                case 'B':
                 case 'J': return Rank.Jack;
                 case 'T': return Rank.Ten;
                 case '9': return Rank.Nine;

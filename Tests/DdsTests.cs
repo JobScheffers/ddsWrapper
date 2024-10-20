@@ -22,19 +22,18 @@ namespace Tests
         //[TestMethod]
         public void CalcAllTables()
         {
-            string gamestate1 = "N:954.QJT3.AJT.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.KQ97.T432";
-            string gamestate2 = "N:954.QJT3.AKJ.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.QT97.T432";
-            string gamestate3 = "N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432";
+            var deal1 = new Deal("N:954.QJT3.AJT.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.KQ97.T432");
+            var deal2 = new Deal("N:954.QJT3.AKJ.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.QT97.T432");
+            var deal3 = new Deal("N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432");
 
             var result =
                 Profiler.Time(() =>
                 {
-                    return ddsWrapper.PossibleTricks2(new List<Deal> { new Deal(gamestate1), new Deal(gamestate2), new Deal(gamestate3) }, new SuitCollection<bool>(new bool[5] { true, false, true, false, false }));
+                    return ddsWrapper.PossibleTricks(new List<Deal> { deal1, deal2, deal3 }, []);
                 });
 
             foreach (var deal in result)
             {
-                Trace.WriteLine(gamestate1);
                 Trace.WriteLine("       C  D  H  S  NT");
                 DdsEnum.ForEachHand(seat =>
                 {
@@ -51,19 +50,18 @@ namespace Tests
         [TestMethod]
         public void CalcAllTablesPBN()
         {
-            string gamestate1 = "N:954.QJT3.AJT.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.KQ97.T432";
-            string gamestate2 = "N:954.QJT3.AKJ.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.QT97.T432";
-            string gamestate3 = "N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432";
+            var deal1 = new Deal("N:954.QJT3.AJT.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.KQ97.T432");
+            var deal2 = new Deal("N:954.QJT3.AKJ.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.QT97.T432");
+            var deal3 = new Deal("N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432");
 
             var result =
                 Profiler.Time(() =>
                 {
-                    return ddsWrapper.PossibleTricks(new List<string> { gamestate1, gamestate2, gamestate3 });
+                    return ddsWrapper.PossibleTricks(new List<Deal> { deal1, deal2, deal3 }, []);
                 }, 10);
 
             foreach (var deal in result)
             {
-                Trace.WriteLine(gamestate1);
                 Trace.WriteLine("       C  D  H  S  NT");
                 DdsEnum.ForEachHand(seat =>
                 {
@@ -83,7 +81,9 @@ namespace Tests
         [TestMethod]
         public void CalcDDtablePBN()
         {
-            string deal = "N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432";
+            //
+
+            string deal = "N:AQJ7.832.853.T93 .974.QJ72.AQ8652 T952.AT.KT96.J74 K8643.KQJ65.A4.K";
 
             var result =
                 Profiler.Time(() =>
@@ -103,11 +103,31 @@ namespace Tests
                 Trace.WriteLine($"");
             });
 
-            Assert.AreEqual(11, result[Hand.North, Suit.Spades]);
-            Assert.AreEqual(11, result[Hand.North, Suit.Hearts]);
-            Assert.AreEqual(11, result[Hand.North, Suit.Diamonds]);
-            Assert.AreEqual(7, result[Hand.North, Suit.Clubs]);
-            Assert.AreEqual(11, result[Hand.North, Suit.NT]);
+            //        C  D  H  S NT
+            // North 01 05 02 06 04
+            // East  12 08 11 07 08
+            // South 01 05 02 06 04
+            // West  12 08 11 07 09
+            Assert.AreEqual(4, result[Hand.North, Suit.NT]);
+            Assert.AreEqual(6, result[Hand.North, Suit.Spades]);
+            Assert.AreEqual(2, result[Hand.North, Suit.Hearts]);
+            Assert.AreEqual(5, result[Hand.North, Suit.Diamonds]);
+            Assert.AreEqual(1, result[Hand.North, Suit.Clubs]);
+            Assert.AreEqual(8, result[Hand.East, Suit.NT]);
+            Assert.AreEqual(7, result[Hand.East, Suit.Spades]);
+            Assert.AreEqual(11, result[Hand.East, Suit.Hearts]);
+            Assert.AreEqual(8, result[Hand.East, Suit.Diamonds]);
+            Assert.AreEqual(12, result[Hand.East, Suit.Clubs]);
+            Assert.AreEqual(4, result[Hand.South, Suit.NT]);
+            Assert.AreEqual(6, result[Hand.South, Suit.Spades]);
+            Assert.AreEqual(2, result[Hand.South, Suit.Hearts]);
+            Assert.AreEqual(5, result[Hand.South, Suit.Diamonds]);
+            Assert.AreEqual(1, result[Hand.South, Suit.Clubs]);
+            Assert.AreEqual(9, result[Hand.West, Suit.NT]);
+            Assert.AreEqual(7, result[Hand.West, Suit.Spades]);
+            Assert.AreEqual(11, result[Hand.West, Suit.Hearts]);
+            Assert.AreEqual(8, result[Hand.West, Suit.Diamonds]);
+            Assert.AreEqual(12, result[Hand.West, Suit.Clubs]);
         }
     }
 }
