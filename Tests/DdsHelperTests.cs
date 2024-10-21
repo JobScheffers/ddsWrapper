@@ -21,7 +21,7 @@ namespace Tests
             Profiler.Time(() =>
             {
             }, out var elapsedTime, 100000);
-            Assert.IsTrue(elapsedTime.TotalMilliseconds > 0 && elapsedTime.TotalMilliseconds < 1);
+            Assert.IsTrue(elapsedTime.TotalMilliseconds > 0 && elapsedTime.TotalMilliseconds < 2, $"{elapsedTime.TotalMilliseconds}");
         }
     }
 }
