@@ -51,32 +51,6 @@ namespace DDS
         public static List<TableResults> PossibleTricks(List<Deal> deals, List<Suit> trumps)
         {
             if (trumps == null || trumps.Count == 0) trumps = [ Suit.Clubs, Suit.Diamonds, Suit.Hearts, Suit.Spades, Suit.NT ];
-            var tableDeals = new ddTableDealsPBN(deals.Select(d => d.ToPBN()).ToList());
-            var results = new ddTablesResult(deals.Count);
-            var parResults = new allParResults();
-
-            var hresult = ddsImports.CalcAllTablesPBN(tableDeals, -1, Convert(trumps), ref results, ref parResults);
-            Inspect(hresult);
-
-            var result = new List<TableResults>();
-            for (int deal = 0; deal < deals.Count; deal++)
-            {
-                TableResults tableResult;
-                DdsEnum.ForEachHand(hand =>
-                {
-                    DdsEnum.ForEachTrump(suit =>
-                    {
-                        tableResult[hand, suit] = (results.results[deal])[hand, suit];
-                    });
-                });
-                result.Add(tableResult);
-            }
-
-            return result;
-        }
-
-        public static List<TableResults> PossibleTricks2(List<Deal> deals, List<Suit> trumps)
-        {
             var tableDeals = new ddTableDeals(deals);
             var results = new ddTablesResult(deals.Count);
             var parResults = new allParResults();
@@ -120,6 +94,7 @@ namespace DDS
                 case -2: throw new Exception("dds SolveBoard: 0 cards");
                 case -10: throw new Exception("dds SolveBoard: too many cards");
                 case -12: throw new Exception("dds SolveBoard: either currentTrickSuit or currentTrickRank have wrong data");
+                case -201: throw new Exception("dds CalcAllTables: the denomination filter vector has no entries");
                 default: throw new Exception("dds undocumented fault");
             }
         }
