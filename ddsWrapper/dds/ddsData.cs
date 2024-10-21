@@ -64,15 +64,15 @@ namespace DDS
         public ddTableDeal(Deal deal)
         {
             cards = new uint[4, 4];
-            foreach (Hand seat in Enum.GetValues(typeof(Hand)))
+            for (int seat = 0; seat < 4; seat++)
             {
-                foreach (Suit suit in Enum.GetValues(typeof(Suit)))
+                for (int suit = 0; suit < 4; suit++)
                 {
-                    foreach (Rank rank in Enum.GetValues(typeof(Rank)))
+                    for (int rank = 2; rank <= 14; rank++)
                     {
                         if (deal[seat, suit, rank])
                         {
-                            cards[(int)(seat), 3 - (int)suit] |= (uint)(2 << ((int)rank));
+                            cards[(int)(seat), (int)suit] |= (uint)(2 << ((int)rank) - 1);
                         }
                     }
                 }

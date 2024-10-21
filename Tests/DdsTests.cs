@@ -20,39 +20,10 @@ namespace Tests
             Assert.AreEqual(11, result[0].Tricks);
         }
 
-        //[TestMethod]
+        [TestMethod]
         public void CalcAllTables()
         {
-            var deal1 = new Deal("N:954.QJT3.AJT.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.KQ97.T432");
-            var deal2 = new Deal("N:954.QJT3.AKJ.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.QT97.T432");
-            var deal3 = new Deal("N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432");
-
-            var result =
-                Profiler.Time(() =>
-                {
-                    return ddsWrapper.PossibleTricks(new List<Deal> { deal1, deal2, deal3 }, []);
-                }, out var elapsedTime);
-
-            Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
-            foreach (var deal in result)
-            {
-                Trace.WriteLine("       C  D  H  S  NT");
-                DdsEnum.ForEachHand(seat =>
-                {
-                    Trace.Write($"{seat.ToString().PadRight(5)}");
-                    DdsEnum.ForEachTrump(suit =>
-                    {
-                        Trace.Write($" {deal[seat, suit]:00}");
-                    });
-                    Trace.WriteLine($"");
-                });
-            }
-        }
-
-        [TestMethod]
-        public void CalcAllTablesPBN()
-        {
-            var deal1 = new Deal("N:954.QJT3.AJT.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.KQ97.T432");
+            var deal1 = new Deal("N:954.QJT3.AJT.QJ6 KJT2.87.5.AK9875 AQ86.K9654.8643. 73.A2.KQ972.T432");
             var deal2 = new Deal("N:954.QJT3.AKJ.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.QT97.T432");
             var deal3 = new Deal("N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432");
 
@@ -62,7 +33,7 @@ namespace Tests
                     return ddsWrapper.PossibleTricks(new List<Deal> { deal1, deal2, deal3 }, []);
                 }, out var elapsedTime, 10);
 
-            Trace.WriteLine($"1 call took {elapsedTime.TotalMilliseconds/10:F2} ms");
+            Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
             foreach (var deal in result)
             {
                 Trace.WriteLine("       C  D  H  S  NT");
