@@ -20,8 +20,8 @@ namespace Tests
         {
             Profiler.Time(() =>
             {
-                return 0;
-            }, 100000);
+            }, out var elapsedTime, 100000);
+            Assert.IsTrue(elapsedTime.TotalMilliseconds > 0 && elapsedTime.TotalMilliseconds < 1);
         }
     }
 }

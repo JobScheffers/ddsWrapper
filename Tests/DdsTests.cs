@@ -15,7 +15,8 @@ namespace Tests
                 Profiler.Time(() =>
                 {
                     return ddsWrapper.SolveBoard(new GameState { Trump = Suit.Hearts, TrickLeader = Hand.East, RemainingCards = new Deal(gamestate3), TrickCards = [new Card { Suit = Suit.Diamonds, Rank = Rank.Five }] });
-                }, 100);
+                }, out var elapsedTime, 100);
+            Trace.WriteLine($"1 call took {elapsedTime.TotalMilliseconds/100:F2} ms");
             Assert.AreEqual(11, result[0].Tricks);
         }
 
@@ -30,8 +31,9 @@ namespace Tests
                 Profiler.Time(() =>
                 {
                     return ddsWrapper.PossibleTricks(new List<Deal> { deal1, deal2, deal3 }, []);
-                });
+                }, out var elapsedTime);
 
+            Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
             foreach (var deal in result)
             {
                 Trace.WriteLine("       C  D  H  S  NT");
@@ -58,8 +60,9 @@ namespace Tests
                 Profiler.Time(() =>
                 {
                     return ddsWrapper.PossibleTricks(new List<Deal> { deal1, deal2, deal3 }, []);
-                }, 10);
+                }, out var elapsedTime, 10);
 
+            Trace.WriteLine($"1 call took {elapsedTime.TotalMilliseconds/10:F2} ms");
             foreach (var deal in result)
             {
                 Trace.WriteLine("       C  D  H  S  NT");
@@ -89,8 +92,9 @@ namespace Tests
                 Profiler.Time(() =>
                 {
                     return ddsWrapper.PossibleTricks(deal);
-                });
+                }, out var elapsedTime);
 
+            Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
             Trace.WriteLine(deal);
             Trace.WriteLine("       C  D  H  S  NT");
             DdsEnum.ForEachHand(seat =>

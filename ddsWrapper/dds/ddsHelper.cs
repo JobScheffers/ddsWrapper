@@ -323,19 +323,74 @@ namespace DDS
 
     public static class Profiler
     {
-        public static T Time<T>(Func<T> toDo, int repetitions = 1)
+        public static T Time<T>(Func<T> toDo, out TimeSpan elapsedTime, int repetitions = 1)
         {
-            var startTime = Stopwatch.GetTimestamp();
+            var startTime = GetStartTime();
             var result = toDo();
             for (int i = 1; i < repetitions; i++) toDo();
+            elapsedTime = GetElapsedTime(startTime);
+            return result;
+        }
+
+        public static T DebugTime<T>(Func<T> toDo, out TimeSpan elapsedTime, int repetitions = 1)
+        {
+#if !DEBUG
+            elapsedTime = TimeSpan.FromTicks(0);
+#endif
+            return
+#if DEBUG
+                Time(() =>
+                {
+                    return
+#endif
+                        toDo();
+#if DEBUG
+                }, out elapsedTime, repetitions);
+#endif
+        }
+
+        public static void Time(Action toDo, out TimeSpan elapsedTime, int repetitions = 1)
+        {
+            Time<int>(() =>
+            {
+                toDo();
+                return 0;
+            }, out elapsedTime, repetitions);
+        }
+
+        /// <summary>
+        /// Only when in DEBUG mode
+        /// </summary>
+        /// <param name="toDo"></param>
+        /// <param name="elapsedTime"></param>
+        /// <param name="repetitions"></param>
+        public static void DebugTime(Action toDo, out TimeSpan elapsedTime, int repetitions = 1)
+        {
+#if DEBUG
+            Time(() =>
+            {
+#else
+            elapsedTime = TimeSpan.FromTicks(0);
+#endif
+            toDo();
+#if DEBUG
+            }, out elapsedTime, repetitions);
+#endif
+        }
+
+        public static long GetStartTime()
+        {
+            return Stopwatch.GetTimestamp();
+        }
+
+        public static TimeSpan GetElapsedTime(long startTime)
+        {
 #if NET7_0_OR_GREATER
-            var elapsedTime = Stopwatch.GetElapsedTime(startTime);
+            return Stopwatch.GetElapsedTime(startTime);
 #else
             var stopTime = Stopwatch.GetTimestamp();
-            var elapsedTime = TimeSpan.FromTicks(stopTime - startTime);
+            return TimeSpan.FromTicks(stopTime - startTime);
 #endif
-            Trace.WriteLine($"Elapsed time: {elapsedTime.TotalMilliseconds} ms, avg= {(elapsedTime.TotalMilliseconds / repetitions) - 0.000002} ms");
-            return result;
         }
     }
 }
