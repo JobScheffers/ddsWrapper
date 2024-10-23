@@ -26,6 +26,13 @@ namespace DDS
             for (int i = 0; i < futureTricks.cards; i++)
             {
                 result.Add(new CardPotential { Tricks = futureTricks.score[i], Card = new Card { Suit = (Suit)futureTricks.suit[i], Rank = (Rank)futureTricks.rank[i] } });
+                DdsEnum.ForEachRank(rank =>
+                {
+                    if ((futureTricks.equals[i] & ((uint)(2 << ((int)rank) - 1))) > 0)
+                    {
+                        result.Add(new CardPotential { Tricks = futureTricks.score[i], Card = new Card { Suit = (Suit)futureTricks.suit[i], Rank = rank } });
+                    }
+                });
             }
             return result;
         }
