@@ -7,6 +7,27 @@ namespace Tests
     public class DdsTests
     {
         [TestMethod]
+        public void SolveBoard1()
+        {
+            //         s T9
+            //         h 2
+            //         d 732
+            //         c T
+            //s               s 
+            //h A874          h JT5
+            //d K9            d T4
+            //c               c J4
+            //         s 54
+            //         h 
+            //         d 
+            //         c A9862
+            string cards = "N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9.";
+
+            var result = ddsWrapper.SolveBoard(new GameState { Trump = Suit.Spades, TrickLeader = Hand.West, RemainingCards = new Deal(cards), TrickCards = [new Card { Suit = Suit.Hearts, Rank = Rank.King }] });
+            Assert.AreEqual(7, result[0].Tricks);
+        }
+
+        [TestMethod]
         public void SolveBoard()
         {
             string gamestate3 = "N:K95.QJT3.AKJ.AQJ JT42.87..K98765 AQ86.K652.86432. 73.A94.QT97.T432";

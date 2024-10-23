@@ -10,13 +10,13 @@ namespace DDS
             // -1 means that the program shall find the maximum number.
             // For equivalent  cards only the highest is returned.
             // target=1-13, solutions=1:  Returns only one of the cards. 
-            // Its returned score is the same as target whentarget or higher tricks can be won. 
+            // Its returned score is the same as target when target or higher tricks can be won. 
             // Otherwise, score –1 is returned if target cannot be reached, or score 0 if no tricks can be won. 
             // target=-1, solutions=1:  Returns only one of the optimum cards and its score.
             var deal = new dealPBN(state.Trump, state.TrickLeader, state.TrickCards.ToArray(), state.RemainingCards.ToPBN());
             int target = -1;
-            int solutions = 3;
-            int mode = 0;
+            int solutions = 2;
+            int mode = 1;
             int threadIndex = 0;
             var futureTricks = new FutureTricks();
             var hresult = ddsImports.SolveBoardPBN(deal, target, solutions, mode, ref futureTricks, threadIndex);
@@ -92,8 +92,10 @@ namespace DDS
                 case 1: return;     // no fault
                 case -1: throw new Exception("dds unknown fault");
                 case -2: throw new Exception("dds SolveBoard: 0 cards");
+                case -4: throw new Exception("dds SolveBoard: duplicate cards");
                 case -10: throw new Exception("dds SolveBoard: too many cards");
                 case -12: throw new Exception("dds SolveBoard: either currentTrickSuit or currentTrickRank have wrong data");
+                case -14: throw new Exception("dds SolveBoard: wrong number of remaining cards for a hand.");
                 case -201: throw new Exception("dds CalcAllTables: the denomination filter vector has no entries");
                 default: throw new Exception($"dds undocumented fault {returnCode}");
             }
