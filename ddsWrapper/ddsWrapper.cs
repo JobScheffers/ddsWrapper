@@ -95,7 +95,7 @@ namespace DDS
                 case -10: throw new Exception("dds SolveBoard: too many cards");
                 case -12: throw new Exception("dds SolveBoard: either currentTrickSuit or currentTrickRank have wrong data");
                 case -201: throw new Exception("dds CalcAllTables: the denomination filter vector has no entries");
-                default: throw new Exception("dds undocumented fault");
+                default: throw new Exception($"dds undocumented fault {returnCode}");
             }
         }
 

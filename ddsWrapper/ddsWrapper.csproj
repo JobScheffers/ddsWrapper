@@ -7,7 +7,11 @@
     <Nullable>enable</Nullable>
 		<PackageProjectUrl>https://github.com/JobScheffers/ddsWrapper</PackageProjectUrl>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<!--
+		The version is set in the dotnet.yml build pipeline
+		
 		<Version>1.0.7</Version>
+		-->
 	</PropertyGroup>
 
   <ItemGroup>
