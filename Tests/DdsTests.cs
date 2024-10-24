@@ -6,6 +6,28 @@ namespace Tests
     [TestClass]
     public class DdsTests
     {
+
+        [TestMethod]
+        public void SolveBoard2()
+        {
+            //         s JT984
+            //         h T7
+            //         d AQ83
+            //         c 4
+            //s A6            s Q7532
+            //h K964          h 82
+            //d T65           d 97
+            //c Q96           c 832
+            //         s K
+            //         h AQJ53
+            //         d KJ42
+            //         c AK
+            string cards = "N:JT984.T7.AQ83.4 Q7532.82.97.832 K.AQJ53.KJ42.AK A6.K964.T65.Q96";
+
+            var result = ddsWrapper.SolveBoard(new GameState { Trump = Suit.Hearts, TrickLeader = Hand.South, RemainingCards = new Deal(cards), TrickCards = [] });
+            Assert.AreEqual(11, result.Count);
+        }
+
         [TestMethod]
         public void SolveBoard1()
         {
