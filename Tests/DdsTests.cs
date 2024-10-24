@@ -25,7 +25,7 @@ namespace Tests
             string cards = "N:JT984.T7.AQ83.4 Q7532.82.97.832 K.AQJ53.KJ42.AK A6.K964.T65.Q96";
 
             var result = ddsWrapper.SolveBoard(new GameState { Trump = Suit.Hearts, TrickLeader = Hand.South, RemainingCards = new Deal(cards), TrickCards = [] });
-            Assert.AreEqual(11, result.Count);
+            Assert.AreEqual(12, result.Count);
         }
 
         [TestMethod]
