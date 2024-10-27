@@ -17,7 +17,8 @@ namespace DDS
     {
         public Card Card { get; set; }
         public int Tricks { get; set; }
-        public override string ToString() => $"{Card.ToString()}:{Tricks.ToString()}";
+        public bool IsPrimary { get; set; }
+        public override string ToString() => $"{Card.ToString()}:{Tricks.ToString()}{(IsPrimary ? " p" : "")}";
     }
 
     public struct SuitCollection<T>
