@@ -10,6 +10,7 @@ namespace DDS
         public Hand TrickLeader { get; set; }
         public List<Card> TrickCards { get; set; }
 
+        [DebuggerStepThrough]
         public GameState() { TrickCards = []; }
     }
 
@@ -98,6 +99,7 @@ namespace DDS
             }
         }
 
+        [DebuggerStepThrough]
         public Deal(string pbnDeal)
         {
             var hands = pbnDeal.Substring(2).Split(' ');
@@ -241,6 +243,7 @@ namespace DDS
             toDo(Rank.Two);
         }
 
+        [DebuggerStepThrough]
         public static Hand HandFromPbn(Char hand)
         {
             switch (Char.ToUpper(hand))
@@ -253,6 +256,7 @@ namespace DDS
             }
         }
 
+        [DebuggerStepThrough]
         public static Hand NextHandPbn(Hand hand)
         {
             switch (hand)
@@ -265,6 +269,7 @@ namespace DDS
             }
         }
 
+        [DebuggerStepThrough]
         public static Suit SuitFromPbn(int relativeSuit)
         {
             switch (relativeSuit)
@@ -277,6 +282,7 @@ namespace DDS
             }
         }
 
+        [DebuggerStepThrough]
         public static Rank RankFromPbn(Char rank)
         {
             switch (Char.ToUpper(rank))

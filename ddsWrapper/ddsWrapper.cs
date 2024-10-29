@@ -1,9 +1,10 @@
-﻿using System.Diagnostics;
-
-namespace DDS
+﻿namespace DDS
 {
     public static class ddsWrapper
     {
+        private static readonly object locker = new object();
+        private static readonly bool[] threadOccupied = new bool[16];
+
         public static List<CardPotential> SolveBoard(GameState state)
         {
             // Parameter ”target” is the number of tricks to be won by the side to play, 
@@ -13,16 +14,26 @@ namespace DDS
             // Its returned score is the same as target when target or higher tricks can be won. 
             // Otherwise, score –1 is returned if target cannot be reached, or score 0 if no tricks can be won. 
             // target=-1, solutions=1:  Returns only one of the optimum cards and its score.
+            var result = new List<CardPotential>();
             var deal = new dealPBN(state.Trump, state.TrickLeader, state.TrickCards.ToArray(), state.RemainingCards.ToPBN());
             int target = -1;
             int solutions = 2;
             int mode = 1;
-            int threadIndex = 0;
             var futureTricks = new FutureTricks();
-            var hresult = ddsImports.SolveBoardPBN(deal, target, solutions, mode, ref futureTricks, threadIndex);
+
+            var threadIndex = GetThreadIndex();
+            var hresult = 0;
+            try
+            {
+                hresult = ddsImports.SolveBoardPBN(deal, target, solutions, mode, ref futureTricks, threadIndex);
+            }
+            finally
+            {
+                ReleaseThreadIndex(threadIndex);
+            }
+
             Inspect(hresult);
 
-            var result = new List<CardPotential>();
             for (int i = 0; i < futureTricks.cards; i++)
             {
                 result.Add(new CardPotential { Tricks = futureTricks.score[i], Card = new Card { Suit = (Suit)futureTricks.suit[i], Rank = (Rank)futureTricks.rank[i] }, IsPrimary = futureTricks.equals[i] == 0 });
@@ -37,6 +48,34 @@ namespace DDS
                 });
             }
             return result;
+
+            int GetThreadIndex()
+            {
+                while (true)
+                {
+                    lock (locker)
+                    {
+                        for (int i = 0; i < 16; i++)
+                        {
+                            if (!threadOccupied[i])
+                            {
+                                threadOccupied[i] = true;
+                                return i;
+                            }
+                        }
+                    }
+
+                    Thread.Sleep(50);
+                }
+            }
+
+            void ReleaseThreadIndex(int threadIndex)
+            {
+                lock (locker)
+                {
+                    threadOccupied[threadIndex] = false;
+                }
+            }
         }
 
         public static TableResults PossibleTricks(string pbn)

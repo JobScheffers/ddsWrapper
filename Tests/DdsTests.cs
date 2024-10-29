@@ -8,6 +8,38 @@ namespace Tests
     {
 
         [TestMethod]
+        public void SolveBoard_From_Multiple_Threads()
+        {
+            Parallel.For(1, 1000, i =>
+            {
+                SolveBoard3();
+            });
+        }
+
+        [TestMethod]
+        public void SolveBoard3()
+        {
+            //         s 9
+            //         h
+            //         d 85432
+            //         c QJ9
+            //s AKQT63        s 754
+            //h 5             h JT73
+            //d               d KT
+            //c 8             c
+            //         s J82
+            //         h KQ6
+            //         d QJ
+            //         c 6
+            string cards = "N:9..85432.QJ9 754.JT73.KT. J82.KQ6.QJ.6 AKQT63.5..8";
+
+            var result = ddsWrapper.SolveBoard(new GameState { Trump = Suit.Spades, TrickLeader = Hand.West, RemainingCards = new Deal(cards), TrickCards = [new Card { Suit = Suit.Clubs, Rank = Rank.Seven }] });
+            Assert.AreEqual(3, result.Count);
+            Assert.IsFalse(result[0].IsPrimary);
+            Assert.IsTrue(result[1].IsPrimary);
+        }
+
+        [TestMethod]
         public void SolveBoard2()
         {
             //         s JT984
