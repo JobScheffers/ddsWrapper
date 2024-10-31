@@ -21,8 +21,9 @@
             int mode = 1;
             var futureTricks = new FutureTricks();
 
-            var threadIndex = GetThreadIndex();
             var hresult = 0;
+            var threadIndex = GetThreadIndex();
+            if (threadIndex < 0 || threadIndex > 15) throw new ArgumentOutOfRangeException("threadIndex", $"threadIndex={threadIndex}");
             try
             {
                 hresult = ddsImports.SolveBoardPBN(deal, target, solutions, mode, ref futureTricks, threadIndex);
@@ -143,7 +144,8 @@
                 case -4: throw new Exception("dds SolveBoard: duplicate cards");
                 case -10: throw new Exception("dds SolveBoard: too many cards");
                 case -12: throw new Exception("dds SolveBoard: either currentTrickSuit or currentTrickRank have wrong data");
-                case -14: throw new Exception("dds SolveBoard: wrong number of remaining cards for a hand.");
+                case -14: throw new Exception("dds SolveBoard: wrong number of remaining cards for a hand");
+                case -15: throw new Exception("dds SolveBoard: thread number is less than 0 or higher than the maximum permitted");
                 case -201: throw new Exception("dds CalcAllTables: the denomination filter vector has no entries");
                 default: throw new Exception($"dds undocumented fault {returnCode}");
             }
