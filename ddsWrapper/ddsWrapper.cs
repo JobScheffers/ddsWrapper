@@ -41,7 +41,7 @@
             {
                 result.Add(new CardPotential { Tricks = futureTricks.score[i], Card = new Card { Suit = (Suit)futureTricks.suit[i], Rank = (Rank)futureTricks.rank[i] }, IsPrimary = futureTricks.equals[i] == 0 });
                 var firstEqual = true;
-                for (Rank rank = Rank.Ace; rank >= Rank.Two; rank--)
+                for (Rank rank = Rank.Two; rank <= Rank.Ace; rank++)
                 {
                     if ((futureTricks.equals[i] & ((uint)(2 << ((int)rank) - 1))) > 0)
                     {
@@ -89,9 +89,9 @@
             Inspect(hresult);
 
             TableResults result;
-            for (int hand = 0; hand < 4; hand++)
+            for (Hand hand = Hand.North; hand <= Hand.West; hand++)
             {
-                for (int suit = 0; suit <= 4; suit++)
+                for (Suit suit = Suit.Spades; suit <= Suit.NT; suit++)
                 {
                     result[hand, suit] = results[hand, suit];
                 };
@@ -113,9 +113,9 @@
             for (int deal = 0; deal < deals.Count; deal++)
             {
                 TableResults tableResult;
-                for (int hand = 0; hand < 4; hand++)
+                for (Hand hand = Hand.North; hand <= Hand.West; hand++)
                 {
-                    for (int suit = 0; suit <= 4; suit++)
+                    for (Suit suit = Suit.Spades; suit <= Suit.NT; suit++)
                     {
                         tableResult[hand, suit] = (results.results[deal])[hand, suit];
                     };
