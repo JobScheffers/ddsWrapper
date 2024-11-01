@@ -23,7 +23,7 @@
 
             var hresult = 0;
             var threadIndex = GetThreadIndex();
-            if (threadIndex < 0 || threadIndex > 15) throw new ArgumentOutOfRangeException("threadIndex", $"threadIndex={threadIndex}");
+            //if (threadIndex < 0 || threadIndex >= ddsImports.MaxThreads) throw new ArgumentOutOfRangeException("threadIndex", $"threadIndex={threadIndex}");
             try
             {
                 hresult = ddsImports.SolveBoardPBN(deal, target, solutions, mode, ref futureTricks, threadIndex);
@@ -56,7 +56,7 @@
                 {
                     lock (locker)
                     {
-                        for (int i = 0; i < 16; i++)
+                        for (int i = 0; i < ddsImports.MaxThreads; i++)
                         {
                             if (!threadOccupied[i])
                             {
@@ -136,6 +136,9 @@
 
         private static void Inspect(int returnCode)
         {
+            if (returnCode == 1) return;
+            //throw new Exception(Error(returnCode));
+
             switch (returnCode)
             {
                 case 1: return;     // no fault
@@ -149,6 +152,14 @@
                 case -201: throw new Exception("dds CalcAllTables: the denomination filter vector has no entries");
                 default: throw new Exception($"dds undocumented fault {returnCode}");
             }
+        }
+
+        public static string Error(int returnCode)
+        {
+            if (returnCode == 1) return "";
+            var error = new Char[80];
+            ddsImports.ErrorMessage(returnCode, error);
+            return new string(error);
         }
 
         #region converters

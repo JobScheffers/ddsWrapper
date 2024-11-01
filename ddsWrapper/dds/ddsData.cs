@@ -183,6 +183,62 @@ namespace DDS
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    internal struct DDSInfo
+    {
+        public int major, minor, patch;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 10)]
+        public string versionString;
+
+        // Currently 0 = unknown, 1 = Windows, 2 = Cygwin, 3 = Linux, 4 = Apple
+        public int system;
+
+        // We know 32 and 64-bit systems.
+        public int numBits;
+
+        // Currently 0 = unknown, 1 = Microsoft Visual C++, 2 = mingw,
+        // 3 = GNU g++, 4 = clang
+        public int compiler;
+
+        // Currently 0 = none, 1 = DllMain, 2 = Unix-style
+        public int constructor;
+
+        public int numCores;
+
+        // Currently 
+        // 0 = none, 
+        // 1 = Windows (native), 
+        // 2 = OpenMP, 
+        // 3 = GCD,
+        // 4 = Boost,
+        // 5 = STL,
+        // 6 = TBB,
+        // 7 = STLIMPL (for_each), experimental only
+        // 8 = PPLIMPL (for_each), experimental only
+        public int threading;
+
+        // The actual number of threads configured
+        public int noOfThreads;
+
+        // This will break if there are > 128 threads...
+        // The string is of the form LLLSSS meaning 3 large TT memories
+        // and 3 small ones.
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+        public string threadSizes;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1024)]
+        public string systemString;
+    }
+
+    /*
+struct DDSInfo
+{
+  // Version 2.8.0 has 2, 8, 0 and a string of 2.8.0
+  int major, minor, patch; 
+  char versionString[10];
+};
+     * */
+    [StructLayout(LayoutKind.Sequential)]
     internal struct FutureTricks
     {
         /// <summary>

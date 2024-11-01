@@ -7,6 +7,7 @@ namespace DDS
         public const int ddsMaxNumberOfBoards = 200;
         public const int ddsStrains = 5;
         public const string dllPath = "dds8a.dll";
+        public static readonly int MaxThreads;
 
         [DllImport(dllPath)]
         public static extern int CalcDDtablePBN(ddTableDealPBN tableDealPbn, ref ddTableResults tablep);
@@ -37,9 +38,21 @@ namespace DDS
         [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern int DealerPar(ref ddTableResults tablep, ref parResultsDealer presp, int dealer, int vulnerable);
 
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetMaxThreads(int userThreads);
+
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void GetDDSInfo(ref DDSInfo info);
+
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ErrorMessage(int code, Char[] line);
+
         static ddsImports()
         {
             ResourceExtractor.ExtractResourceToFile("ddsWrapper.dds.dds.dll", dllPath);
+            DDSInfo info = new DDSInfo();
+            GetDDSInfo(ref info);
+            MaxThreads = info.noOfThreads;
         }
     }
 
