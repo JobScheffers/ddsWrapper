@@ -24,7 +24,12 @@ namespace DDS
 
         public int this[Hand hand, Suit suit]
         {
-            get { return resTable[4 * (int)suit + (int)hand]; }
+            get { return this[(int)hand, (int)suit]; }
+        }
+
+        public int this[int hand, int suit]
+        {
+            get { return resTable[4 * suit + hand]; }
         }
     }
 
@@ -167,7 +172,7 @@ namespace DDS
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
         public string remainCards;
 
-        public dealPBN(Suit _trump, Hand trickLeader, Card[] currentTrick, string remainingCards)
+        public dealPBN(Suit _trump, Hand trickLeader, ref readonly Card[] currentTrick, ref readonly string remainingCards)
         {
             trump = (int)_trump;
             first = (int)trickLeader;

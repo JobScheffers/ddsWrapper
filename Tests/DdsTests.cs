@@ -33,7 +33,8 @@ namespace Tests
             //         c 6
             string cards = "N:9..85432.QJ9 754.JT73.KT. J82.KQ6.QJ.6 AKQT63.5..8";
 
-            var result = ddsWrapper.SolveBoard(new GameState { Trump = Suit.Spades, TrickLeader = Hand.West, RemainingCards = new Deal(cards), TrickCards = [new Card { Suit = Suit.Clubs, Rank = Rank.Seven }] });
+            var state = new GameState { Trump = Suit.Spades, TrickLeader = Hand.West, RemainingCards = new Deal(ref cards), TrickCards = [new Card { Suit = Suit.Clubs, Rank = Rank.Seven }] };
+            var result = ddsWrapper.SolveBoard(ref state);
             Assert.AreEqual(3, result.Count);
             Assert.IsFalse(result[0].IsPrimary);
             Assert.IsTrue(result[1].IsPrimary);
@@ -56,7 +57,8 @@ namespace Tests
             //         c AK
             string cards = "N:JT984.T7.AQ83.4 Q7532.82.97.832 K.AQJ53.KJ42.AK A6.K964.T65.Q96";
 
-            var result = ddsWrapper.SolveBoard(new GameState { Trump = Suit.Hearts, TrickLeader = Hand.South, RemainingCards = new Deal(cards), TrickCards = [] });
+            var state = new GameState { Trump = Suit.Hearts, TrickLeader = Hand.South, RemainingCards = new Deal(ref cards), TrickCards = [] };
+            var result = ddsWrapper.SolveBoard(ref state);
             Assert.AreEqual(12, result.Count);
         }
 
@@ -77,7 +79,8 @@ namespace Tests
             //         c A9862
             string cards = "N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9.";
 
-            var result = ddsWrapper.SolveBoard(new GameState { Trump = Suit.Spades, TrickLeader = Hand.West, RemainingCards = new Deal(cards), TrickCards = [new Card { Suit = Suit.Hearts, Rank = Rank.King }] });
+            var state = new GameState { Trump = Suit.Spades, TrickLeader = Hand.West, RemainingCards = new Deal(ref cards), TrickCards = [new Card { Suit = Suit.Hearts, Rank = Rank.King }] };
+            var result = ddsWrapper.SolveBoard(ref state);
             Assert.AreEqual(7, result[0].Tricks);
         }
 
@@ -85,11 +88,12 @@ namespace Tests
         public void SolveBoard()
         {
             string gamestate3 = "N:K95.QJT3.AKJ.AQJ JT42.87..K98765 AQ86.K652.86432. 73.A94.QT97.T432";
+            var state = new GameState { Trump = Suit.Hearts, TrickLeader = Hand.East, RemainingCards = new Deal(ref gamestate3), TrickCards = [new Card { Suit = Suit.Diamonds, Rank = Rank.Five }] };
 
             var result =
                 Profiler.Time(() =>
                 {
-                    return ddsWrapper.SolveBoard(new GameState { Trump = Suit.Hearts, TrickLeader = Hand.East, RemainingCards = new Deal(gamestate3), TrickCards = [new Card { Suit = Suit.Diamonds, Rank = Rank.Five }] });
+                    return ddsWrapper.SolveBoard(ref state);
                 }, out var elapsedTime, 100);
             Trace.WriteLine($"1 call took {elapsedTime.TotalMilliseconds/100:F2} ms");
             Assert.AreEqual(11, result[0].Tricks);

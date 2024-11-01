@@ -5,7 +5,7 @@
         private static readonly object locker = new object();
         private static readonly bool[] threadOccupied = new bool[16];
 
-        public static List<CardPotential> SolveBoard(GameState state)
+        public static List<CardPotential> SolveBoard(ref readonly GameState state)
         {
             // Parameter ”target” is the number of tricks to be won by the side to play, 
             // -1 means that the program shall find the maximum number.
@@ -15,7 +15,9 @@
             // Otherwise, score –1 is returned if target cannot be reached, or score 0 if no tricks can be won. 
             // target=-1, solutions=1:  Returns only one of the optimum cards and its score.
             var result = new List<CardPotential>();
-            var deal = new dealPBN(state.Trump, state.TrickLeader, state.TrickCards.ToArray(), state.RemainingCards.ToPBN());
+            var trickCards = state.TrickCards.ToArray();
+            var cardsPBN = state.RemainingCards.ToPBN();
+            var deal = new dealPBN(state.Trump, state.TrickLeader, ref trickCards, ref cardsPBN);
             int target = -1;
             int solutions = 2;
             int mode = 1;
@@ -39,14 +41,14 @@
             {
                 result.Add(new CardPotential { Tricks = futureTricks.score[i], Card = new Card { Suit = (Suit)futureTricks.suit[i], Rank = (Rank)futureTricks.rank[i] }, IsPrimary = futureTricks.equals[i] == 0 });
                 var firstEqual = true;
-                DdsEnum.ForEachRank(rank =>
+                for (Rank rank = Rank.Ace; rank >= Rank.Two; rank--)
                 {
                     if ((futureTricks.equals[i] & ((uint)(2 << ((int)rank) - 1))) > 0)
                     {
                         result.Add(new CardPotential { Tricks = futureTricks.score[i], Card = new Card { Suit = (Suit)futureTricks.suit[i], Rank = rank }, IsPrimary = firstEqual });
                         firstEqual = false;
                     }
-                });
+                };
             }
             return result;
 
@@ -87,13 +89,13 @@
             Inspect(hresult);
 
             TableResults result;
-            DdsEnum.ForEachHand(hand =>
+            for (int hand = 0; hand < 4; hand++)
             {
-                DdsEnum.ForEachTrump(suit =>
+                for (int suit = 0; suit <= 4; suit++)
                 {
                     result[hand, suit] = results[hand, suit];
-                });
-            });
+                };
+            };
             return result;
         }
 
@@ -111,13 +113,13 @@
             for (int deal = 0; deal < deals.Count; deal++)
             {
                 TableResults tableResult;
-                DdsEnum.ForEachHand(hand =>
+                for (int hand = 0; hand < 4; hand++)
                 {
-                    DdsEnum.ForEachTrump(suit =>
+                    for (int suit = 0; suit <= 4; suit++)
                     {
                         tableResult[hand, suit] = (results.results[deal])[hand, suit];
-                    });
-                });
+                    };
+                };
                 result.Add(tableResult);
             }
 

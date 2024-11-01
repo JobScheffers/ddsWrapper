@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Text;
 
 namespace DDS
@@ -52,11 +53,23 @@ namespace DDS
         {
             get
             {
-                return data[4 * (int)suit + (int)hand];
+                return this[(int)hand, (int)suit];
             }
             set
             {
-                data[4 * (int)suit + (int)hand] = (byte)value;
+                this[(int)hand, (int)suit] = (byte)value;
+            }
+        }
+
+        public int this[int hand, int suit]
+        {
+            get
+            {
+                return data[4 * suit + hand];
+            }
+            set
+            {
+                data[4 * suit + hand] = (byte)value;
             }
         }
     }
@@ -100,16 +113,17 @@ namespace DDS
         }
 
         [DebuggerStepThrough]
-        public Deal(string pbnDeal)
+        public Deal(ref readonly string pbnDeal)
         {
-            var hands = pbnDeal.Substring(2).Split(' ');
+            var hands = pbnDeal[2..].Split2(' ');
             var hand = DdsEnum.HandFromPbn(pbnDeal[0]);
-            for (int i = 1; i <= 4; i++)
+            foreach (var handHolding in hands)
             {
-                var suits = hands[i - 1].Split('.');
-                for (int pbnSuit = 1; pbnSuit <= 4; pbnSuit++)
+                var suits = handHolding.Line.Split2('.');
+                int pbnSuit = 1;
+                foreach (var suitHolding in suits)
                 {
-                    var suitCards = suits[pbnSuit - 1];
+                    var suitCards = suitHolding.Line;
                     var suitLength = suitCards.Length;
                     var suit = DdsEnum.SuitFromPbn(pbnSuit);
                     for (int r = 0; r < suitLength; r++)
@@ -117,6 +131,7 @@ namespace DDS
                         var rank = DdsEnum.RankFromPbn(suitCards[r]);
                         this[hand, suit, rank] = true;
                     }
+                    pbnSuit++;
                 }
 
                 hand = DdsEnum.NextHandPbn(hand);
@@ -125,26 +140,25 @@ namespace DDS
 
         public string ToPBN()
         {
-            var localData = this;       // needed because of the delegates
             var result = new StringBuilder(70);
             result.Append("N:");
-            DdsEnum.ForEachHand(hand =>
+            for (Hand hand = Hand.North; hand <= Hand.West; hand++)
             {
-                DdsEnum.ForEachSuitPbn(suit =>
+                for (Suit suit = Suit.Spades; suit <= Suit.Clubs; suit++)
                 {
-                    DdsEnum.ForEachRankPbn(rank =>
+                    for (Rank rank = Rank.Ace; rank >= Rank.Two; rank--)
                     {
-                        if (localData[hand, suit, rank])
+                        if (this[hand, suit, rank])
                         {
                             result.Append(DdsEnum.RankToPbn(rank));
                         }
-                    });
+                    };
 
                     if (suit != Suit.Clubs) result.Append(".");
-                });
+                };
 
                 if (hand != Hand.West) result.Append(" ");
-            });
+            };
 
             return result.ToString();
         }
@@ -217,7 +231,8 @@ namespace DDS
         [DebuggerStepThrough]
         public static void ForEachRank(Action<Rank> toDo)
         {
-            foreach (Rank rank in Enum.GetValues(typeof(Rank))) toDo(rank);
+            //foreach (Rank rank in Enum.GetValues(typeof(Rank))) toDo(rank);
+            ForEachRankPbn(toDo);
         }
 
         /// <summary>
@@ -325,6 +340,82 @@ namespace DDS
                 case Rank.Two: return "2";
                 default: throw new ArgumentOutOfRangeException(nameof(rank), $"unknown {rank}");
             }
+        }
+
+        public static LineSplitEnumerator Split2(this string str, char splitter)
+        {
+            // LineSplitEnumerator is a struct so there is no allocation here
+            return new LineSplitEnumerator(str.AsSpan(), splitter);
+        }
+
+        public static LineSplitEnumerator Split2(this ReadOnlySpan<char> str, char splitter)
+        {
+            // LineSplitEnumerator is a struct so there is no allocation here
+            return new LineSplitEnumerator(str, splitter);
+        }
+
+        // Must be a ref struct as it contains a ReadOnlySpan<char>
+        public ref struct LineSplitEnumerator
+        {
+            private ReadOnlySpan<char> _str;
+            private readonly char _splitter;
+
+            public LineSplitEnumerator(ReadOnlySpan<char> str, char splitter)
+            {
+                _str = str;
+                _splitter = splitter;
+                Current = default;
+            }
+
+            // Needed to be compatible with the foreach operator
+            public LineSplitEnumerator GetEnumerator() => this;
+
+            public bool MoveNext()
+            {
+                var span = _str;
+                if (span.Length == 0) // Reach the end of the string
+                    return false;
+
+                var index = span.IndexOf(_splitter);
+                if (index == -1) // The string is composed of only one line
+                {
+                    _str = ReadOnlySpan<char>.Empty; // The remaining string is an empty string
+                    Current = new LineSplitEntry(span, ReadOnlySpan<char>.Empty);
+                    return true;
+                }
+
+                Current = new LineSplitEntry(span.Slice(0, index), span.Slice(index, 1));
+                _str = span.Slice(index + 1);
+                return true;
+            }
+
+            public LineSplitEntry Current { get; private set; }
+        }
+
+        public readonly ref struct LineSplitEntry
+        {
+            public LineSplitEntry(ReadOnlySpan<char> line, ReadOnlySpan<char> separator)
+            {
+                Line = line;
+                Separator = separator;
+            }
+
+            public ReadOnlySpan<char> Line { get; }
+            public ReadOnlySpan<char> Separator { get; }
+
+            // This method allow to deconstruct the type, so you can write any of the following code
+            // foreach (var entry in str.SplitLines()) { _ = entry.Line; }
+            // foreach (var (line, endOfLine) in str.SplitLines()) { _ = line; }
+            // https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/functional/deconstruct?WT.mc_id=DT-MVP-5003978#deconstructing-user-defined-types
+            public void Deconstruct(out ReadOnlySpan<char> line, out ReadOnlySpan<char> separator)
+            {
+                line = Line;
+                separator = Separator;
+            }
+
+            // This method allow to implicitly cast the type into a ReadOnlySpan<char>, so you can write the following code
+            // foreach (ReadOnlySpan<char> entry in str.SplitLines())
+            public static implicit operator ReadOnlySpan<char>(LineSplitEntry entry) => entry.Line;
         }
     }
 

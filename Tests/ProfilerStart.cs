@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.TestPlatform.TestHost
         public static void Main()
         {
             var tests = new DdsTests();
-            tests.CalcAllTables();
+            tests.SolveBoard_From_Multiple_Threads();
         }
     }
 }
