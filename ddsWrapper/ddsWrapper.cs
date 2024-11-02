@@ -16,8 +16,9 @@
             // target=-1, solutions=1:  Returns only one of the optimum cards and its score.
             var result = new List<CardPotential>();
             var trickCards = state.TrickCards.ToArray();
-            var cardsPBN = state.RemainingCards.ToPBN();
-            var deal = new dealPBN(state.Trump, state.TrickLeader, ref trickCards, ref cardsPBN);
+            //var cardsPBN = state.RemainingCards.ToPBN();
+            //var deal = new dealPBN(state.Trump, state.TrickLeader, ref trickCards, ref cardsPBN);
+            var deal = new deal(state.Trump, state.TrickLeader, ref trickCards, state.RemainingCards);
             int target = -1;
             int solutions = 2;
             int mode = 1;
@@ -25,10 +26,10 @@
 
             var hresult = 0;
             var threadIndex = GetThreadIndex();
-            //if (threadIndex < 0 || threadIndex >= ddsImports.MaxThreads) throw new ArgumentOutOfRangeException("threadIndex", $"threadIndex={threadIndex}");
             try
             {
-                hresult = ddsImports.SolveBoardPBN(deal, target, solutions, mode, ref futureTricks, threadIndex);
+                //hresult = ddsImports.SolveBoardPBN(deal, target, solutions, mode, ref futureTricks, threadIndex);
+                hresult = ddsImports.SolveBoard(deal, target, solutions, mode, ref futureTricks, threadIndex);
             }
             finally
             {
@@ -39,13 +40,13 @@
 
             for (int i = 0; i < futureTricks.cards; i++)
             {
-                result.Add(new CardPotential { Tricks = futureTricks.score[i], Card = new Card { Suit = (Suit)futureTricks.suit[i], Rank = (Rank)futureTricks.rank[i] }, IsPrimary = futureTricks.equals[i] == 0 });
+                result.Add(new CardPotential(new Card((Suit)futureTricks.suit[i], (Rank)futureTricks.rank[i]), futureTricks.score[i], futureTricks.equals[i] == 0));
                 var firstEqual = true;
                 for (Rank rank = Rank.Two; rank <= Rank.Ace; rank++)
                 {
                     if ((futureTricks.equals[i] & ((uint)(2 << ((int)rank) - 1))) > 0)
                     {
-                        result.Add(new CardPotential { Tricks = futureTricks.score[i], Card = new Card { Suit = (Suit)futureTricks.suit[i], Rank = rank }, IsPrimary = firstEqual });
+                        result.Add(new CardPotential(new Card((Suit)futureTricks.suit[i], rank), futureTricks.score[i], firstEqual));
                         firstEqual = false;
                     }
                 };
@@ -83,7 +84,7 @@
 
         public static TableResults PossibleTricks(string pbn)
         {
-            var deal = new ddTableDealPBN { cards = pbn };
+            var deal = new ddTableDealPBN(pbn);
             var results = new ddTableResults();
             var hresult = ddsImports.CalcDDtablePBN(deal, ref results);
             Inspect(hresult);

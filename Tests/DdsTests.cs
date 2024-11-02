@@ -32,8 +32,8 @@ namespace Tests
             //         d QJ
             //         c 6
             string cards = "N:9..85432.QJ9 754.JT73.KT. J82.KQ6.QJ.6 AKQT63.5..8";
-
-            var state = new GameState { Trump = Suit.Spades, TrickLeader = Hand.West, RemainingCards = new Deal(ref cards), TrickCards = [new Card { Suit = Suit.Clubs, Rank = Rank.Seven }] };
+            var deal = new Deal(ref cards);
+            var state = new GameState(in deal, Suit.Spades, Hand.West, [ new Card(Suit.Clubs, Rank.Seven) ] );
             var result = ddsWrapper.SolveBoard(ref state);
             Assert.AreEqual(3, result.Count);
             Assert.IsFalse(result[0].IsPrimary);
@@ -56,8 +56,8 @@ namespace Tests
             //         d KJ42
             //         c AK
             string cards = "N:JT984.T7.AQ83.4 Q7532.82.97.832 K.AQJ53.KJ42.AK A6.K964.T65.Q96";
-
-            var state = new GameState { Trump = Suit.Hearts, TrickLeader = Hand.South, RemainingCards = new Deal(ref cards), TrickCards = [] };
+            var deal = new Deal(ref cards);
+            var state = new GameState(in deal, Suit.Hearts, Hand.South);
             var result = ddsWrapper.SolveBoard(ref state);
             Assert.AreEqual(12, result.Count);
         }
@@ -78,8 +78,8 @@ namespace Tests
             //         d 
             //         c A9862
             string cards = "N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9.";
-
-            var state = new GameState { Trump = Suit.Spades, TrickLeader = Hand.West, RemainingCards = new Deal(ref cards), TrickCards = [new Card { Suit = Suit.Hearts, Rank = Rank.King }] };
+            var deal = new Deal(ref cards);
+            var state = new GameState(in deal, Suit.Spades, Hand.West, [new Card(Suit.Hearts, Rank.King) ]);
             var result = ddsWrapper.SolveBoard(ref state);
             Assert.AreEqual(7, result[0].Tricks);
         }
@@ -87,12 +87,13 @@ namespace Tests
         [TestMethod]
         public void SolveBoard()
         {
-            string gamestate3 = "N:K95.QJT3.AKJ.AQJ JT42.87..K98765 AQ86.K652.86432. 73.A94.QT97.T432";
-            var state = new GameState { Trump = Suit.Hearts, TrickLeader = Hand.East, RemainingCards = new Deal(ref gamestate3), TrickCards = [new Card { Suit = Suit.Diamonds, Rank = Rank.Five }] };
+            string cards = "N:K95.QJT3.AKJ.AQJ JT42.87..K98765 AQ86.K652.86432. 73.A94.QT97.T432";
+            var deal = new Deal(ref cards);
 
             var result =
                 Profiler.Time(() =>
                 {
+                    var state = new GameState(in deal, Suit.Hearts, Hand.East, [new Card(Suit.Diamonds, Rank.Five) ]);
                     return ddsWrapper.SolveBoard(ref state);
                 }, out var elapsedTime, 100);
             Trace.WriteLine($"1 call took {elapsedTime.TotalMilliseconds/100:F2} ms");

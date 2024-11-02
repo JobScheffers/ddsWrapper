@@ -3,19 +3,19 @@
 namespace DDS
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal struct parResultsDealer
+    internal readonly ref struct parResultsDealer
     {
-        public int number;
-        public int score;
+        public readonly int number;
+        public readonly int score;
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 10)]
-        public string contracts;
+        public readonly string contracts;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ddTableResults
+    internal readonly struct ddTableResults
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
-        private int[] resTable;
+        private readonly int[] resTable;
 
         public ddTableResults()
         {
@@ -34,10 +34,10 @@ namespace DDS
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ddTableDealPBN
+    internal readonly struct ddTableDealPBN
     {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
-        public string cards;
+        public readonly string cards;
 
         public ddTableDealPBN(string hands)
         {
@@ -46,11 +46,11 @@ namespace DDS
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal class ddTableDealsPBN
+    internal readonly struct ddTableDealsPBN
     {
-        public int noOfTables;
+        public readonly int noOfTables;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains)]
-        public ddTableDealPBN[] deals;
+        public readonly ddTableDealPBN[] deals;
 
         public ddTableDealsPBN(List<string> hands)
         {
@@ -61,10 +61,10 @@ namespace DDS
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ddTableDeal
+    internal readonly struct ddTableDeal
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
-        public uint[,] cards;
+        public readonly uint[,] cards;
 
         public ddTableDeal(Deal deal)
         {
@@ -86,11 +86,11 @@ namespace DDS
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal class ddTableDeals
+    internal readonly struct ddTableDeals
     {
-        public int noOfTables;
+        public readonly int noOfTables;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains)]
-        public ddTableDeal[] tableDeals;
+        public readonly ddTableDeal[] tableDeals;
 
         public ddTableDeals(List<Deal> deals)
         {
@@ -101,11 +101,11 @@ namespace DDS
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ddTablesResult
+    internal readonly struct ddTablesResult
     {
-        public int noOfBoards;
+        public readonly int noOfBoards;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains)]
-        public ddTableResults[] results;
+        public readonly ddTableResults[] results;
 
         public ddTablesResult(int deals)
         {
@@ -116,12 +116,12 @@ namespace DDS
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct parResults
+    internal readonly struct parResults
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-        public parScore[] parScores;
+        public readonly parScore[] parScores;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-        public parContract[] parContracts;
+        public readonly parContract[] parContracts;
 
         public parResults()
         {
@@ -131,24 +131,24 @@ namespace DDS
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct parScore
+    internal readonly struct parScore
     {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 16)]
-        public string score;
+        public readonly string score;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct parContract
+    internal readonly struct parContract
     {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-        public string score;
+        public readonly string score;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct allParResults
+    internal readonly struct allParResults
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
-        public parResults[] results;
+        public readonly parResults[] results;
 
         public allParResults()
         {
@@ -157,20 +157,20 @@ namespace DDS
         }
     }
 
-    internal struct dealPBN
+    internal readonly struct dealPBN
     {
-        public int trump;
+        public readonly int trump;
 
-        public int first;
-
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-        public int[] currentTrickSuit;
+        public readonly int first;
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-        public int[] currentTrickRank;
+        public readonly int[] currentTrickSuit;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
+        public readonly int[] currentTrickRank;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
-        public string remainCards;
+        public readonly string remainCards;
 
         public dealPBN(Suit _trump, Hand trickLeader, ref readonly Card[] currentTrick, ref readonly string remainingCards)
         {
@@ -187,28 +187,72 @@ namespace DDS
         }
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct DDSInfo
+    internal readonly struct deal
     {
-        public int major, minor, patch;
+        public readonly int trump;
+
+        public readonly int first;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
+        public readonly int[] currentTrickSuit;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
+        public readonly int[] currentTrickRank;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
+        public readonly uint[,] remainCards;
+
+        public deal(Suit _trump, Hand trickLeader, ref readonly Card[] currentTrick, Deal remainingCards)
+        {
+            trump = (int)_trump;
+            first = (int)trickLeader;
+            remainCards = new uint[4,4];
+            for (Hand seat = Hand.North; seat <= Hand.West; seat++)
+            {
+                for (Suit suit = Suit.Spades; suit <= Suit.Clubs; suit++)
+                {
+                    for (Rank rank = Rank.Two; rank <= Rank.Ace; rank++)
+                    {
+                        if (remainingCards[seat, suit, rank])
+                        {
+                            remainCards[(int)(seat), (int)suit] |= (uint)(2 << ((int)rank) - 1);
+                        }
+                    }
+                }
+            }
+
+            currentTrickSuit = new int[3];
+            currentTrickRank = new int[3];
+            for (int i = 0; i < currentTrick.Length; i++)
+            {
+                currentTrickSuit[i] = (int)currentTrick[i].Suit;
+                currentTrickRank[i] = (int)currentTrick[i].Rank;
+            }
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal readonly struct DDSInfo
+    {
+        public readonly int major, minor, patch;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 10)]
-        public string versionString;
+        public readonly string versionString;
 
         // Currently 0 = unknown, 1 = Windows, 2 = Cygwin, 3 = Linux, 4 = Apple
-        public int system;
+        public readonly int system;
 
         // We know 32 and 64-bit systems.
-        public int numBits;
+        public readonly int numBits;
 
         // Currently 0 = unknown, 1 = Microsoft Visual C++, 2 = mingw,
         // 3 = GNU g++, 4 = clang
-        public int compiler;
+        public readonly int compiler;
 
         // Currently 0 = none, 1 = DllMain, 2 = Unix-style
-        public int constructor;
+        public readonly int constructor;
 
-        public int numCores;
+        public readonly int numCores;
 
         // Currently 
         // 0 = none, 
@@ -220,68 +264,60 @@ namespace DDS
         // 6 = TBB,
         // 7 = STLIMPL (for_each), experimental only
         // 8 = PPLIMPL (for_each), experimental only
-        public int threading;
+        public readonly int threading;
 
         // The actual number of threads configured
-        public int noOfThreads;
+        public readonly int noOfThreads;
 
         // This will break if there are > 128 threads...
         // The string is of the form LLLSSS meaning 3 large TT memories
         // and 3 small ones.
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-        public string threadSizes;
+        public readonly string threadSizes;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1024)]
-        public string systemString;
+        public readonly string systemString;
     }
 
-    /*
-struct DDSInfo
-{
-  // Version 2.8.0 has 2, 8, 0 and a string of 2.8.0
-  int major, minor, patch; 
-  char versionString[10];
-};
-     * */
     [StructLayout(LayoutKind.Sequential)]
-    internal struct FutureTricks
+    internal readonly ref struct FutureTricks
     {
         /// <summary>
         /// /* Number of searched nodes */
         /// </summary>
         [MarshalAs(UnmanagedType.I4)]
-        public int nodes;
+        public readonly int nodes;
 
         /// <summary>
         /// /*  No of alternative cards  */
         /// </summary>
         [MarshalAs(UnmanagedType.I4)]
-        public int cards;
+        public readonly int cards;
 
         /// <summary>
         /// /* 0=Spades, 1=Hearts, 2=Diamonds, 3=Clubs */
         /// </summary>
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
-        public int[] suit;
+        public readonly int[] suit;
 
         /// <summary>
         /// /* 2-14 for 2 through Ace */ 
         /// </summary>
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
-        public int[] rank;
+        public readonly int[] rank;
 
         /// <summary>
         /// /* Bit string of ranks for equivalent lower rank cards. The decimal value range between 4 (=2) and 8192 (King=rank 13). 
         ///  When there are several ”equals”, the value is the sum of each ”equal”. */
         /// </summary>
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
-        public int[] equals;
+        public readonly int[] equals;
 
         /// <summary>
         /// /* -1 indicates that target was not reached, otherwise target or max numbe of tricks */ 
         /// </summary>
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
-        public int[] score;
+        public readonly int[] score;
     }
 
     public enum Suit { Spades = 0, Hearts = 1, Diamonds = 2, Clubs = 3, NT = 4}
@@ -292,10 +328,12 @@ struct DDSInfo
 
     public enum Vulnerable { None = 0, Both = 1, NSonly = 2, EWonly = 3 }
 
-    public struct Card
+    public readonly struct Card
     {
-        public Suit Suit { get; set; }
-        public Rank Rank { get; set; }
+        public Suit Suit { get; }
+        public Rank Rank { get; }
+
+        public Card(Suit s, Rank r) { Suit = s; Rank = r; }
         public override string ToString() => $"{Suit.ToString()[0]}{(Rank < Rank.Ten ? ((int)Rank).ToString() : Rank.ToString()[0])}";
     }
 }

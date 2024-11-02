@@ -1,25 +1,35 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text;
 
 namespace DDS
 {
-    public struct GameState
+    public readonly ref struct GameState
     {
-        public Deal RemainingCards { get; set; }
-        public Suit Trump { get; set; }
-        public Hand TrickLeader { get; set; }
-        public List<Card> TrickCards { get; set; }
+        public Deal RemainingCards { get; }
+        public Suit Trump { get; }
+        public Hand TrickLeader { get; }
+        public List<Card> TrickCards { get; }
 
         [DebuggerStepThrough]
-        public GameState() { TrickCards = []; }
+        public GameState(ref readonly Deal remainingCards, Suit trump, Hand trickLeader) : this(in remainingCards, trump, trickLeader, []) { }
+
+        [DebuggerStepThrough]
+        public GameState(ref readonly Deal remainingCards, Suit trump, Hand trickLeader, List<Card> trickCards)
+        {
+            RemainingCards = remainingCards;
+            Trump = trump;
+            TrickLeader = trickLeader;
+            TrickCards = trickCards;
+        }
     }
 
-    public struct CardPotential
+    public readonly struct CardPotential
     {
-        public Card Card { get; set; }
-        public int Tricks { get; set; }
-        public bool IsPrimary { get; set; }
+        public Card Card { get; }
+        public int Tricks { get; }
+        public bool IsPrimary { get; }
+
+        public CardPotential(Card card, int tricks, bool isPrimary) { Card = card; Tricks = tricks; IsPrimary = isPrimary; }
         public override string ToString() => $"{Card.ToString()}:{Tricks.ToString()}{(IsPrimary ? " p" : "")}";
     }
 
@@ -115,8 +125,9 @@ namespace DDS
         [DebuggerStepThrough]
         public Deal(ref readonly string pbnDeal)
         {
+            var firstHand = pbnDeal[0];
             var hands = pbnDeal[2..].Split2(' ');
-            var hand = DdsEnum.HandFromPbn(pbnDeal[0]);
+            var hand = DdsEnum.HandFromPbn(in firstHand);
             foreach (var handHolding in hands)
             {
                 var suits = handHolding.Line.Split2('.');
@@ -128,7 +139,7 @@ namespace DDS
                     var suit = DdsEnum.SuitFromPbn(pbnSuit);
                     for (int r = 0; r < suitLength; r++)
                     {
-                        var rank = DdsEnum.RankFromPbn(suitCards[r]);
+                        var rank = DdsEnum.RankFromPbn(in suitCards[r]);
                         this[hand, suit, rank] = true;
                     }
                     pbnSuit++;
@@ -259,13 +270,17 @@ namespace DDS
         }
 
         [DebuggerStepThrough]
-        public static Hand HandFromPbn(Char hand)
+        public static Hand HandFromPbn(ref readonly Char hand)
         {
-            switch (Char.ToUpper(hand))
+            switch (hand)
             {
+                case 'n':
                 case 'N': return Hand.North;
+                case 'e':
                 case 'E': return Hand.East;
+                case 's':
                 case 'S': return Hand.South;
+                case 'w':
                 case 'W': return Hand.West;
                 default: throw new ArgumentOutOfRangeException(nameof(hand), $"unknown {hand}");
             }
@@ -298,16 +313,23 @@ namespace DDS
         }
 
         [DebuggerStepThrough]
-        public static Rank RankFromPbn(Char rank)
+        public static Rank RankFromPbn(ref readonly Char rank)
         {
-            switch (Char.ToUpper(rank))
+            switch (rank)
             {
+                case 'a':
                 case 'A': return Rank.Ace;
+                case 'k':
+                case 'h':
                 case 'H':
                 case 'K': return Rank.King;
+                case 'q':
                 case 'Q': return Rank.Queen;
+                case 'j':
+                case 'b':
                 case 'B':
                 case 'J': return Rank.Jack;
+                case 't':
                 case 'T': return Rank.Ten;
                 case '9': return Rank.Nine;
                 case '8': return Rank.Eight;

@@ -6,7 +6,7 @@ namespace DDS
     {
         public const int ddsMaxNumberOfBoards = 200;
         public const int ddsStrains = 5;
-        public const string dllPath = "dds8a.dll";
+        public const string dllPath = "dds.dll";
         public static readonly int MaxThreads;
 
         [DllImport(dllPath)]
@@ -29,6 +29,9 @@ namespace DDS
         [DllImport(dllPath)]
         public static extern int SolveBoardPBN(dealPBN dealPBN, int target, int solutions, int mode, ref FutureTricks futureTricks, int threadIndex);
 
+        [DllImport(dllPath)]
+        public static extern int SolveBoard(deal deal, int target, int solutions, int mode, ref FutureTricks futureTricks, int threadIndex);
+
         [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern int CalcAllTablesPBN(ddTableDealsPBN deals, int mode, int[] trumpFilter, ref ddTablesResult tableResults, ref allParResults parResults);
 
@@ -50,7 +53,7 @@ namespace DDS
         static ddsImports()
         {
             ResourceExtractor.ExtractResourceToFile("ddsWrapper.dds.dds.dll", dllPath);
-            DDSInfo info = new DDSInfo();
+            DDSInfo info = default;
             GetDDSInfo(ref info);
             MaxThreads = info.noOfThreads;
         }
