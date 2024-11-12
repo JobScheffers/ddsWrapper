@@ -4,7 +4,11 @@ namespace DDS
 {
     internal static class ddsImports
     {
+#if NET6_0_OR_GREATER
         public const int ddsMaxNumberOfBoards = 200;
+#else
+        public const int ddsMaxNumberOfBoards = 160;
+#endif
         public const int ddsStrains = 5;
         public const string dllPath = "dds.dll";
         public static readonly int MaxThreads;

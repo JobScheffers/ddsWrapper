@@ -11,10 +11,18 @@ namespace DDS
         public List<Card> TrickCards { get; }
 
         [DebuggerStepThrough]
+#if NET6_0_OR_GREATER
         public GameState(ref readonly Deal remainingCards, Suit trump, Hand trickLeader) : this(in remainingCards, trump, trickLeader, []) { }
+#else
+        public GameState(ref Deal remainingCards, Suit trump, Hand trickLeader) : this(ref remainingCards, trump, trickLeader, []) { }
+#endif
 
         [DebuggerStepThrough]
+#if NET6_0_OR_GREATER
         public GameState(ref readonly Deal remainingCards, Suit trump, Hand trickLeader, List<Card> trickCards)
+#else
+        public GameState(ref Deal remainingCards, Suit trump, Hand trickLeader, List<Card> trickCards)
+#endif
         {
             RemainingCards = remainingCards;
             Trump = trump;
@@ -123,23 +131,44 @@ namespace DDS
         }
 
         [DebuggerStepThrough]
+#if NET6_0_OR_GREATER
         public Deal(ref readonly string pbnDeal)
+#else
+        public Deal(string pbnDeal)
+#endif
         {
             var firstHand = pbnDeal[0];
+#if NET6_0_OR_GREATER
             var hands = pbnDeal[2..].Split2(' ');
+#else
+            var hands = pbnDeal.Substring(2).Split(' ');
+#endif
             var hand = DdsEnum.HandFromPbn(in firstHand);
             foreach (var handHolding in hands)
             {
+#if NET6_0_OR_GREATER
                 var suits = handHolding.Line.Split2('.');
+#else
+                var suits = handHolding.Split('.');
+#endif
                 int pbnSuit = 1;
                 foreach (var suitHolding in suits)
                 {
+#if NET6_0_OR_GREATER
                     var suitCards = suitHolding.Line;
+#else
+                    var suitCards = suitHolding;
+#endif
                     var suitLength = suitCards.Length;
                     var suit = DdsEnum.SuitFromPbn(pbnSuit);
                     for (int r = 0; r < suitLength; r++)
                     {
+#if NET6_0_OR_GREATER
                         var rank = DdsEnum.RankFromPbn(in suitCards[r]);
+#else
+                        var x = suitCards[r];
+                        var rank = DdsEnum.RankFromPbn(in x);
+#endif
                         this[hand, suit, rank] = true;
                     }
                     pbnSuit++;
@@ -364,6 +393,7 @@ namespace DDS
             }
         }
 
+#if NET6_0_OR_GREATER
         public static LineSplitEnumerator Split2(this string str, char splitter)
         {
             // LineSplitEnumerator is a struct so there is no allocation here
@@ -439,6 +469,7 @@ namespace DDS
             // foreach (ReadOnlySpan<char> entry in str.SplitLines())
             public static implicit operator ReadOnlySpan<char>(LineSplitEntry entry) => entry.Line;
         }
+#endif
     }
 
     public static class Profiler

@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ddsWrapper", "ddsWrapper\dd
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{BD1B60D8-3813-41A4-B5F2-AA8F83ACE219}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests4.8", "Tests4.8\Tests4.8.csproj", "{DA2E6E4B-3E74-411B-B47C-B02B99DD77F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{BD1B60D8-3813-41A4-B5F2-AA8F83ACE219}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD1B60D8-3813-41A4-B5F2-AA8F83ACE219}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD1B60D8-3813-41A4-B5F2-AA8F83ACE219}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA2E6E4B-3E74-411B-B47C-B02B99DD77F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA2E6E4B-3E74-411B-B47C-B02B99DD77F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA2E6E4B-3E74-411B-B47C-B02B99DD77F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA2E6E4B-3E74-411B-B47C-B02B99DD77F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
