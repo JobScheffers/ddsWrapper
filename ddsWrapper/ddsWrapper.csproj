@@ -24,8 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="dds\dds.dll">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    <None Update="dds.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
