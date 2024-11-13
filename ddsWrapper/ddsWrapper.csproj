@@ -18,9 +18,15 @@
 	</PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="dds\dds.dll">
+    <Compile Update="dds\ddsData.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="dds\dds.dll">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
+    </None>
   </ItemGroup>
 
 </Project>

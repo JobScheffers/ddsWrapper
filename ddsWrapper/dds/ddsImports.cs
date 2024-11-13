@@ -10,7 +10,7 @@ namespace DDS
         public const int ddsMaxNumberOfBoards = 160;
 #endif
         public const int ddsStrains = 5;
-        public const string dllPath = "dds.dll";
+        private const string dllPath = "dds.dll";
         public static readonly int MaxThreads;
 
         [DllImport(dllPath)]
@@ -56,28 +56,9 @@ namespace DDS
 
         static ddsImports()
         {
-            ResourceExtractor.ExtractResourceToFile("ddsWrapper.dds.dds.dll", dllPath);
             DDSInfo info = default;
             GetDDSInfo(ref info);
             MaxThreads = info.noOfThreads;
-        }
-    }
-
-    internal static class ResourceExtractor
-    {
-        public static void ExtractResourceToFile(string resourceName, string filename)
-        {
-            if (!File.Exists(filename))
-            {
-                //var resources = typeof(ddsWrapper).Assembly.GetManifestResourceNames();
-                using (Stream s = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName)!)
-                using (FileStream fs = new FileStream(filename, FileMode.Create))
-                {
-                    byte[] b = new byte[s.Length];
-                    s.Read(b, 0, b.Length);
-                    fs.Write(b, 0, b.Length);
-                }
-            }
         }
     }
 }
