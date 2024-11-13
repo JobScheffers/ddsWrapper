@@ -30,7 +30,8 @@
     <None Update="dds.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Pack>true</Pack>
-    </None>
+			<PackagePath>lib\dds.dll</PackagePath>
+		</None>
   </ItemGroup>
 
 </Project>
