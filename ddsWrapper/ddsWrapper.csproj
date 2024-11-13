@@ -20,14 +20,15 @@
   <ItemGroup>
     <None Update="dds.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Pack>true</Pack>
-			<PackagePath>lib\dds.dll</PackagePath>
+      <!--<Pack>true</Pack>
+			<PackagePath>lib\dds.dll</PackagePath>-->
 		</None>
   </ItemGroup>
 	
 	<ItemGroup>
-		<_PackageFiles Include="$(OutputPath)\dds.dll">
-			<BuildAction>None</BuildAction>
+		<!--<_PackageFiles Include="$(OutputPath)\dds.dll">-->
+			<_PackageFiles Include="dds.dll">
+				<BuildAction>None</BuildAction>
 			<PackagePath>lib\</PackagePath>
 		</_PackageFiles>
 	</ItemGroup>
