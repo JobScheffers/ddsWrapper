@@ -26,12 +26,18 @@
   </ItemGroup>
 	
 	<ItemGroup>
-		<!--<_PackageFiles Include="$(OutputPath)\dds.dll">-->
-			<_PackageFiles Include="dds.dll">
+			<!--<_PackageFiles Include="dds.dll">
 				<BuildAction>None</BuildAction>
-			  <PackagePath>lib\net8.0\</PackagePath>
-				<PackagePath>lib\netstandard2.0\</PackagePath>
-			</_PackageFiles>
+			  <PackagePath>lib\$(TargetFramework)\</PackagePath>
+			</_PackageFiles>-->
+		<_PackageFiles Include="dds.dll">
+			<BuildAction>None</BuildAction>
+			<PackagePath>lib\net8.0\</PackagePath>
+		</_PackageFiles>
+		<_PackageFiles Include="dds.dll">
+			<BuildAction>None</BuildAction>
+			<PackagePath>lib\netstandard2.0\</PackagePath>
+		</_PackageFiles>
 	</ItemGroup>
 	
 </Project>
