@@ -26,12 +26,19 @@
     </Compile>
   </ItemGroup>
 
-  <ItemGroup>
+  <!--<ItemGroup>
     <None Update="dds.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Pack>true</Pack>
 			<PackagePath>lib\dds.dll</PackagePath>
 		</None>
-  </ItemGroup>
-
+  </ItemGroup>-->
+	
+	<ItemGroup>
+		<_PackageFiles Include="$(OutputPath)\dds.dll">
+			<BuildAction>None</BuildAction>
+			<PackagePath>lib\</PackagePath>
+		</_PackageFiles>
+	</ItemGroup>
+	
 </Project>
