@@ -18,16 +18,19 @@
 	</PropertyGroup>
 
   <ItemGroup>
-    <Content Include="dds.dll">
+    <Compile Update="ddsWrapper.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<Pack>true</Pack>
-		</Content>
-  </ItemGroup>
-
-  <ItemGroup>
+    </Compile>
     <Compile Update="dds\ddsData.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="dds.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>true</Pack>
+    </None>
   </ItemGroup>
 
 </Project>
