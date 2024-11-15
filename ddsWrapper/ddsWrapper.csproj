@@ -10,6 +10,12 @@
 		<SignAssembly>False</SignAssembly>
 		<PublicSign>False</PublicSign>
 		<AssemblyOriginatorKeyFile>..\bridge.snk</AssemblyOriginatorKeyFile>
+		<Title>.Net wrapper for DDS</Title>
+		<Authors>Job Scheffers</Authors>
+		<Company> </Company>
+		<Description>A .Net wrapper for the native dds.dll that contains Bo Haglunds double dummy solver</Description>
+		<RepositoryUrl>https://github.com/JobScheffers/ddsWrapper</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
 		<!--
 		The version is set in the dotnet.yml build pipeline
 		
@@ -21,7 +27,7 @@
 		<None Include="dds.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<Pack>true</Pack>
-			<PackagePath>lib\$(TargetFramework)</PackagePath>
+			<PackagePath>lib\$(TargetFramework)\</PackagePath>
 			<!--<PackagePath>File</PackagePath>-->
 		</None>
 	</ItemGroup>
