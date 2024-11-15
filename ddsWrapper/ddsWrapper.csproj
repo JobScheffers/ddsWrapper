@@ -7,8 +7,8 @@
     <Nullable>enable</Nullable>
 		<PackageProjectUrl>https://github.com/JobScheffers/ddsWrapper</PackageProjectUrl>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<SignAssembly>True</SignAssembly>
-		<PublicSign>True</PublicSign>
+		<SignAssembly>False</SignAssembly>
+		<PublicSign>False</PublicSign>
 		<AssemblyOriginatorKeyFile>..\bridge.snk</AssemblyOriginatorKeyFile>
 		<!--
 		The version is set in the dotnet.yml build pipeline
@@ -21,8 +21,8 @@
 		<None Include="dds.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<Pack>true</Pack>
-			<!--<PackagePath>lib\$(TargetFramework)</PackagePath>-->
-			<PackagePath>File</PackagePath>
+			<PackagePath>lib\$(TargetFramework)</PackagePath>
+			<!--<PackagePath>File</PackagePath>-->
 		</None>
 	</ItemGroup>
 	
