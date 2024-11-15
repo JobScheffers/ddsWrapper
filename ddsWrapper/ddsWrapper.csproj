@@ -24,11 +24,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="dds.dll">
+		<None Update="dds.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<Pack>true</Pack>
+			<!--<Pack>true</Pack>
 			<PackagePath>lib\$(TargetFramework)\</PackagePath>
-			<!--<PackagePath>File</PackagePath>-->
+			<PackagePath>File</PackagePath>-->
 		</None>
 	</ItemGroup>
 	
@@ -40,7 +40,7 @@
 		</None>
   </ItemGroup>-->
 	
-	<!--<ItemGroup>
+	<ItemGroup>
 		<_PackageFiles Include="dds.dll">
 			<BuildAction>None</BuildAction>
 			<PackagePath>lib\net8.0\</PackagePath>
@@ -49,6 +49,6 @@
 			<BuildAction>None</BuildAction>
 			<PackagePath>lib\netstandard2.0\</PackagePath>
 		</_PackageFiles>
-	</ItemGroup>-->
+	</ItemGroup>
 	
 </Project>
