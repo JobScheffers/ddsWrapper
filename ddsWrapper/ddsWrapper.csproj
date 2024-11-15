@@ -24,11 +24,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Update="dds.dll">
+		<!--<None Update="dds.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<Pack>true</Pack>
-			<!--<PackagePath>lib\$(TargetFramework)\</PackagePath>-->
+			--><!--<PackagePath>lib\$(TargetFramework)\</PackagePath>--><!--
 			<PackagePath>runtimes\win\native\</PackagePath>
+		</None>-->
+		<None Update="dds.dll" Pack="true" PackagePath="runtimes/win/native/dds.dll">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 	
