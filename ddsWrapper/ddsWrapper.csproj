@@ -53,5 +53,20 @@
 			<PackagePath>lib\netstandard2.0\</PackagePath>
 		</_PackageFiles>
 	</ItemGroup>-->
-	
+
+	<ItemGroup>
+		<_PackageFiles Include="dds.dll">
+			<BuildAction>None</BuildAction>
+			<PackagePath>runtimes\win-x64\native\</PackagePath>
+		</_PackageFiles>
+		<_PackageFiles Include="dds.dll">
+			<BuildAction>None</BuildAction>
+			<PackagePath>runtimes\win-x86\native\</PackagePath>
+		</_PackageFiles>
+		<_PackageFiles Include="dds.dll">
+			<BuildAction>None</BuildAction>
+			<PackagePath>runtimes\win\native\</PackagePath>
+		</_PackageFiles>
+	</ItemGroup>
+
 </Project>
