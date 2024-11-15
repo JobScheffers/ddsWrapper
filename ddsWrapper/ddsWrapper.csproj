@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
 		<PackageProjectUrl>https://github.com/JobScheffers/ddsWrapper</PackageProjectUrl>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<SignAssembly>False</SignAssembly>
+		<SignAssembly>True</SignAssembly>
 		<PublicSign>False</PublicSign>
 		<AssemblyOriginatorKeyFile>..\bridge.snk</AssemblyOriginatorKeyFile>
 		<Title>.Net wrapper for DDS</Title>
