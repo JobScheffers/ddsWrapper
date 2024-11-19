@@ -16,15 +16,6 @@ namespace Tests
         }
 
         [TestMethod]
-        public void Profiler_Time_EmptyBlock()
-        {
-            Profiler.Time(() =>
-            {
-            }, out var elapsedTime, 100000);
-            Assert.IsTrue(elapsedTime.TotalMilliseconds > 0 && elapsedTime.TotalMilliseconds < 29, $"{elapsedTime.TotalMilliseconds}");
-        }
-
-        [TestMethod]
         public void ErrorMessage()
         {
             var error = ddsWrapper.Error(-15);

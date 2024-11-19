@@ -90,13 +90,8 @@ namespace Tests
             string cards = "N:K95.QJT3.AKJ.AQJ JT42.87..K98765 AQ86.K652.86432. 73.A94.QT97.T432";
             var deal = new Deal(ref cards);
 
-            var result =
-                Profiler.Time(() =>
-                {
-                    var state = new GameState(in deal, Suit.Hearts, Hand.East, [new Card(Suit.Diamonds, Rank.Five) ]);
-                    return ddsWrapper.BestCards(ref state);
-                }, out var elapsedTime, 100);
-            Trace.WriteLine($"1 call took {elapsedTime.TotalMilliseconds/100:F2} ms");
+            var state = new GameState(in deal, Suit.Hearts, Hand.East, [new Card(Suit.Diamonds, Rank.Five)]);
+            var result = ddsWrapper.BestCards(ref state);
             Assert.AreEqual(11, result[0].Tricks);
             Assert.AreEqual(5, result.Count);
         }
