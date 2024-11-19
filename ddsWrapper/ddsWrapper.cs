@@ -1,11 +1,13 @@
-﻿namespace DDS
+﻿using System.Diagnostics;
+
+namespace DDS
 {
     public static class ddsWrapper
     {
         private static readonly object locker = new object();
         private static readonly bool[] threadOccupied = new bool[16];
 
-        public static List<CardPotential> SolveBoard(ref readonly GameState state)
+        private static List<CardPotential> SolveBoard(ref readonly GameState state, int target, int solutions, int mode)
         {
             // Parameter ”target” is the number of tricks to be won by the side to play, 
             // -1 means that the program shall find the maximum number.
@@ -16,19 +18,14 @@
             // target=-1, solutions=1:  Returns only one of the optimum cards and its score.
             var result = new List<CardPotential>();
             var trickCards = state.TrickCards.ToArray();
-            //var cardsPBN = state.RemainingCards.ToPBN();
-            //var deal = new dealPBN(state.Trump, state.TrickLeader, ref trickCards, ref cardsPBN);
+            //Debug.WriteLine(state.RemainingCards.ToPBN());
             var deal = new deal(state.Trump, state.TrickLeader, ref trickCards, state.RemainingCards);
-            int target = -1;
-            int solutions = 2;
-            int mode = 1;
             var futureTricks = new FutureTricks();
 
             var hresult = 0;
             var threadIndex = GetThreadIndex();
             try
             {
-                //hresult = ddsImports.SolveBoardPBN(deal, target, solutions, mode, ref futureTricks, threadIndex);
                 hresult = ddsImports.SolveBoard(deal, target, solutions, mode, ref futureTricks, threadIndex);
             }
             finally
@@ -80,6 +77,21 @@
                     threadOccupied[threadIndex] = false;
                 }
             }
+        }
+
+        public static List<CardPotential> BestCards(ref readonly GameState state)
+        {
+            return SolveBoard(in state, -1, 2, 1);
+        }
+
+        public static List<CardPotential> BestCard(ref readonly GameState state)
+        {
+            return SolveBoard(in state, -1, 1, 1);
+        }
+
+        public static List<CardPotential> AllCards(ref readonly GameState state)
+        {
+            return SolveBoard(in state, 0, 3, 1);
         }
 
         public static TableResults PossibleTricks(string pbn)

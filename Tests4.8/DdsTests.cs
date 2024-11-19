@@ -37,7 +37,7 @@ namespace Tests
             string cards = "N:9..85432.QJ9 754.JT73.KT. J82.KQ6.QJ.6 AKQT63.5..8";
             var deal = new Deal(cards);
             var state = new GameState(ref deal, Suit.Spades, Hand.West, new System.Collections.Generic.List<Card> { new Card(Suit.Clubs, Rank.Seven) } );
-            var result = ddsWrapper.SolveBoard(ref state);
+            var result = ddsWrapper.BestCards(ref state);
             Assert.AreEqual(3, result.Count);
             Assert.IsFalse(result[0].IsPrimary);
             Assert.IsTrue(result[1].IsPrimary);
@@ -61,7 +61,7 @@ namespace Tests
             string cards = "N:JT984.T7.AQ83.4 Q7532.82.97.832 K.AQJ53.KJ42.AK A6.K964.T65.Q96";
             var deal = new Deal(cards);
             var state = new GameState(ref deal, Suit.Hearts, Hand.South);
-            var result = ddsWrapper.SolveBoard(ref state);
+            var result = ddsWrapper.BestCards(ref state);
             Assert.AreEqual(12, result.Count);
         }
 
@@ -83,7 +83,7 @@ namespace Tests
             string cards = "N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9.";
             var deal = new Deal(cards);
             var state = new GameState(ref deal, Suit.Spades, Hand.West, new System.Collections.Generic.List<Card> { new Card(Suit.Hearts, Rank.King) });
-            var result = ddsWrapper.SolveBoard(ref state);
+            var result = ddsWrapper.BestCards(ref state);
             Assert.AreEqual(7, result[0].Tricks);
         }
 
@@ -97,7 +97,7 @@ namespace Tests
                 Profiler.Time(() =>
                 {
                     var state = new GameState(ref deal, Suit.Hearts, Hand.East, new System.Collections.Generic.List<Card> { new Card(Suit.Diamonds, Rank.Five) });
-                    return ddsWrapper.SolveBoard(ref state);
+                    return ddsWrapper.BestCards(ref state);
                 }, out var elapsedTime, 100);
             Trace.WriteLine($"1 call took {elapsedTime.TotalMilliseconds/100:F2} ms");
             Assert.AreEqual(11, result[0].Tricks);
