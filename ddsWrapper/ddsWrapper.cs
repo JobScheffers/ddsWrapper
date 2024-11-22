@@ -18,7 +18,6 @@ namespace DDS
             // target=-1, solutions=1:  Returns only one of the optimum cards and its score.
             var result = new List<CardPotential>();
             var trickCards = state.TrickCards.ToArray();
-            //Debug.WriteLine(state.RemainingCards.ToPBN());
             var deal = new deal(state.Trump, state.TrickLeader, ref trickCards, state.RemainingCards);
             var futureTricks = new FutureTricks();
 

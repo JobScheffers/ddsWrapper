@@ -10,6 +10,7 @@ namespace DDS
         public const int ddsMaxNumberOfBoards = 160;
 #endif
         public const int ddsStrains = 5;
+        public const int ddsMaxThreads = 16;
         private const string dllPath = "dds.dll";
         public static readonly int MaxThreads;
 
@@ -58,7 +59,7 @@ namespace DDS
         {
             DDSInfo info = default;
             GetDDSInfo(ref info);
-            MaxThreads = info.noOfThreads;
+            MaxThreads = info.noOfThreads > ddsMaxThreads ? ddsMaxThreads : info.noOfThreads;
         }
     }
 }
