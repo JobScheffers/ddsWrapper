@@ -119,7 +119,7 @@ namespace Tests
             Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
             foreach (var deal in result)
             {
-                Trace.WriteLine("       C  D  H  S  NT");
+                Trace.WriteLine("       C  D  H  S NT");
                 DdsEnum.ForEachHand(seat =>
                 {
                     Trace.Write($"{seat.ToString().PadRight(5)}");
@@ -150,7 +150,7 @@ namespace Tests
 
             Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
             Trace.WriteLine(deal);
-            Trace.WriteLine("       C  D  H  S  NT");
+            Trace.WriteLine("       C  D  H  S NT");
             DdsEnum.ForEachHand(seat =>
             {
                 Trace.Write($"{seat.ToString().PadRight(5)}");
@@ -186,6 +186,25 @@ namespace Tests
             Assert.AreEqual(11, result[Hand.West, Suit.Hearts]);
             Assert.AreEqual(8, result[Hand.West, Suit.Diamonds]);
             Assert.AreEqual(12, result[Hand.West, Suit.Clubs]);
+        }
+
+        [TestMethod]
+        public void CalcDDtablePBN2()
+        {
+            string deal = "W:KQ63.QT876.7.AQ9 T97542.AJ4.KQT.4 8.K9532.983.J863 AJ..AJ6542.KT752";
+            var result = ddsWrapper.PossibleTricks(deal);
+
+            Trace.WriteLine(deal);
+            Trace.WriteLine("       C  D  H  S NT");
+            DdsEnum.ForEachHand(seat =>
+            {
+                Trace.Write($"{seat.ToString().PadRight(5)}");
+                DdsEnum.ForEachTrump(suit =>
+                {
+                    Trace.Write($" {result[seat, suit]:00}");
+                });
+                Trace.WriteLine($"");
+            });
         }
     }
 }
