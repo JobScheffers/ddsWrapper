@@ -111,6 +111,15 @@ namespace DDS
             return result;
         }
 
+        public static void ForgetPreviousBoard()
+        {
+            DDSInfo info = default;
+            //ddsImports.GetDDSInfo(ref info);
+            ddsImports.FreeMemory();
+            ddsImports.SetResources(1000, 16);
+            //ddsImports.GetDDSInfo(ref info);
+        }
+
         public static List<TableResults> PossibleTricks(List<Deal> deals, List<Suit> trumps)
         {
             if (trumps == null || trumps.Count == 0) trumps = [ Suit.Clubs, Suit.Diamonds, Suit.Hearts, Suit.Spades, Suit.NT ];

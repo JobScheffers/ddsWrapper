@@ -55,6 +55,12 @@ namespace DDS
         [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern void ErrorMessage(int code, Char[] line);
 
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetResources(int maxMemoryMB, int maxThreads);
+
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int FreeMemory();
+
         static ddsImports()
         {
             DDSInfo info = default;

@@ -110,6 +110,7 @@ namespace Tests
             var deal2 = new Deal("N:954.QJT3.AKJ.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.QT97.T432");
             var deal3 = new Deal("N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432");
 
+            ddsWrapper.ForgetPreviousBoard();
             var result =
                 Profiler.Time(() =>
                 {
