@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using Bridge;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace DDS
 {
@@ -52,7 +54,7 @@ namespace DDS
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains)]
         public readonly ddTableDealPBN[] deals;
 
-        public ddTableDealsPBN(List<string> hands)
+        public ddTableDealsPBN(ref readonly List<string> hands)
         {
             noOfTables = hands.Count;
             deals = new ddTableDealPBN[ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains];
@@ -66,18 +68,18 @@ namespace DDS
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
         public readonly uint[,] cards;
 
-        public ddTableDeal(Deal deal)
+        public ddTableDeal(ref readonly Deal deal)
         {
             cards = new uint[4, 4];
-            for (int seat = 0; seat < 4; seat++)
+            for (Seats seat = Seats.North; seat <= Seats.West; seat++)
             {
-                for (int suit = 0; suit < 4; suit++)
+                for (Suits suit = Suits.Clubs; suit <= Suits.Spades; suit++)
                 {
-                    for (int rank = 2; rank <= 14; rank++)
+                    for (Ranks rank = Ranks.Two; rank <= Ranks.Ace; rank++)
                     {
                         if (deal[seat, suit, rank])
                         {
-                            cards[(int)(seat), (int)suit] |= (uint)(2 << ((int)rank) - 1);
+                            cards[(int)DdsEnum.Convert(seat), (int)DdsEnum.Convert(suit)] |= (uint)(2 << ((int)rank + 2) - 1);
                         }
                     }
                 }
@@ -92,7 +94,7 @@ namespace DDS
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains)]
         public readonly ddTableDeal[] tableDeals;
 
-        public ddTableDeals(List<Deal> deals)
+        public ddTableDeals(ref readonly List<Deal> deals)
         {
             noOfTables = deals.Count;
             tableDeals = new ddTableDeal[ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains];
@@ -187,47 +189,49 @@ namespace DDS
         }
     }
 
+#pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
     internal readonly struct deal
+#pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
     {
         public readonly int trump;
 
         public readonly int first;
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-        public readonly int[] currentTrickSuit;
+        public readonly int[] currentTrickSuit = new int[3];
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-        public readonly int[] currentTrickRank;
+        public readonly int[] currentTrickRank = new int[3];
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
         public readonly uint[,] remainCards;
 
-        public deal(Suit _trump, Hand trickLeader, ref readonly Card[] currentTrick, Deal remainingCards)
+        public deal(Suit _trump, Hand trickLeader, ref readonly PlayedCards playedCards, ref readonly Deal remainingCards)
         {
+            //Debug.WriteLine(remainingCards.ToPBN());
             trump = (int)_trump;
             first = (int)trickLeader;
             remainCards = new uint[4,4];
-            for (Hand seat = Hand.North; seat <= Hand.West; seat++)
+            for (Seats seat = Seats.North; seat <= Seats.West; seat++)
             {
-                for (Suit suit = Suit.Spades; suit <= Suit.Clubs; suit++)
+                for (Suits suit = Suits.Clubs; suit <= Suits.Spades; suit++)
                 {
-                    for (Rank rank = Rank.Two; rank <= Rank.Ace; rank++)
+                    for (Ranks rank = Ranks.Two; rank <= Ranks.Ace; rank++)
                     {
                         if (remainingCards[seat, suit, rank])
                         {
-                            remainCards[(int)(seat), (int)suit] |= (uint)(2 << ((int)rank) - 1);
+                            remainCards[(int)DdsEnum.Convert(seat), (int)DdsEnum.Convert(suit)] |= (uint)(2 << ((int)DdsEnum.Convert(rank)) - 1);
                         }
                     }
                 }
             }
 
-            currentTrickSuit = new int[3];
-            currentTrickRank = new int[3];
-            for (int i = 0; i < currentTrick.Length; i++)
-            {
-                currentTrickSuit[i] = (int)currentTrick[i].Suit;
-                currentTrickRank[i] = (int)currentTrick[i].Rank;
-            }
+            currentTrickSuit[0] = (int)playedCards.Card1Suit;
+            currentTrickRank[0] = (int)playedCards.Card1Rank;
+            currentTrickSuit[1] = (int)playedCards.Card2Suit;
+            currentTrickRank[1] = (int)playedCards.Card2Rank;
+            currentTrickSuit[2] = (int)playedCards.Card3Suit;
+            currentTrickRank[2] = (int)playedCards.Card3Rank;
         }
     }
 
@@ -335,5 +339,25 @@ namespace DDS
 
         public Card(Suit s, Rank r) { Suit = s; Rank = r; }
         public override string ToString() => $"{Suit.ToString()[0]}{(Rank < Rank.Ten ? ((int)Rank).ToString() : Rank.ToString()[0])}";
+    }
+
+    internal readonly ref struct PlayedCards
+    {
+        public Suit Card1Suit { get; }
+        public Suit Card2Suit { get; }
+        public Suit Card3Suit { get; }
+        public Rank Card1Rank { get; }
+        public Rank Card2Rank { get; }
+        public Rank Card3Rank { get; }
+
+        public PlayedCards(Suit s1, Rank r1, Suit s2, Rank r2, Suit s3, Rank r3)
+        {
+            Card1Suit = s1;
+            Card1Rank = r1;
+            Card2Suit = s2;
+            Card2Rank = r2;
+            Card3Suit = s3;
+            Card3Rank = r3;
+        }
     }
 }

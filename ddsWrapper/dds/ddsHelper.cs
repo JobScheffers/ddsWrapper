@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Bridge;
+using System.Diagnostics;
 using System.Text;
 
 namespace DDS
@@ -6,68 +7,51 @@ namespace DDS
     public readonly ref struct GameState
     {
         public Deal RemainingCards { get; }
-        public Suit Trump { get; }
-        public Hand TrickLeader { get; }
-        public List<Card> TrickCards { get; }
+        public Suits Trump { get; }
+        public Seats TrickLeader { get; }
+        public Bridge.Card PlayedByMan1 { get; }
+        public Bridge.Card PlayedByMan2 { get; }
+        public Bridge.Card PlayedByMan3 { get; }
 
         [DebuggerStepThrough]
 #if NET6_0_OR_GREATER
-        public GameState(ref readonly Deal remainingCards, Suit trump, Hand trickLeader) : this(in remainingCards, trump, trickLeader, []) { }
+        public GameState(ref readonly Deal remainingCards, Suits trump, Seats trickLeader) : this(in remainingCards, trump, trickLeader, Bridge.Card.Null, Bridge.Card.Null, Bridge.Card.Null) { }
 #else
-        public GameState(ref Deal remainingCards, Suit trump, Hand trickLeader) : this(ref remainingCards, trump, trickLeader, []) { }
+        public GameState(ref Deal remainingCards, Suits trump, Seats trickLeader) : this(ref remainingCards, trump, trickLeader, Bridge.Card.Null, Bridge.Card.Null, Bridge.Card.Null) { }
 #endif
 
         [DebuggerStepThrough]
 #if NET6_0_OR_GREATER
-        public GameState(ref readonly Deal remainingCards, Suit trump, Hand trickLeader, List<Card> trickCards)
+        public GameState(ref readonly Deal remainingCards, Suits trump, Seats trickLeader, Bridge.Card playedByMan1, Bridge.Card playedByMan2, Bridge.Card playedByMan3)
 #else
-        public GameState(ref Deal remainingCards, Suit trump, Hand trickLeader, List<Card> trickCards)
+        public GameState(ref Deal remainingCards, Suits trump, Seats trickLeader, Bridge.Card playedByMan1, Bridge.Card playedByMan2, Bridge.Card playedByMan3)
 #endif
         {
             RemainingCards = remainingCards;
             Trump = trump;
             TrickLeader = trickLeader;
-            TrickCards = trickCards;
+            PlayedByMan1 = playedByMan1;
+            PlayedByMan2 = playedByMan2;
+            PlayedByMan3 = playedByMan3;
+            //Debug.WriteLine(RemainingCards.ToPBN());
         }
     }
 
     public readonly struct CardPotential
     {
-        public Card Card { get; }
+        public Bridge.Card Card { get; }
         public int Tricks { get; }
         public bool IsPrimary { get; }
 
-        public CardPotential(Card card, int tricks, bool isPrimary) { Card = card; Tricks = tricks; IsPrimary = isPrimary; }
+        public CardPotential(Bridge.Card card, int tricks, bool isPrimary) { Card = card; Tricks = tricks; IsPrimary = isPrimary; }
         public override string ToString() => $"{Card.ToString()}:{Tricks.ToString()}{(IsPrimary ? " p" : "")}";
-    }
-
-    public struct SuitCollection<T>
-    {
-        private T[] data;
-
-        public SuitCollection(T[] _data)
-        {
-            data = _data;
-        }
-
-        public T this[Suit suit]
-        {
-            get
-            {
-                return data[(int)suit];
-            }
-            set
-            {
-                data[(int)suit] = value;
-            }
-        }
     }
 
     public unsafe struct TableResults
     {
         private fixed byte data[20];
 
-        public int this[Hand hand, Suit suit]
+        public int this[Seats hand, Suits suit]
         {
             get
             {
@@ -96,7 +80,7 @@ namespace DDS
     {
         private fixed ushort data[13];
 
-        public bool this[Hand seat, Suit suit, Rank rank]
+        public bool this[Seats seat, Suits suit, Ranks rank]
         {
             get
             {
@@ -108,29 +92,29 @@ namespace DDS
             }
         }
 
-        public unsafe bool this[int seat, int suit, int rank]
+        private unsafe bool this[int seat, int suit, int rank]
         {
             get
             {
                 //Debug.WriteLine($"{((Seats)seat).ToXML()}{((Suits)suit).ToXML()}{((Ranks)rank).ToXML()}? {Convert.ToString(data[rank], 2)} {Convert.ToString((1 << (4 * seat + suit)), 2)}");
-                return (data[rank - 2] & (1 << (4 * seat + suit))) > 0;
+                return (data[rank] & (1 << (4 * seat + suit))) > 0;
             }
             set
             {
                 //Debug.WriteLine($"{((Seats)seat).ToXML()}{((Suits)suit).ToXML()}{((Ranks)rank).ToXML()}={value} {Convert.ToString(data[rank], 2)} {Convert.ToString((1 << (4 * seat + suit)), 2)}");
                 if (value)
                 {
-                    data[rank - 2] |= (ushort)(1 << (4 * seat + suit));
+                    data[rank] |= (ushort)(1 << (4 * seat + suit));
                 }
                 else
                 {
-                    data[rank - 2] &= (ushort)(ushort.MaxValue - (1 << (4 * seat + suit)));
+                    data[rank] &= (ushort)(ushort.MaxValue - (1 << (4 * seat + suit)));
                 }
                 //Debug.WriteLine($"{Convert.ToString(data[rank], 2)} {Convert.ToString((1 << (4 * seat + suit)), 2)}");
             }
         }
 
-        [DebuggerStepThrough]
+        //[DebuggerStepThrough]
 #if NET6_0_OR_GREATER
         public Deal(ref readonly string pbnDeal)
 #else
@@ -182,11 +166,11 @@ namespace DDS
         {
             var result = new StringBuilder(70);
             result.Append("N:");
-            for (Hand hand = Hand.North; hand <= Hand.West; hand++)
+            for (Seats hand = Seats.North; hand <= Seats.West; hand++)
             {
-                for (Suit suit = Suit.Spades; suit <= Suit.Clubs; suit++)
+                for (Suits suit = Suits.Spades; suit >= Suits.Clubs; suit--)
                 {
-                    for (Rank rank = Rank.Ace; rank >= Rank.Two; rank--)
+                    for (Ranks rank = Ranks.Ace; rank >= Ranks.Two; rank--)
                     {
                         if (this[hand, suit, rank])
                         {
@@ -194,10 +178,10 @@ namespace DDS
                         }
                     };
 
-                    if (suit != Suit.Clubs) result.Append(".");
+                    if (suit != Suits.Clubs) result.Append(".");
                 };
 
-                if (hand != Hand.West) result.Append(" ");
+                if (hand != Seats.West) result.Append(" ");
             };
 
             return result.ToString();
@@ -212,13 +196,13 @@ namespace DDS
         /// </summary>
         /// <param name="toDo"></param>
         [DebuggerStepThrough]
-        public static void ForEachTrump(Action<Suit> toDo)
+        public static void ForEachTrump(Action<Suits> toDo)
         {
-            toDo(Suit.Clubs);
-            toDo(Suit.Diamonds);
-            toDo(Suit.Hearts);
-            toDo(Suit.Spades);
-            toDo(Suit.NT);
+            toDo(Suits.Clubs);
+            toDo(Suits.Diamonds);
+            toDo(Suits.Hearts);
+            toDo(Suits.Spades);
+            toDo(Suits.NoTrump);
         }
 
         /// <summary>
@@ -227,12 +211,12 @@ namespace DDS
         /// </summary>
         /// <param name="toDo"></param>
         [DebuggerStepThrough]
-        public static void ForEachSuit(Action<Suit> toDo)
+        public static void ForEachSuit(Action<Suits> toDo)
         {
-            toDo(Suit.Clubs);
-            toDo(Suit.Diamonds);
-            toDo(Suit.Hearts);
-            toDo(Suit.Spades);
+            toDo(Suits.Clubs);
+            toDo(Suits.Diamonds);
+            toDo(Suits.Hearts);
+            toDo(Suits.Spades);
         }
 
         /// <summary>
@@ -241,12 +225,12 @@ namespace DDS
         /// </summary>
         /// <param name="toDo"></param>
         [DebuggerStepThrough]
-        public static void ForEachSuitPbn(Action<Suit> toDo)
+        public static void ForEachSuitPbn(Action<Suits> toDo)
         {
-            toDo(Suit.Spades);
-            toDo(Suit.Hearts);
-            toDo(Suit.Diamonds);
-            toDo(Suit.Clubs);
+            toDo(Suits.Spades);
+            toDo(Suits.Hearts);
+            toDo(Suits.Diamonds);
+            toDo(Suits.Clubs);
         }
 
         /// <summary>
@@ -255,12 +239,12 @@ namespace DDS
         /// </summary>
         /// <param name="toDo"></param>
         [DebuggerStepThrough]
-        public static void ForEachHand(Action<Hand> toDo)
+        public static void ForEachHand(Action<Seats> toDo)
         {
-            toDo(Hand.North);
-            toDo(Hand.East);
-            toDo(Hand.South);
-            toDo(Hand.West);
+            toDo(Seats.North);
+            toDo(Seats.East);
+            toDo(Seats.South);
+            toDo(Seats.West);
         }
 
         /// <summary>
@@ -269,9 +253,9 @@ namespace DDS
         /// </summary>
         /// <param name="toDo"></param>
         [DebuggerStepThrough]
-        public static void ForEachRank(Action<Rank> toDo)
+        public static void ForEachRank(Action<Ranks> toDo)
         {
-            //foreach (Rank rank in Enum.GetValues(typeof(Rank))) toDo(rank);
+            //foreach (Ranks rank in Enum.GetValues(typeof(Ranks))) toDo(rank);
             ForEachRankPbn(toDo);
         }
 
@@ -281,116 +265,220 @@ namespace DDS
         /// </summary>
         /// <param name="toDo"></param>
         [DebuggerStepThrough]
-        public static void ForEachRankPbn(Action<Rank> toDo)
+        public static void ForEachRankPbn(Action<Ranks> toDo)
         {
-            toDo(Rank.Ace);
-            toDo(Rank.King);
-            toDo(Rank.Queen);
-            toDo(Rank.Jack);
-            toDo(Rank.Ten);
-            toDo(Rank.Nine);
-            toDo(Rank.Eight);
-            toDo(Rank.Seven);
-            toDo(Rank.Six);
-            toDo(Rank.Five);
-            toDo(Rank.Four);
-            toDo(Rank.Three);
-            toDo(Rank.Two);
+            toDo(Ranks.Ace);
+            toDo(Ranks.King);
+            toDo(Ranks.Queen);
+            toDo(Ranks.Jack);
+            toDo(Ranks.Ten);
+            toDo(Ranks.Nine);
+            toDo(Ranks.Eight);
+            toDo(Ranks.Seven);
+            toDo(Ranks.Six);
+            toDo(Ranks.Five);
+            toDo(Ranks.Four);
+            toDo(Ranks.Three);
+            toDo(Ranks.Two);
         }
 
         [DebuggerStepThrough]
-        public static Hand HandFromPbn(ref readonly Char hand)
+        public static Seats HandFromPbn(ref readonly Char hand)
         {
             switch (hand)
             {
                 case 'n':
-                case 'N': return Hand.North;
+                case 'N': return Seats.North;
                 case 'e':
-                case 'E': return Hand.East;
+                case 'E': return Seats.East;
                 case 's':
-                case 'S': return Hand.South;
+                case 'S': return Seats.South;
                 case 'w':
-                case 'W': return Hand.West;
+                case 'W': return Seats.West;
                 default: throw new ArgumentOutOfRangeException(nameof(hand), $"unknown {hand}");
             }
         }
 
         [DebuggerStepThrough]
-        public static Hand NextHandPbn(Hand hand)
+        public static Seats NextHandPbn(Seats hand)
         {
             switch (hand)
             {
-                case Hand.North: return Hand.East;
-                case Hand.East: return Hand.South;
-                case Hand.South: return Hand.West;
-                case Hand.West: return Hand.North;
+                case Seats.North: return Seats.East;
+                case Seats.East: return Seats.South;
+                case Seats.South: return Seats.West;
+                case Seats.West: return Seats.North;
                 default: throw new ArgumentOutOfRangeException(nameof(hand), $"unknown {hand}");
             }
         }
 
         [DebuggerStepThrough]
-        public static Suit SuitFromPbn(int relativeSuit)
+        public static Suits SuitFromPbn(int relativeSuit)
         {
             switch (relativeSuit)
             {
-                case 1: return Suit.Spades;
-                case 2: return Suit.Hearts;
-                case 3: return Suit.Diamonds;
-                case 4: return Suit.Clubs;
+                case 1: return Suits.Spades;
+                case 2: return Suits.Hearts;
+                case 3: return Suits.Diamonds;
+                case 4: return Suits.Clubs;
                 default: throw new ArgumentOutOfRangeException(nameof(relativeSuit), $"unknown {relativeSuit}");
             }
         }
 
         [DebuggerStepThrough]
-        public static Rank RankFromPbn(ref readonly Char rank)
+        public static Ranks RankFromPbn(ref readonly Char rank)
         {
             switch (rank)
             {
                 case 'a':
-                case 'A': return Rank.Ace;
+                case 'A': return Ranks.Ace;
                 case 'k':
                 case 'h':
                 case 'H':
-                case 'K': return Rank.King;
+                case 'K': return Ranks.King;
                 case 'q':
-                case 'Q': return Rank.Queen;
+                case 'Q': return Ranks.Queen;
                 case 'j':
                 case 'b':
                 case 'B':
-                case 'J': return Rank.Jack;
+                case 'J': return Ranks.Jack;
                 case 't':
-                case 'T': return Rank.Ten;
-                case '9': return Rank.Nine;
-                case '8': return Rank.Eight;
-                case '7': return Rank.Seven;
-                case '6': return Rank.Six;
-                case '5': return Rank.Five;
-                case '4': return Rank.Four;
-                case '3': return Rank.Three;
-                case '2': return Rank.Two;
+                case 'T': return Ranks.Ten;
+                case '9': return Ranks.Nine;
+                case '8': return Ranks.Eight;
+                case '7': return Ranks.Seven;
+                case '6': return Ranks.Six;
+                case '5': return Ranks.Five;
+                case '4': return Ranks.Four;
+                case '3': return Ranks.Three;
+                case '2': return Ranks.Two;
                 default: throw new ArgumentOutOfRangeException(nameof(rank), $"unknown {rank}");
             }
         }
 
-        public static string RankToPbn(Rank rank)
+        public static string RankToPbn(Ranks rank)
         {
             switch (rank)
             {
-                case Rank.Ace: return "A";
-                case Rank.King: return "K";
-                case Rank.Queen: return "Q";
-                case Rank.Jack: return "J";
-                case Rank.Ten: return "T";
-                case Rank.Nine: return "9";
-                case Rank.Eight: return "8";
-                case Rank.Seven: return "7";
-                case Rank.Six: return "6";
-                case Rank.Five: return "5";
-                case Rank.Four: return "4";
-                case Rank.Three: return "3";
-                case Rank.Two: return "2";
+                case Ranks.Ace: return "A";
+                case Ranks.King: return "K";
+                case Ranks.Queen: return "Q";
+                case Ranks.Jack: return "J";
+                case Ranks.Ten: return "T";
+                case Ranks.Nine: return "9";
+                case Ranks.Eight: return "8";
+                case Ranks.Seven: return "7";
+                case Ranks.Six: return "6";
+                case Ranks.Five: return "5";
+                case Ranks.Four: return "4";
+                case Ranks.Three: return "3";
+                case Ranks.Two: return "2";
                 default: throw new ArgumentOutOfRangeException(nameof(rank), $"unknown {rank}");
             }
+        }
+
+        public static DDS.Hand Convert(Seats seat)
+        {
+            switch (seat)
+            {
+                case Seats.North: return Hand.North;
+                case Seats.East: return Hand.East;
+                case Seats.South: return Hand.South;
+                case Seats.West: return Hand.West;
+                default: throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public static DDS.Suit Convert(Suits suit)
+        {
+            switch (suit)
+            {
+                case Suits.NoTrump: return Suit.NT;
+                case Suits.Spades: return Suit.Spades;
+                case Suits.Hearts: return Suit.Hearts;
+                case Suits.Diamonds: return Suit.Diamonds;
+                case Suits.Clubs: return Suit.Clubs;
+                default: throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public static DDS.Rank Convert(Ranks rank)
+        {
+            switch (rank)
+            {
+                case Ranks.Ace: return DDS.Rank.Ace;
+                case Ranks.King: return DDS.Rank.King;
+                case Ranks.Queen: return DDS.Rank.Queen;
+                case Ranks.Jack: return DDS.Rank.Jack;
+                case Ranks.Ten: return DDS.Rank.Ten;
+                case Ranks.Nine: return DDS.Rank.Nine;
+                case Ranks.Eight: return DDS.Rank.Eight;
+                case Ranks.Seven: return DDS.Rank.Seven;
+                case Ranks.Six: return DDS.Rank.Six;
+                case Ranks.Five: return DDS.Rank.Five;
+                case Ranks.Four: return DDS.Rank.Four;
+                case Ranks.Three: return DDS.Rank.Three;
+                case Ranks.Two: return DDS.Rank.Two;
+                default: throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public static Seats Convert(DDS.Hand seat)
+        {
+            switch (seat)
+            {
+                case Hand.West: return Seats.West;
+                case Hand.East: return Seats.East;
+                case Hand.North: return Seats.North;
+                case Hand.South: return Seats.South;
+                default: throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public static Suits Convert(DDS.Suit suit)
+        {
+            switch (suit)
+            {
+                case Suit.NT: return Suits.NoTrump;
+                case Suit.Spades: return Suits.Spades;
+                case Suit.Hearts: return Suits.Hearts;
+                case Suit.Diamonds: return Suits.Diamonds;
+                case Suit.Clubs: return Suits.Clubs;
+                default: throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public static Ranks Convert(DDS.Rank rank)
+        {
+            switch (rank)
+            {
+                case DDS.Rank.Ace: return Ranks.Ace;
+                case DDS.Rank.King: return Ranks.King;
+                case DDS.Rank.Queen: return Ranks.Queen;
+                case DDS.Rank.Jack: return Ranks.Jack;
+                case DDS.Rank.Ten: return Ranks.Ten;
+                case DDS.Rank.Nine: return Ranks.Nine;
+                case DDS.Rank.Eight: return Ranks.Eight;
+                case DDS.Rank.Seven: return Ranks.Seven;
+                case DDS.Rank.Six: return Ranks.Six;
+                case DDS.Rank.Five: return Ranks.Five;
+                case DDS.Rank.Four: return Ranks.Four;
+                case DDS.Rank.Three: return Ranks.Three;
+                case DDS.Rank.Two: return Ranks.Two;
+                default: throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        internal static PlayedCards Convert(Bridge.Card card1, Bridge.Card card2, Bridge.Card card3)
+        {
+            return new(
+                Bridge.Card.IsNull(card1) ? 0 : Convert(card1.Suit),
+                Bridge.Card.IsNull(card1) ? 0 : Convert(card1.Rank),
+                Bridge.Card.IsNull(card2) ? 0 : Convert(card2.Suit),
+                Bridge.Card.IsNull(card2) ? 0 : Convert(card2.Rank),
+                Bridge.Card.IsNull(card3) ? 0 : Convert(card3.Suit),
+                Bridge.Card.IsNull(card3) ? 0 : Convert(card3.Rank)
+            );
         }
 
 #if NET6_0_OR_GREATER

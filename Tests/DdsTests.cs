@@ -1,3 +1,4 @@
+using Bridge;
 using DDS;
 using System.Diagnostics;
 
@@ -32,9 +33,9 @@ namespace Tests
             //         d QJ
             //         c 6
             string cards = "N:9..85432.QJ9 754.JT73.KT. J82.KQ6.QJ.6 AKQT63.5..8";
-            var deal = new Deal(ref cards);
-            var state = new GameState(in deal, Suit.Spades, Hand.West, [ new Card(Suit.Clubs, Rank.Seven) ] );
-            var result = ddsWrapper.BestCards(ref state);
+            var deal = new DDS.Deal(ref cards);
+            var state = new GameState(in deal, Suits.Spades, Seats.West, CardDeck.Instance[Suits.Clubs, Ranks.Seven], Bridge.Card.Null, Bridge.Card.Null );
+            var result = ddsWrapper.BestCards(in state);
             Assert.AreEqual(3, result.Count);
             Assert.IsFalse(result[0].IsPrimary);
             Assert.IsTrue(result[1].IsPrimary);
@@ -56,8 +57,8 @@ namespace Tests
             //         d KJ42
             //         c AK
             string cards = "N:JT984.T7.AQ83.4 Q7532.82.97.832 K.AQJ53.KJ42.AK A6.K964.T65.Q96";
-            var deal = new Deal(ref cards);
-            var state = new GameState(in deal, Suit.Hearts, Hand.South);
+            var deal = new DDS.Deal(ref cards);
+            var state = new GameState(in deal, Suits.Hearts, Seats.South);
             var result = ddsWrapper.BestCards(ref state);
             Assert.AreEqual(12, result.Count);
         }
@@ -79,8 +80,8 @@ namespace Tests
             //         c A9862
             ddsWrapper.ForgetPreviousBoard();
             string cards = "N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9.";
-            var deal = new Deal(ref cards);
-            var state = new GameState(in deal, Suit.Spades, Hand.West, [new Card(Suit.Hearts, Rank.King) ]);
+            var deal = new DDS.Deal(ref cards);
+            var state = new GameState(in deal, Suits.Spades, Seats.West, CardDeck.Instance[Suits.Hearts, Ranks.King], Bridge.Card.Null, Bridge.Card.Null);
             var result = ddsWrapper.BestCards(ref state);
             Assert.AreEqual(7, result[0].Tricks);
         }
@@ -89,9 +90,9 @@ namespace Tests
         public void BestCards_Profile()
         {
             string cards = "N:K95.QJT3.AKJ.AQJ JT42.87..K98765 AQ86.K652.86432. 73.A94.QT97.T432";
-            var deal = new Deal(ref cards);
+            var deal = new DDS.Deal(ref cards);
 
-            var state = new GameState(in deal, Suit.Hearts, Hand.East, [new Card(Suit.Diamonds, Rank.Five)]);
+            var state = new GameState(in deal, Suits.Hearts, Seats.East, CardDeck.Instance[Suits.Diamonds, Ranks.Five], Bridge.Card.Null, Bridge.Card.Null);
             var result = ddsWrapper.BestCards(ref state);
             Assert.AreEqual(11, result[0].Tricks);
             Assert.AreEqual(5, result.Count);
@@ -101,9 +102,9 @@ namespace Tests
         public void BestCard()
         {
             string cards = "N:K95.QJT3.AKJ.AQJ JT42.87..K98765 AQ86.K652.86432. 73.A94.QT97.T432";
-            var deal = new Deal(ref cards);
-
-            var state = new GameState(in deal, Suit.Hearts, Hand.East, [new Card(Suit.Diamonds, Rank.Five)]);
+            var deal = new DDS.Deal(ref cards);
+            Debug.WriteLine(deal.ToPBN());
+            var state = new GameState(in deal, Suits.Hearts, Seats.East, CardDeck.Instance[Suits.Diamonds, Ranks.Five], Bridge.Card.Null, Bridge.Card.Null);
             var result = ddsWrapper.BestCard(ref state);
             Assert.AreEqual(11, result[0].Tricks);
             Assert.AreEqual(1, result.Count);
@@ -113,9 +114,9 @@ namespace Tests
         public void AllCards()
         {
             string cards = "N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432";
-            var deal = new Deal(ref cards);
+            var deal = new DDS.Deal(ref cards);
 
-            var state = new GameState(in deal, Suit.Hearts, Hand.East, []);
+            var state = new GameState(in deal, Suits.Hearts, Seats.East, Bridge.Card.Null, Bridge.Card.Null, Bridge.Card.Null);
             var result = ddsWrapper.AllCards(ref state);
             Assert.AreEqual(13, result.Count);
         }
@@ -123,18 +124,19 @@ namespace Tests
         [TestMethod]
         public void CalcAllTables()
         {
-            var deal1 = new Deal("N:954.QJT3.AJT.QJ6 KJT2.87.5.AK9875 AQ86.K9654.8643. 73.A2.KQ972.T432");
-            var deal2 = new Deal("N:954.QJT3.AKJ.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.QT97.T432");
-            var deal3 = new Deal("N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432");
+            var deal1 = new DDS.Deal("N:954.QJT3.AJT.QJ6 KJT2.87.5.AK9875 AQ86.K9654.8643. 73.A2.KQ972.T432");
+            var deal2 = new DDS.Deal("N:954.QJT3.AKJ.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.QT97.T432");
+            var deal3 = new DDS.Deal("N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432");
 
             ddsWrapper.ForgetPreviousBoard();
+            //var result = ddsWrapper.PossibleTricks(new List<DDS.Deal> { deal1, deal2, deal3 }, []);
             var result =
                 Profiler.Time(() =>
                 {
-                    return ddsWrapper.PossibleTricks(new List<Deal> { deal1, deal2, deal3 }, []);
+                    return ddsWrapper.PossibleTricks(new List<DDS.Deal> { deal1, deal2, deal3 }, []);
                 }, out var elapsedTime, 10);
-
             Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
+
             foreach (var deal in result)
             {
                 Trace.WriteLine("       C  D  H  S  NT");
@@ -149,8 +151,8 @@ namespace Tests
                 });
             }
 
-            Assert.AreEqual(8, result[0][Hand.North, Suit.Spades]);
-            Assert.AreEqual(11, result[2][Hand.North, Suit.Hearts]);
+            Assert.AreEqual(8, result[0][Seats.North, Suits.Spades]);
+            Assert.AreEqual(11, result[2][Seats.North, Suits.Hearts]);
         }
 
         [TestMethod]
@@ -184,26 +186,26 @@ namespace Tests
             // East  12 08 11 07 08
             // South 01 05 02 06 04
             // West  12 08 11 07 09
-            Assert.AreEqual(4, result[Hand.North, Suit.NT]);
-            Assert.AreEqual(6, result[Hand.North, Suit.Spades]);
-            Assert.AreEqual(2, result[Hand.North, Suit.Hearts]);
-            Assert.AreEqual(5, result[Hand.North, Suit.Diamonds]);
-            Assert.AreEqual(1, result[Hand.North, Suit.Clubs]);
-            Assert.AreEqual(8, result[Hand.East, Suit.NT]);
-            Assert.AreEqual(7, result[Hand.East, Suit.Spades]);
-            Assert.AreEqual(11, result[Hand.East, Suit.Hearts]);
-            Assert.AreEqual(8, result[Hand.East, Suit.Diamonds]);
-            Assert.AreEqual(12, result[Hand.East, Suit.Clubs]);
-            Assert.AreEqual(4, result[Hand.South, Suit.NT]);
-            Assert.AreEqual(6, result[Hand.South, Suit.Spades]);
-            Assert.AreEqual(2, result[Hand.South, Suit.Hearts]);
-            Assert.AreEqual(5, result[Hand.South, Suit.Diamonds]);
-            Assert.AreEqual(1, result[Hand.South, Suit.Clubs]);
-            Assert.AreEqual(9, result[Hand.West, Suit.NT]);
-            Assert.AreEqual(7, result[Hand.West, Suit.Spades]);
-            Assert.AreEqual(11, result[Hand.West, Suit.Hearts]);
-            Assert.AreEqual(8, result[Hand.West, Suit.Diamonds]);
-            Assert.AreEqual(12, result[Hand.West, Suit.Clubs]);
+            Assert.AreEqual(4, result[Seats.North, Suits.NoTrump]);
+            Assert.AreEqual(6, result[Seats.North, Suits.Spades]);
+            Assert.AreEqual(2, result[Seats.North, Suits.Hearts]);
+            Assert.AreEqual(5, result[Seats.North, Suits.Diamonds]);
+            Assert.AreEqual(1, result[Seats.North, Suits.Clubs]);
+            Assert.AreEqual(8, result[Seats.East, Suits.NoTrump]);
+            Assert.AreEqual(7, result[Seats.East, Suits.Spades]);
+            Assert.AreEqual(11, result[Seats.East, Suits.Hearts]);
+            Assert.AreEqual(8, result[Seats.East, Suits.Diamonds]);
+            Assert.AreEqual(12, result[Seats.East, Suits.Clubs]);
+            Assert.AreEqual(4, result[Seats.South, Suits.NoTrump]);
+            Assert.AreEqual(6, result[Seats.South, Suits.Spades]);
+            Assert.AreEqual(2, result[Seats.South, Suits.Hearts]);
+            Assert.AreEqual(5, result[Seats.South, Suits.Diamonds]);
+            Assert.AreEqual(1, result[Seats.South, Suits.Clubs]);
+            Assert.AreEqual(9, result[Seats.West, Suits.NoTrump]);
+            Assert.AreEqual(7, result[Seats.West, Suits.Spades]);
+            Assert.AreEqual(11, result[Seats.West, Suits.Hearts]);
+            Assert.AreEqual(8, result[Seats.West, Suits.Diamonds]);
+            Assert.AreEqual(12, result[Seats.West, Suits.Clubs]);
         }
     }
 }

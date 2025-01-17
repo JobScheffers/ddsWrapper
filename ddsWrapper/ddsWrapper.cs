@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿using Bridge;
 
 namespace DDS
 {
@@ -17,8 +17,10 @@ namespace DDS
             // Otherwise, score –1 is returned if target cannot be reached, or score 0 if no tricks can be won. 
             // target=-1, solutions=1:  Returns only one of the optimum cards and its score.
             var result = new List<CardPotential>();
-            var trickCards = state.TrickCards.ToArray();
-            var deal = new deal(state.Trump, state.TrickLeader, ref trickCards, state.RemainingCards);
+            var playedCards = DdsEnum.Convert(state.PlayedByMan1, state.PlayedByMan2, state.PlayedByMan3);
+            var deal = new deal(DdsEnum.Convert(state.Trump), DdsEnum.Convert(state.TrickLeader), 
+                                in playedCards,
+                                state.RemainingCards);
             var futureTricks = new FutureTricks();
 
             var hresult = 0;
@@ -36,13 +38,13 @@ namespace DDS
 
             for (int i = 0; i < futureTricks.cards; i++)
             {
-                result.Add(new CardPotential(new Card((Suit)futureTricks.suit[i], (Rank)futureTricks.rank[i]), futureTricks.score[i], futureTricks.equals[i] == 0));
+                result.Add(new CardPotential(CardDeck.Instance[DdsEnum.Convert((Suit)futureTricks.suit[i]), DdsEnum.Convert((Rank)futureTricks.rank[i])], futureTricks.score[i], futureTricks.equals[i] == 0));
                 var firstEqual = true;
                 for (Rank rank = Rank.Two; rank <= Rank.Ace; rank++)
                 {
                     if ((futureTricks.equals[i] & ((uint)(2 << ((int)rank) - 1))) > 0)
                     {
-                        result.Add(new CardPotential(new Card((Suit)futureTricks.suit[i], rank), futureTricks.score[i], firstEqual));
+                        result.Add(new CardPotential(CardDeck.Instance[DdsEnum.Convert((Suit)futureTricks.suit[i]), DdsEnum.Convert(rank)], futureTricks.score[i], firstEqual));
                         firstEqual = false;
                     }
                 };
@@ -93,7 +95,7 @@ namespace DDS
             return SolveBoard(in state, 0, 3, 1);
         }
 
-        public static TableResults PossibleTricks(string pbn)
+        public static TableResults PossibleTricks(ref readonly string pbn)
         {
             var deal = new ddTableDealPBN(pbn);
             var results = new ddTableResults();
@@ -105,7 +107,7 @@ namespace DDS
             {
                 for (Suit suit = Suit.Spades; suit <= Suit.NT; suit++)
                 {
-                    result[hand, suit] = results[hand, suit];
+                    result[DdsEnum.Convert(hand), DdsEnum.Convert(suit)] = results[hand, suit];
                 };
             };
             return result;
@@ -113,21 +115,27 @@ namespace DDS
 
         public static void ForgetPreviousBoard()
         {
-            DDSInfo info = default;
+            //DDSInfo info = default;
             //ddsImports.GetDDSInfo(ref info);
             ddsImports.FreeMemory();
             ddsImports.SetResources(1000, 16);
             //ddsImports.GetDDSInfo(ref info);
         }
 
-        public static List<TableResults> PossibleTricks(List<Deal> deals, List<Suit> trumps)
+#if NET6_0_OR_GREATER
+#else
+#endif
+#if NET6_0_OR_GREATER
+        public static List<TableResults> PossibleTricks(ref readonly List<Deal> deals, ref readonly List<Suits> trumps)
+#else
+        public static List<TableResults> PossibleTricks(ref List<Deal> deals, ref List<Suits> trumps)
+#endif
         {
-            if (trumps == null || trumps.Count == 0) trumps = [ Suit.Clubs, Suit.Diamonds, Suit.Hearts, Suit.Spades, Suit.NT ];
-            var tableDeals = new ddTableDeals(deals);
+            var tableDeals = new ddTableDeals(in deals);
             var results = new ddTablesResult(deals.Count);
             var parResults = new allParResults();
 
-            var hresult = ddsImports.CalcAllTables(tableDeals, -1, Convert(trumps), ref results, ref parResults);
+            var hresult = ddsImports.CalcAllTables(tableDeals, -1, Convert(in trumps), ref results, ref parResults);
             Inspect(hresult);
 
             var result = new List<TableResults>();
@@ -138,7 +146,7 @@ namespace DDS
                 {
                     for (Suit suit = Suit.Spades; suit <= Suit.NT; suit++)
                     {
-                        tableResult[hand, suit] = (results.results[deal])[hand, suit];
+                        tableResult[DdsEnum.Convert(hand), DdsEnum.Convert(suit)] = (results.results[deal])[hand, suit];
                     };
                 };
                 result.Add(tableResult);
@@ -147,12 +155,23 @@ namespace DDS
             return result;
         }
 
-        private static int[] Convert(List<Suit> trumps)
+        private static int[] Convert(ref readonly List<Suits> trumps)
         {
             var result = new int[5] { 1, 1, 1, 1, 1 };
-            foreach (Suit suit in trumps)
+            if (trumps == null || trumps.Count == 0)
             {
-                result[(int)suit] = 0;
+                result[0] = 0;
+                result[1] = 0;
+                result[2] = 0;
+                result[3] = 0;
+                result[4] = 0;
+            }
+            else
+            {
+                foreach (Suits suit in trumps)
+                {
+                    result[(int)DdsEnum.Convert(suit)] = 0;
+                }
             }
             return result;
         }
@@ -184,9 +203,5 @@ namespace DDS
             ddsImports.ErrorMessage(returnCode, error);
             return new string(error);
         }
-
-        #region converters
-
-        #endregion
     }
 }

@@ -23,6 +23,10 @@
 		-->
 	</PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Bridge.Fundamentals" Version="2025.1.14.1" />
+  </ItemGroup>
+
 	<ItemGroup>
 		<!--<None Update="dds.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
