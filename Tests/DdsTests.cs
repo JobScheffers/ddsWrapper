@@ -165,7 +165,7 @@ namespace Tests
             var result =
                 Profiler.Time(() =>
                 {
-                    return ddsWrapper.PossibleTricks(deal);
+                    return ddsWrapper.PossibleTricks(in deal);
                 }, out var elapsedTime);
 
             Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");

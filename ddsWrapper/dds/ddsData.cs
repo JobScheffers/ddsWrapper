@@ -332,7 +332,7 @@ namespace DDS
 
     public enum Vulnerable { None = 0, Both = 1, NSonly = 2, EWonly = 3 }
 
-    public readonly struct Card
+    internal readonly struct Card
     {
         public Suit Suit { get; }
         public Rank Rank { get; }

@@ -123,9 +123,6 @@ namespace DDS
         }
 
 #if NET6_0_OR_GREATER
-#else
-#endif
-#if NET6_0_OR_GREATER
         public static List<TableResults> PossibleTricks(ref readonly List<Deal> deals, ref readonly List<Suits> trumps)
 #else
         public static List<TableResults> PossibleTricks(ref List<Deal> deals, ref List<Suits> trumps)
