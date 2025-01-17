@@ -162,6 +162,11 @@ namespace DDS
             }
         }
 
+        public void Clear()
+        {
+            for (int i = 0; i <= 12; i++) this.data[i] = 0;
+        }
+
         public string ToPBN()
         {
             var result = new StringBuilder(70);
