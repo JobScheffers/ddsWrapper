@@ -24,7 +24,7 @@
 	</PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bridge.Fundamentals" Version="2025.1.17.1" />
+    <PackageReference Include="Bridge.Fundamentals" Version="2025.1.19.3" />
   </ItemGroup>
 
 	<ItemGroup>

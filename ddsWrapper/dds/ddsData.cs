@@ -41,7 +41,7 @@ namespace DDS
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
         public readonly string cards;
 
-        public ddTableDealPBN(string hands)
+        public ddTableDealPBN(in string hands)
         {
             cards = hands;
         }
@@ -54,7 +54,7 @@ namespace DDS
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains)]
         public readonly ddTableDealPBN[] deals;
 
-        public ddTableDealsPBN(ref readonly List<string> hands)
+        public ddTableDealsPBN(in List<string> hands)
         {
             noOfTables = hands.Count;
             deals = new ddTableDealPBN[ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains];
@@ -68,7 +68,7 @@ namespace DDS
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
         public readonly uint[,] cards;
 
-        public ddTableDeal(ref readonly Deal deal)
+        public ddTableDeal(in Deal deal)
         {
             cards = new uint[4, 4];
             for (Seats seat = Seats.North; seat <= Seats.West; seat++)
@@ -94,7 +94,7 @@ namespace DDS
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains)]
         public readonly ddTableDeal[] tableDeals;
 
-        public ddTableDeals(ref readonly List<Deal> deals)
+        public ddTableDeals(in List<Deal> deals)
         {
             noOfTables = deals.Count;
             tableDeals = new ddTableDeal[ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains];
@@ -174,7 +174,7 @@ namespace DDS
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
         public readonly string remainCards;
 
-        public dealPBN(Suit _trump, Hand trickLeader, ref readonly Card[] currentTrick, ref readonly string remainingCards)
+        public dealPBN(Suit _trump, Hand trickLeader, in Card[] currentTrick, in string remainingCards)
         {
             trump = (int)_trump;
             first = (int)trickLeader;
@@ -206,7 +206,7 @@ namespace DDS
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
         public readonly uint[,] remainCards;
 
-        public deal(Suit _trump, Hand trickLeader, ref readonly PlayedCards playedCards, ref readonly Deal remainingCards)
+        public deal(Suit _trump, Hand trickLeader, in PlayedCards playedCards, in Deal remainingCards)
         {
             //Debug.WriteLine(remainingCards.ToPBN());
             trump = (int)_trump;

@@ -7,7 +7,7 @@ namespace DDS
         private static readonly object locker = new object();
         private static readonly bool[] threadOccupied = new bool[16];
 
-        private static List<CardPotential> SolveBoard(ref readonly GameState state, int target, int solutions, int mode)
+        private static List<CardPotential> SolveBoard(in GameState state, int target, int solutions, int mode)
         {
             // Parameter ”target” is the number of tricks to be won by the side to play, 
             // -1 means that the program shall find the maximum number.
@@ -80,22 +80,22 @@ namespace DDS
             }
         }
 
-        public static List<CardPotential> BestCards(ref readonly GameState state)
+        public static List<CardPotential> BestCards(in GameState state)
         {
             return SolveBoard(in state, -1, 2, 1);
         }
 
-        public static List<CardPotential> BestCard(ref readonly GameState state)
+        public static List<CardPotential> BestCard(in GameState state)
         {
             return SolveBoard(in state, -1, 1, 1);
         }
 
-        public static List<CardPotential> AllCards(ref readonly GameState state)
+        public static List<CardPotential> AllCards(in GameState state)
         {
             return SolveBoard(in state, 0, 3, 1);
         }
 
-        public static TableResults PossibleTricks(ref readonly string pbn)
+        public static TableResults PossibleTricks(in string pbn)
         {
             var deal = new ddTableDealPBN(pbn);
             var results = new ddTableResults();
@@ -123,9 +123,9 @@ namespace DDS
         }
 
 #if NET6_0_OR_GREATER
-        public static List<TableResults> PossibleTricks(ref readonly List<Deal> deals, ref readonly List<Suits> trumps)
+        public static List<TableResults> PossibleTricks(in List<Deal> deals, in List<Suits> trumps)
 #else
-        public static List<TableResults> PossibleTricks(ref List<Deal> deals, ref List<Suits> trumps)
+        public static List<TableResults> PossibleTricks(in List<Deal> deals, in List<Suits> trumps)
 #endif
         {
             var tableDeals = new ddTableDeals(in deals);
@@ -152,7 +152,7 @@ namespace DDS
             return result;
         }
 
-        private static int[] Convert(ref readonly List<Suits> trumps)
+        private static int[] Convert(in List<Suits> trumps)
         {
             var result = new int[5] { 1, 1, 1, 1, 1 };
             if (trumps == null || trumps.Count == 0)
