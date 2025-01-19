@@ -37,7 +37,7 @@ namespace Tests
             //         c 6
             string cards = "N:9..85432.QJ9 754.JT73.KT. J82.KQ6.QJ.6 AKQT63.5..8";
             var deal = new Deal(cards);
-            var state = new GameState(ref deal, Suits.Spades, Seats.West, CardDeck.Instance[Suits.Clubs, Ranks.Seven], Bridge.Card.Null, Bridge.Card.Null);
+            var state = new GameState(in deal, Suits.Spades, Seats.West, CardDeck.Instance[Suits.Clubs, Ranks.Seven], Bridge.Card.Null, Bridge.Card.Null);
             var result = ddsWrapper.BestCards(state);
             Assert.AreEqual(3, result.Count);
             Assert.IsFalse(result[0].IsPrimary);
@@ -61,7 +61,7 @@ namespace Tests
             //         c AK
             string cards = "N:JT984.T7.AQ83.4 Q7532.82.97.832 K.AQJ53.KJ42.AK A6.K964.T65.Q96";
             var deal = new Deal(cards);
-            var state = new GameState(ref deal, Suits.Hearts, Seats.South);
+            var state = new GameState(in deal, Suits.Hearts, Seats.South);
             var result = ddsWrapper.BestCards(state);
             Assert.AreEqual(12, result.Count);
         }
@@ -83,7 +83,7 @@ namespace Tests
             //         c A9862
             string cards = "N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9.";
             var deal = new Deal(cards);
-            var state = new GameState(ref deal, Suits.Spades, Seats.West, CardDeck.Instance[Suits.Hearts, Ranks.King], Bridge.Card.Null, Bridge.Card.Null);
+            var state = new GameState(in deal, Suits.Spades, Seats.West, CardDeck.Instance[Suits.Hearts, Ranks.King], Bridge.Card.Null, Bridge.Card.Null);
             var result = ddsWrapper.BestCards(state);
             Assert.AreEqual(7, result[0].Tricks);
         }
@@ -97,7 +97,7 @@ namespace Tests
             var result =
                 Profiler.Time(() =>
                 {
-                    var state = new GameState(ref deal, Suits.Hearts, Seats.East, CardDeck.Instance[Suits.Diamonds, Ranks.Five], Bridge.Card.Null, Bridge.Card.Null);
+                    var state = new GameState(in deal, Suits.Hearts, Seats.East, CardDeck.Instance[Suits.Diamonds, Ranks.Five], Bridge.Card.Null, Bridge.Card.Null);
                     return ddsWrapper.BestCards(state);
                 }, out var elapsedTime, 100);
             Trace.WriteLine($"1 call took {elapsedTime.TotalMilliseconds/100:F2} ms");

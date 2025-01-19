@@ -14,18 +14,10 @@ namespace DDS
         public Bridge.Card PlayedByMan3 { get; }
 
         [DebuggerStepThrough]
-#if NET6_0_OR_GREATER
-        public GameState(ref readonly Deal remainingCards, Suits trump, Seats trickLeader) : this(in remainingCards, trump, trickLeader, Bridge.Card.Null, Bridge.Card.Null, Bridge.Card.Null) { }
-#else
-        public GameState(ref Deal remainingCards, Suits trump, Seats trickLeader) : this(ref remainingCards, trump, trickLeader, Bridge.Card.Null, Bridge.Card.Null, Bridge.Card.Null) { }
-#endif
+        public GameState(in Deal remainingCards, Suits trump, Seats trickLeader) : this(in remainingCards, trump, trickLeader, Bridge.Card.Null, Bridge.Card.Null, Bridge.Card.Null) { }
 
         [DebuggerStepThrough]
-#if NET6_0_OR_GREATER
-        public GameState(ref readonly Deal remainingCards, Suits trump, Seats trickLeader, Bridge.Card playedByMan1, Bridge.Card playedByMan2, Bridge.Card playedByMan3)
-#else
-        public GameState(ref Deal remainingCards, Suits trump, Seats trickLeader, Bridge.Card playedByMan1, Bridge.Card playedByMan2, Bridge.Card playedByMan3)
-#endif
+        public GameState(in Deal remainingCards, Suits trump, Seats trickLeader, Bridge.Card playedByMan1, Bridge.Card playedByMan2, Bridge.Card playedByMan3)
         {
             RemainingCards = remainingCards;
             Trump = trump;
