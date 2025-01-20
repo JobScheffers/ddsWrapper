@@ -85,9 +85,9 @@ namespace DDS
             return SolveBoard(in state, -1, 2, 1);
         }
 
-        public static List<CardPotential> BestCard(in GameState state)
+        public static CardPotential BestCard(in GameState state)
         {
-            return SolveBoard(in state, -1, 1, 1);
+            return SolveBoard(in state, -1, 1, 1)[0];
         }
 
         public static List<CardPotential> AllCards(in GameState state)
