@@ -101,8 +101,7 @@ namespace Tests
             Debug.WriteLine(deal.ToPBN());
             var state = new GameState(in deal, Suits.Hearts, Seats.East, CardDeck.Instance[Suits.Diamonds, Ranks.Five], Bridge.Card.Null, Bridge.Card.Null);
             var result = ddsWrapper.BestCard(state);
-            Assert.AreEqual(11, result[0].Tricks);
-            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(11, result.Tricks);
         }
 
         [TestMethod]
