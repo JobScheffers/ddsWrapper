@@ -11,10 +11,14 @@ namespace Tests
         [TestMethod]
         public void SolveBoard_From_Multiple_Threads()
         {
-            Parallel.For(1, 1000, i =>
+            Parallel.For(1, 100000, new ParallelOptions { MaxDegreeOfParallelism = 32 }, i =>
             {
+                SolveBoard1();
+                SolveBoard2();
                 SolveBoard3();
             });
+
+            //Assert.AreEqual(0, ddsWrapper.sleeps);
         }
 
         [TestMethod]
@@ -76,7 +80,7 @@ namespace Tests
             //         h 
             //         d 
             //         c A9862
-            ddsWrapper.ForgetPreviousBoard();
+            //ddsWrapper.ForgetPreviousBoard();
             var deal = new Deal("N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9.");
             var state = new GameState(in deal, Suits.Spades, Seats.West, CardDeck.Instance[Suits.Hearts, Ranks.King], Bridge.Card.Null, Bridge.Card.Null);
             var result = ddsWrapper.BestCards(state);

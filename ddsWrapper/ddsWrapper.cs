@@ -6,6 +6,7 @@ namespace DDS
     {
         private static readonly object locker = new object();
         private static readonly bool[] threadOccupied = new bool[16];
+        //public static int sleeps = 0;
 
         private static List<CardPotential> SolveBoard(in GameState state, int target, int solutions, int mode)
         {
@@ -67,7 +68,8 @@ namespace DDS
                         }
                     }
 
-                    Thread.Sleep(50);
+                    //sleeps++;
+                    Thread.Sleep(20);
                 }
             }
 
