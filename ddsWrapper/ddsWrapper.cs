@@ -7,7 +7,6 @@ namespace DDS
         private static readonly object locker = new object();
         private static readonly bool[] threadOccupied = new bool[16];
         private static readonly ManualResetEventSlim resetEvent = new ManualResetEventSlim(false);
-        //public static int sleeps = 0;
 
         private static List<CardPotential> SolveBoard(in GameState state, int target, int solutions, int mode)
         {
@@ -70,9 +69,7 @@ namespace DDS
                         resetEvent.Reset();
                     }
 
-                    //sleeps++;
-                    //Thread.Sleep(20);
-                    resetEvent.Wait();
+                    resetEvent.Wait();      // wait for another thread to finish
                 }
             }
 
@@ -81,7 +78,7 @@ namespace DDS
                 lock (locker)
                 {
                     threadOccupied[threadIndex] = false;
-                    resetEvent.Set();
+                    resetEvent.Set();       // signal that a thread is free
                 }
             }
         }
@@ -121,18 +118,11 @@ namespace DDS
 
         public static void ForgetPreviousBoard()
         {
-            //DDSInfo info = default;
-            //ddsImports.GetDDSInfo(ref info);
             ddsImports.FreeMemory();
             ddsImports.SetResources(1000, 16);
-            //ddsImports.GetDDSInfo(ref info);
         }
 
-#if NET6_0_OR_GREATER
         public static List<TableResults> PossibleTricks(in List<Deal> deals, in List<Suits> trumps)
-#else
-        public static List<TableResults> PossibleTricks(in List<Deal> deals, in List<Suits> trumps)
-#endif
         {
             var tableDeals = new ddTableDeals(in deals);
             var results = new ddTablesResult(deals.Count);
