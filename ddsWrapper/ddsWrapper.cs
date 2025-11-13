@@ -120,6 +120,10 @@ namespace DDS
         {
             ddsImports.FreeMemory();
             ddsImports.SetResources(1000, 16);
+            for (int i = 0; i < ddsImports.MaxThreads; i++)
+            {
+                threadOccupied[i] = false;
+            }
         }
 
         public static List<TableResults> PossibleTricks(in List<Deal> deals, in List<Suits> trumps)
