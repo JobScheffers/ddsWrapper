@@ -1,14 +1,32 @@
 ﻿using Bridge;
+using System.Numerics;
 
 namespace DDS
 {
-    public static class ddsWrapper
+    public static unsafe partial class ddsWrapper
     {
-        private static readonly object locker = new object();
-        private static readonly bool[] threadOccupied = new bool[16];
-        private static readonly ManualResetEventSlim resetEvent = new ManualResetEventSlim(false);
+        // atomic bitmask: bit==1 means occupied
+        private static int threadMask = 0;
+        private static readonly int maxThreads;
+        private static readonly object maskLock = new();
 
-        private static List<CardPotential> SolveBoard(in GameState state, int target, int solutions, int mode)
+        // per-managed-thread cached index; -1 means none claimed yet
+        private static readonly ThreadLocal<int> threadLocalIndex = new(() => -1);
+
+        // Thread-local pooled List to avoid repeated small allocations and internal array growth.
+        // Each managed thread gets its own buffer; we Clear() and reuse it.  We return a fresh List copy to callers.
+        private static readonly ThreadLocal<List<CardPotential>> listPool = new(() => new List<CardPotential>(16));
+
+        static ddsWrapper()
+        {
+            maxThreads = ddsImports.MaxThreads;
+            if (maxThreads <= 0 || maxThreads > 32)
+            {
+                throw new InvalidOperationException($"ddsImports.MaxThreads must be between 1 and 32 (was {maxThreads})");
+            }
+        }
+
+        private static unsafe List<CardPotential> SolveBoard(in GameState state, int target, int solutions, int mode)
         {
             // Parameter ”target” is the number of tricks to be won by the side to play, 
             // -1 means that the program shall find the maximum number.
@@ -17,70 +35,146 @@ namespace DDS
             // Its returned score is the same as target when target or higher tricks can be won. 
             // Otherwise, score –1 is returned if target cannot be reached, or score 0 if no tricks can be won. 
             // target=-1, solutions=1:  Returns only one of the optimum cards and its score.
-            var result = new List<CardPotential>();
+
+            //var result = new List<CardPotential>();
+            var result = listPool.Value!;
+            result.Clear();
+
             var playedCards = DdsEnum.Convert(state.PlayedByMan1, state.PlayedByMan2, state.PlayedByMan3);
             var deal = new deal(DdsEnum.Convert(state.Trump), DdsEnum.Convert(state.TrickLeader), 
                                 in playedCards,
                                 state.RemainingCards);
-            var futureTricks = new FutureTricks();
+            //var futureTricks = new FutureTricks();
+            FutureTricks futureTricks = default;
+            var threadIndex = GetThreadIndex(); // fast (cached) on repeated calls
 
-            var hresult = 0;
-            var threadIndex = GetThreadIndex();
+            int hresult;
             try
             {
                 hresult = ddsImports.SolveBoard(deal, target, solutions, mode, ref futureTricks, threadIndex);
             }
             finally
             {
-                ReleaseThreadIndex(threadIndex);
+                // NOTE: we intentionally do NOT release the index here.
+                // The index is cached per managed thread to avoid repeated allocation overhead.
+                // This is safe only when the number of concurrent managed threads using the library
+                // never exceeds ddsImports.MaxThreads.
             }
 
             Inspect(hresult);
 
-            for (int i = 0; i < futureTricks.cards; i++)
+            //for (int i = 0; i < futureTricks.cards; i++)
+            //{
+            //    result.Add(new CardPotential(CardDeck.Instance[DdsEnum.Convert((Suit)futureTricks.suit[i]), DdsEnum.Convert((Rank)futureTricks.rank[i])], futureTricks.score[i], futureTricks.equals[i] == 0));
+            //    var firstEqual = true;
+            //    for (Rank rank = Rank.Two; rank <= Rank.Ace; rank++)
+            //    {
+            //        if ((futureTricks.equals[i] & ((uint)(2 << ((int)rank) - 1))) > 0)
+            //        {
+            //            result.Add(new CardPotential(CardDeck.Instance[DdsEnum.Convert((Suit)futureTricks.suit[i]), DdsEnum.Convert(rank)], futureTricks.score[i], firstEqual));
+            //            firstEqual = false;
+            //        }
+            //    };
+            //}
+
+            // Remove the fixed statement for already fixed pointers (FutureTricks fields are already pointers)
+            int* suitPtr = futureTricks.suit;
+            int* rankPtr = futureTricks.rank;
+            int* equalsPtr = futureTricks.equals;
+            int* scorePtr = futureTricks.score;
             {
-                result.Add(new CardPotential(CardDeck.Instance[DdsEnum.Convert((Suit)futureTricks.suit[i]), DdsEnum.Convert((Rank)futureTricks.rank[i])], futureTricks.score[i], futureTricks.equals[i] == 0));
-                var firstEqual = true;
-                for (Rank rank = Rank.Two; rank <= Rank.Ace; rank++)
+                for (int i = 0; i < futureTricks.cards; i++)
                 {
-                    if ((futureTricks.equals[i] & ((uint)(2 << ((int)rank) - 1))) > 0)
+                    var suit = (Suit)suitPtr[i];
+                    var rank = (Rank)rankPtr[i];
+                    var score = scorePtr[i];
+                    var eqMask = (uint)equalsPtr[i];
+
+                    // highest card (primary)
+                    result.Add(new CardPotential(CardDeck.Instance[DdsEnum.Convert(suit), DdsEnum.Convert(rank)], score, eqMask == 0));
+
+                    // iterate equivalent lower ranks using bit scanning
+                    if (eqMask != 0)
                     {
-                        result.Add(new CardPotential(CardDeck.Instance[DdsEnum.Convert((Suit)futureTricks.suit[i]), DdsEnum.Convert(rank)], futureTricks.score[i], firstEqual));
-                        firstEqual = false;
+                        bool firstEqual = true;
+                        // eqMask uses bit positions for ranks; adjust mapping if needed.
+                        while (eqMask != 0)
+                        {
+                            int bit = BitOperations.TrailingZeroCount(eqMask);
+                            eqMask &= eqMask - 1;
+                            var eqRank = (Rank)(bit + 2 - (int)Rank.Two); // adjust if mask mapping differs
+                            result.Add(new CardPotential(CardDeck.Instance[DdsEnum.Convert(suit), DdsEnum.Convert(eqRank)], score, firstEqual));
+                            firstEqual = false;
+                        }
                     }
-                };
+                }
             }
+
             return result;
 
-            int GetThreadIndex()
+            // Returns cached per-thread index or claims a new one with CAS on threadMask
+            static int GetThreadIndex()
             {
+                var cached = threadLocalIndex.Value;
+                if (cached != -1) return cached;
+
+                // Try to claim a free bit
+                lock (maskLock)
+                {
+                    //var maskAll = maxThreads == 32 ? 0xFFFFFFFFu : ((1u << maxThreads) - 1u);
+                    var maskAll = (maxThreads == 32) ? unchecked((int)0xFFFFFFFF) : ((1 << maxThreads) - 1);
+                    while (true)
+                    {
+                        int mask = threadMask;
+                        int avail = (~mask) & maskAll;
+                        if (avail == 0)
+                        {
+                            throw new InvalidOperationException($"all threads are in use");
+                        }
+
+                        int bit = BitOperations.TrailingZeroCount(avail);
+                        int bitMask = 1 << bit;
+                        int newMask = mask | bitMask;
+
+                        // try to set the bit
+                        var old = Interlocked.CompareExchange(ref threadMask, newMask, mask);
+                        if (old == mask)
+                        {
+                            threadLocalIndex.Value = bit;
+                            return bit;
+                        }
+                    }
+                }
+            }
+
+            // Optionally free a specific index (not used on the hot path)
+            static void ReleaseIndex(int idx)
+            {
+                if (idx < 0 || idx >= maxThreads) return;
+
                 while (true)
                 {
-                    lock (locker)
-                    {
-                        for (int i = 0; i < ddsImports.MaxThreads; i++)
-                        {
-                            if (!threadOccupied[i])
-                            {
-                                threadOccupied[i] = true;
-                                return i;
-                            }
-                        }
-                        resetEvent.Reset();
-                    }
-
-                    resetEvent.Wait();      // wait for another thread to finish
+                    int mask = threadMask;
+                    int newMask = mask & ~(1 << idx);
+                    var old = Interlocked.CompareExchange(ref threadMask, newMask, mask);
+                    if (old == mask) return;
                 }
             }
+        }
 
-            void ReleaseThreadIndex(int threadIndex)
-            {
-                lock (locker)
-                {
-                    threadOccupied[threadIndex] = false;
-                    resetEvent.Set();       // signal that a thread is free
-                }
-            }
+        // Use carefully: should only be called when there are no active SolveBoard calls
+        public static void ForgetPreviousBoard()
+        {
+            var max = ddsImports.MaxThreads;
+            ddsImports.FreeMemory();
+            ddsImports.SetResources(1000, max);
+
+            // reset the global mask; caller must ensure no concurrent SolveBoard calls
+            Interlocked.Exchange(ref threadMask, 0);
+
+            // reset per-thread cache for current thread only (other threads will still have their caches;
+            // it's caller responsibility to ensure no active threads exist when calling this).
+            threadLocalIndex.Value = -1;
         }
 
         public static List<CardPotential> BestCards(in GameState state)
@@ -114,12 +208,6 @@ namespace DDS
                 };
             };
             return result;
-        }
-
-        public static void ForgetPreviousBoard()
-        {
-            ddsImports.FreeMemory();
-            ddsImports.SetResources(1000, 16);
         }
 
         public static List<TableResults> PossibleTricks(in List<Deal> deals, in List<Suits> trumps)

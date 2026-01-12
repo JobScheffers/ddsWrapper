@@ -11,7 +11,8 @@ namespace Tests
         [TestMethod]
         public void SolveBoard_From_Multiple_Threads()
         {
-            Parallel.For(1, 100000, new ParallelOptions { MaxDegreeOfParallelism = 32 }, i =>
+            ddsWrapper.ForgetPreviousBoard();
+            Parallel.For(1, 100000, new ParallelOptions { MaxDegreeOfParallelism = 16 - 2 }, i =>
             {
                 SolveBoard1();
                 SolveBoard2();

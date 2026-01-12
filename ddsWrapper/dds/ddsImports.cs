@@ -31,10 +31,16 @@ namespace DDS
         /// <param name="futureTricks"></param>
         /// <param name="threadIndex"></param>
         /// <returns></returns>
-        [DllImport(dllPath)]
+        //[DllImport(dllPath)]
+        //public static extern int SolveBoardPBN(dealPBN dealPBN, int target, int solutions, int mode, ref FutureTricks futureTricks, int threadIndex);
+
+        //[DllImport(dllPath)]
+        //public static extern int SolveBoard(deal deal, int target, int solutions, int mode, ref FutureTricks futureTricks, int threadIndex);
+
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern int SolveBoardPBN(dealPBN dealPBN, int target, int solutions, int mode, ref FutureTricks futureTricks, int threadIndex);
 
-        [DllImport(dllPath)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern int SolveBoard(deal deal, int target, int solutions, int mode, ref FutureTricks futureTricks, int threadIndex);
 
         [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]

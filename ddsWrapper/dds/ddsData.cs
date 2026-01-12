@@ -283,45 +283,81 @@ namespace DDS
         public readonly string systemString;
     }
 
+    //[StructLayout(LayoutKind.Sequential)]
+    //internal readonly ref struct FutureTricks
+    //{
+    //    /// <summary>
+    //    /// /* Number of searched nodes */
+    //    /// </summary>
+    //    [MarshalAs(UnmanagedType.I4)]
+    //    public readonly int nodes;
+
+    //    /// <summary>
+    //    /// /*  No of alternative cards  */
+    //    /// </summary>
+    //    [MarshalAs(UnmanagedType.I4)]
+    //    public readonly int cards;
+
+    //    /// <summary>
+    //    /// /* 0=Spades, 1=Hearts, 2=Diamonds, 3=Clubs */
+    //    /// </summary>
+    //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
+    //    public readonly int[] suit;
+
+    //    /// <summary>
+    //    /// /* 2-14 for 2 through Ace */ 
+    //    /// </summary>
+    //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
+    //    public readonly int[] rank;
+
+    //    /// <summary>
+    //    /// /* Bit string of ranks for equivalent lower rank cards. The decimal value range between 4 (=2) and 8192 (King=rank 13). 
+    //    ///  When there are several ”equals”, the value is the sum of each ”equal”. */
+    //    /// </summary>
+    //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
+    //    public readonly int[] equals;
+
+    //    /// <summary>
+    //    /// /* -1 indicates that target was not reached, otherwise target or max numbe of tricks */ 
+    //    /// </summary>
+    //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
+    //    public readonly int[] score;
+    //}
     [StructLayout(LayoutKind.Sequential)]
-    internal readonly ref struct FutureTricks
+    internal unsafe struct FutureTricks
     {
         /// <summary>
         /// /* Number of searched nodes */
         /// </summary>
         [MarshalAs(UnmanagedType.I4)]
-        public readonly int nodes;
+        public int nodes;
 
         /// <summary>
         /// /*  No of alternative cards  */
         /// </summary>
         [MarshalAs(UnmanagedType.I4)]
-        public readonly int cards;
+        public int cards;
 
         /// <summary>
         /// /* 0=Spades, 1=Hearts, 2=Diamonds, 3=Clubs */
         /// </summary>
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
-        public readonly int[] suit;
+        public fixed int suit[13];
 
         /// <summary>
         /// /* 2-14 for 2 through Ace */ 
         /// </summary>
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
-        public readonly int[] rank;
+        public fixed int rank[13];
 
         /// <summary>
         /// /* Bit string of ranks for equivalent lower rank cards. The decimal value range between 4 (=2) and 8192 (King=rank 13). 
         ///  When there are several ”equals”, the value is the sum of each ”equal”. */
         /// </summary>
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
-        public readonly int[] equals;
+        public fixed int equals[13];
 
         /// <summary>
-        /// /* -1 indicates that target was not reached, otherwise target or max numbe of tricks */ 
+        /// /* -1 indicates that target was not reached, otherwise target or max number of tricks */ 
         /// </summary>
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
-        public readonly int[] score;
+        public fixed int score[13];
     }
 
     public enum Suit { Spades = 0, Hearts = 1, Diamonds = 2, Clubs = 3, NT = 4}

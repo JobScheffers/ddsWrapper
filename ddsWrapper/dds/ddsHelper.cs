@@ -267,12 +267,7 @@ namespace DDS
 
         public static TimeSpan GetElapsedTime(long startTime)
         {
-#if NET7_0_OR_GREATER
             return Stopwatch.GetElapsedTime(startTime);
-#else
-            var stopTime = Stopwatch.GetTimestamp();
-            return TimeSpan.FromTicks(stopTime - startTime);
-#endif
         }
     }
 }
