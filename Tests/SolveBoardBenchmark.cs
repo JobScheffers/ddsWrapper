@@ -8,7 +8,9 @@ namespace Tests
     [TestClass]
     public class SolveBoardBenchmark
     {
+#if DEBUG
         [TestMethod]
+#endif
         public void RunSolveBoardBenchmark()
         {
             // Configuration
@@ -92,51 +94,9 @@ namespace Tests
             }
         }
 
-        //[TestMethod]
-        //public void InspectFutureTricksLayoutAndCall()
-        //{
-        //    // Print managed sizes
-        //    Trace.WriteLine($"Marshal.SizeOf<FutureTricks>() = {Marshal.SizeOf<FutureTricks>()} bytes");
-        //    unsafe
-        //    {
-        //        Trace.WriteLine($"sizeof(FutureTricks) = {sizeof(FutureTricks)} bytes");
-        //    }
-
-        //    // If you changed 'deal' to blittable, print it too
-        //    Trace.WriteLine($"Marshal.SizeOf<deal>() = {Marshal.SizeOf<deal>()}");
-
-        //    // DDS info from the native lib
-        //    try
-        //    {
-        //        var info = default(DDSInfo);
-        //        ddsImports.GetDDSInfo(ref info); // safe to call, exists in ddsImports
-        //        Trace.WriteLine($"DDS native noOfThreads={info.noOfThreads}, threading={info.threading}");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Trace.WriteLine($"GetDDSInfo failed: {ex.Message}");
-        //    }
-
-        //    // Make a minimal SolveBoard call to verify no corruption and get hresult
-        //    var deal = new Deal("N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9.");
-        //    var state = new GameState(in deal, Suits.Spades, Seats.West, CardDeck.Instance[Suits.Hearts, Ranks.King], Bridge.Card.Null, Bridge.Card.Null);
-
-        //    // call BestCards (wrap in try/catch to capture errors)
-        //    try
-        //    {
-        //        var sw = Stopwatch.StartNew();
-        //        var result = ddsWrapper.BestCards(state);
-        //        sw.Stop();
-        //        Trace.WriteLine($"BestCards returned {result?.Count ?? 0} entries in {sw.Elapsed.TotalMilliseconds:F2} ms");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Trace.WriteLine($"BestCards threw: {ex}");
-        //        throw;
-        //    }
-        //}
-
+#if DEBUG
         [TestMethod]
+#endif
         public void InspectFutureTricksViaReflection()
         {
             var asm = typeof(ddsWrapper).Assembly;

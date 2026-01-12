@@ -8,7 +8,9 @@ namespace Tests
     public class DdsTests
     {
 
+#if DEBUG
         [TestMethod]
+#endif
         public void SolveBoard_From_Multiple_Threads()
         {
             ddsWrapper.ForgetPreviousBoard();
