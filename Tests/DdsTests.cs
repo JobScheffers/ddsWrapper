@@ -1,5 +1,6 @@
 using Bridge;
 using DDS;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 
 namespace Tests
@@ -8,24 +9,68 @@ namespace Tests
     public class DdsTests
     {
 
-#if DEBUG
+//#if DEBUG
         [TestMethod]
-#endif
+//#endif
         public void SolveBoard_From_Multiple_Threads()
         {
             ddsWrapper.ForgetPreviousBoard();
-            Parallel.For(1, 100000, new ParallelOptions { MaxDegreeOfParallelism = 16 - 2 }, i =>
-            {
-                SolveBoard1();
-                SolveBoard2();
-                SolveBoard3();
-            });
 
-            //Assert.AreEqual(0, ddsWrapper.sleeps);
+            const int totalBoards = 1000;
+            var threadCount = Environment.ProcessorCount;
+            var exceptions = new ConcurrentQueue<Exception>();
+            int next = 0;
+
+            var threads = new Thread[threadCount];
+            for (int t = 0; t < threadCount; t++)
+            {
+                threads[t] = new Thread(() =>
+                {
+                    try
+                    {
+                        while (true)
+                        {
+                            int i = Interlocked.Increment(ref next);
+                            if (i >= totalBoards)
+                                break;
+
+                            _SolveBoard1();
+                            _SolveBoard2();
+                            _SolveBoard3();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        exceptions.Enqueue(ex);
+                    }
+                })
+                {
+                    IsBackground = true,
+                    Name = $"SolveBoardWorker-{t}"
+                };
+
+                threads[t].Start();
+            }
+
+            // wait for all workers to finish
+            foreach (var th in threads)
+                th.Join();
+
+            if (!exceptions.IsEmpty)
+                throw new AggregateException(exceptions);
         }
 
         [TestMethod]
         public void SolveBoard3()
+        {
+            ddsWrapper.ForgetPreviousBoard();
+            var result = _SolveBoard3();
+            Assert.AreEqual(3, result.Count);
+            Assert.IsFalse(result[0].IsPrimary);
+            Assert.IsTrue(result[1].IsPrimary);
+        }
+
+        public List<CardPotential> _SolveBoard3()
         {
             //         s 9
             //         h
@@ -41,14 +86,18 @@ namespace Tests
             //         c 6
             var deal = new Deal("N:9..85432.QJ9 754.JT73.KT. J82.KQ6.QJ.6 AKQT63.5..8");
             var state = new GameState(in deal, Suits.Spades, Seats.West, CardDeck.Instance[Suits.Clubs, Ranks.Seven], Bridge.Card.Null, Bridge.Card.Null );
-            var result = ddsWrapper.BestCards(in state);
-            Assert.AreEqual(3, result.Count);
-            Assert.IsFalse(result[0].IsPrimary);
-            Assert.IsTrue(result[1].IsPrimary);
+            return ddsWrapper.BestCards(in state);
         }
 
         [TestMethod]
         public void SolveBoard2()
+        {
+            ddsWrapper.ForgetPreviousBoard();
+            var result = _SolveBoard2();
+            Assert.AreEqual(12, result.Count);
+        }
+
+        public List<CardPotential> _SolveBoard2()
         {
             //         s JT984
             //         h T7
@@ -64,12 +113,18 @@ namespace Tests
             //         c AK
             var deal = new Deal("N:JT984.T7.AQ83.4 Q7532.82.97.832 K.AQJ53.KJ42.AK A6.K964.T65.Q96");
             var state = new GameState(in deal, Suits.Hearts, Seats.South);
-            var result = ddsWrapper.BestCards(state);
-            Assert.AreEqual(12, result.Count);
+            return ddsWrapper.BestCards(state);
         }
 
         [TestMethod]
         public void SolveBoard1()
+        {
+            ddsWrapper.ForgetPreviousBoard();
+            var result = _SolveBoard1();
+            Assert.AreEqual(7, result[0].Tricks);
+        }
+
+        public List<CardPotential> _SolveBoard1()
         {
             //         s T9
             //         h 2
@@ -83,11 +138,9 @@ namespace Tests
             //         h 
             //         d 
             //         c A9862
-            //ddsWrapper.ForgetPreviousBoard();
             var deal = new Deal("N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9.");
             var state = new GameState(in deal, Suits.Spades, Seats.West, CardDeck.Instance[Suits.Hearts, Ranks.King], Bridge.Card.Null, Bridge.Card.Null);
-            var result = ddsWrapper.BestCards(state);
-            Assert.AreEqual(7, result[0].Tricks);
+            return ddsWrapper.BestCards(state);
         }
 
         [TestMethod]

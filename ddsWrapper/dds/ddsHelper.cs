@@ -35,7 +35,7 @@ namespace DDS
         public bool IsPrimary { get; }
 
         public CardPotential(Bridge.Card card, int tricks, bool isPrimary) { Card = card; Tricks = tricks; IsPrimary = isPrimary; }
-        public override string ToString() => $"{Card.ToString()}:{Tricks.ToString()}{(IsPrimary ? " p" : "")}";
+        public override string ToString() => $"{Card}:{Tricks}{(IsPrimary ? " p" : "")}";
     }
 
     public unsafe struct TableResults
@@ -100,94 +100,94 @@ namespace DDS
 
         public static DDS.Hand Convert(Seats seat)
         {
-            switch (seat)
+            return seat switch
             {
-                case Seats.North: return Hand.North;
-                case Seats.East: return Hand.East;
-                case Seats.South: return Hand.South;
-                case Seats.West: return Hand.West;
-                default: throw new ArgumentOutOfRangeException();
-            }
+                Seats.North => Hand.North,
+                Seats.East => Hand.East,
+                Seats.South => Hand.South,
+                Seats.West => Hand.West,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
         }
 
         public static DDS.Suit Convert(Suits suit)
         {
-            switch (suit)
+            return suit switch
             {
-                case Suits.NoTrump: return Suit.NT;
-                case Suits.Spades: return Suit.Spades;
-                case Suits.Hearts: return Suit.Hearts;
-                case Suits.Diamonds: return Suit.Diamonds;
-                case Suits.Clubs: return Suit.Clubs;
-                default: throw new ArgumentOutOfRangeException();
-            }
+                Suits.NoTrump => Suit.NT,
+                Suits.Spades => Suit.Spades,
+                Suits.Hearts => Suit.Hearts,
+                Suits.Diamonds => Suit.Diamonds,
+                Suits.Clubs => Suit.Clubs,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
         }
 
         public static DDS.Rank Convert(Ranks rank)
         {
-            switch (rank)
+            return rank switch
             {
-                case Ranks.Ace: return DDS.Rank.Ace;
-                case Ranks.King: return DDS.Rank.King;
-                case Ranks.Queen: return DDS.Rank.Queen;
-                case Ranks.Jack: return DDS.Rank.Jack;
-                case Ranks.Ten: return DDS.Rank.Ten;
-                case Ranks.Nine: return DDS.Rank.Nine;
-                case Ranks.Eight: return DDS.Rank.Eight;
-                case Ranks.Seven: return DDS.Rank.Seven;
-                case Ranks.Six: return DDS.Rank.Six;
-                case Ranks.Five: return DDS.Rank.Five;
-                case Ranks.Four: return DDS.Rank.Four;
-                case Ranks.Three: return DDS.Rank.Three;
-                case Ranks.Two: return DDS.Rank.Two;
-                default: throw new ArgumentOutOfRangeException();
-            }
+                Ranks.Ace => DDS.Rank.Ace,
+                Ranks.King => DDS.Rank.King,
+                Ranks.Queen => DDS.Rank.Queen,
+                Ranks.Jack => DDS.Rank.Jack,
+                Ranks.Ten => DDS.Rank.Ten,
+                Ranks.Nine => DDS.Rank.Nine,
+                Ranks.Eight => DDS.Rank.Eight,
+                Ranks.Seven => DDS.Rank.Seven,
+                Ranks.Six => DDS.Rank.Six,
+                Ranks.Five => DDS.Rank.Five,
+                Ranks.Four => DDS.Rank.Four,
+                Ranks.Three => DDS.Rank.Three,
+                Ranks.Two => DDS.Rank.Two,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
         }
 
         public static Seats Convert(DDS.Hand seat)
         {
-            switch (seat)
+            return seat switch
             {
-                case Hand.West: return Seats.West;
-                case Hand.East: return Seats.East;
-                case Hand.North: return Seats.North;
-                case Hand.South: return Seats.South;
-                default: throw new ArgumentOutOfRangeException();
-            }
+                Hand.West => Seats.West,
+                Hand.East => Seats.East,
+                Hand.North => Seats.North,
+                Hand.South => Seats.South,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
         }
 
         public static Suits Convert(DDS.Suit suit)
         {
-            switch (suit)
+            return suit switch
             {
-                case Suit.NT: return Suits.NoTrump;
-                case Suit.Spades: return Suits.Spades;
-                case Suit.Hearts: return Suits.Hearts;
-                case Suit.Diamonds: return Suits.Diamonds;
-                case Suit.Clubs: return Suits.Clubs;
-                default: throw new ArgumentOutOfRangeException();
-            }
+                Suit.NT => Suits.NoTrump,
+                Suit.Spades => Suits.Spades,
+                Suit.Hearts => Suits.Hearts,
+                Suit.Diamonds => Suits.Diamonds,
+                Suit.Clubs => Suits.Clubs,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
         }
 
         public static Ranks Convert(DDS.Rank rank)
         {
-            switch (rank)
+            return rank switch
             {
-                case DDS.Rank.Ace: return Ranks.Ace;
-                case DDS.Rank.King: return Ranks.King;
-                case DDS.Rank.Queen: return Ranks.Queen;
-                case DDS.Rank.Jack: return Ranks.Jack;
-                case DDS.Rank.Ten: return Ranks.Ten;
-                case DDS.Rank.Nine: return Ranks.Nine;
-                case DDS.Rank.Eight: return Ranks.Eight;
-                case DDS.Rank.Seven: return Ranks.Seven;
-                case DDS.Rank.Six: return Ranks.Six;
-                case DDS.Rank.Five: return Ranks.Five;
-                case DDS.Rank.Four: return Ranks.Four;
-                case DDS.Rank.Three: return Ranks.Three;
-                case DDS.Rank.Two: return Ranks.Two;
-                default: throw new ArgumentOutOfRangeException();
-            }
+                DDS.Rank.Ace => Ranks.Ace,
+                DDS.Rank.King => Ranks.King,
+                DDS.Rank.Queen => Ranks.Queen,
+                DDS.Rank.Jack => Ranks.Jack,
+                DDS.Rank.Ten => Ranks.Ten,
+                DDS.Rank.Nine => Ranks.Nine,
+                DDS.Rank.Eight => Ranks.Eight,
+                DDS.Rank.Seven => Ranks.Seven,
+                DDS.Rank.Six => Ranks.Six,
+                DDS.Rank.Five => Ranks.Five,
+                DDS.Rank.Four => Ranks.Four,
+                DDS.Rank.Three => Ranks.Three,
+                DDS.Rank.Two => Ranks.Two,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
         }
 
         internal static PlayedCards Convert(Bridge.Card card1, Bridge.Card card2, Bridge.Card card3)

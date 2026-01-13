@@ -4,11 +4,7 @@ namespace DDS
 {
     internal static class ddsImports
     {
-#if NET6_0_OR_GREATER
         public const int ddsMaxNumberOfBoards = 200;
-#else
-        public const int ddsMaxNumberOfBoards = 160;
-#endif
         public const int ddsStrains = 5;
         public const int ddsMaxThreads = 16;
         private const string dllPath = "dds.dll";
@@ -31,12 +27,6 @@ namespace DDS
         /// <param name="futureTricks"></param>
         /// <param name="threadIndex"></param>
         /// <returns></returns>
-        //[DllImport(dllPath)]
-        //public static extern int SolveBoardPBN(dealPBN dealPBN, int target, int solutions, int mode, ref FutureTricks futureTricks, int threadIndex);
-
-        //[DllImport(dllPath)]
-        //public static extern int SolveBoard(deal deal, int target, int solutions, int mode, ref FutureTricks futureTricks, int threadIndex);
-
         [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern int SolveBoardPBN(dealPBN dealPBN, int target, int solutions, int mode, ref FutureTricks futureTricks, int threadIndex);
 

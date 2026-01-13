@@ -1,5 +1,4 @@
 ﻿using Bridge;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace DDS
@@ -73,13 +72,15 @@ namespace DDS
             cards = new uint[4, 4];
             for (Seats seat = Seats.North; seat <= Seats.West; seat++)
             {
+                var hand = (int)DdsEnum.Convert(seat);
                 for (Suits suit = Suits.Clubs; suit <= Suits.Spades; suit++)
                 {
+                    var ddsSuit = (int)DdsEnum.Convert(suit);
                     for (Ranks rank = Ranks.Two; rank <= Ranks.Ace; rank++)
                     {
                         if (deal[seat, suit, rank])
                         {
-                            cards[(int)DdsEnum.Convert(seat), (int)DdsEnum.Convert(suit)] |= (uint)(2 << ((int)rank + 2) - 1);
+                            cards[hand, ddsSuit] |= (uint)(2 << ((int)rank + 2) - 1);
                         }
                     }
                 }
@@ -214,13 +215,15 @@ namespace DDS
             remainCards = new uint[4,4];
             for (Seats seat = Seats.North; seat <= Seats.West; seat++)
             {
+                var hand = (int)DdsEnum.Convert(seat);
                 for (Suits suit = Suits.Clubs; suit <= Suits.Spades; suit++)
                 {
+                    var ddsSuit = (int)DdsEnum.Convert(suit);
                     for (Ranks rank = Ranks.Two; rank <= Ranks.Ace; rank++)
                     {
                         if (remainingCards[seat, suit, rank])
                         {
-                            remainCards[(int)DdsEnum.Convert(seat), (int)DdsEnum.Convert(suit)] |= (uint)(2 << ((int)DdsEnum.Convert(rank)) - 1);
+                            remainCards[hand, ddsSuit] |= (uint)(2 << ((int)DdsEnum.Convert(rank)) - 1);
                         }
                     }
                 }
@@ -283,46 +286,6 @@ namespace DDS
         public readonly string systemString;
     }
 
-    //[StructLayout(LayoutKind.Sequential)]
-    //internal readonly ref struct FutureTricks
-    //{
-    //    /// <summary>
-    //    /// /* Number of searched nodes */
-    //    /// </summary>
-    //    [MarshalAs(UnmanagedType.I4)]
-    //    public readonly int nodes;
-
-    //    /// <summary>
-    //    /// /*  No of alternative cards  */
-    //    /// </summary>
-    //    [MarshalAs(UnmanagedType.I4)]
-    //    public readonly int cards;
-
-    //    /// <summary>
-    //    /// /* 0=Spades, 1=Hearts, 2=Diamonds, 3=Clubs */
-    //    /// </summary>
-    //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
-    //    public readonly int[] suit;
-
-    //    /// <summary>
-    //    /// /* 2-14 for 2 through Ace */ 
-    //    /// </summary>
-    //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
-    //    public readonly int[] rank;
-
-    //    /// <summary>
-    //    /// /* Bit string of ranks for equivalent lower rank cards. The decimal value range between 4 (=2) and 8192 (King=rank 13). 
-    //    ///  When there are several ”equals”, the value is the sum of each ”equal”. */
-    //    /// </summary>
-    //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
-    //    public readonly int[] equals;
-
-    //    /// <summary>
-    //    /// /* -1 indicates that target was not reached, otherwise target or max numbe of tricks */ 
-    //    /// </summary>
-    //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
-    //    public readonly int[] score;
-    //}
     [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct FutureTricks
     {

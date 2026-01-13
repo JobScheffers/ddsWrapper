@@ -16,6 +16,7 @@ namespace DDS
         // Thread-local pooled List to avoid repeated small allocations and internal array growth.
         // Each managed thread gets its own buffer; we Clear() and reuse it.  We return a fresh List copy to callers.
         private static readonly ThreadLocal<List<CardPotential>> listPool = new(() => new List<CardPotential>(16));
+        private static readonly ThreadLocal<List<TableResults>> tableResultsPool = new(() => new List<TableResults>(16));
 
         static ddsWrapper()
         {
@@ -36,7 +37,6 @@ namespace DDS
             // Otherwise, score –1 is returned if target cannot be reached, or score 0 if no tricks can be won. 
             // target=-1, solutions=1:  Returns only one of the optimum cards and its score.
 
-            //var result = new List<CardPotential>();
             var result = listPool.Value!;
             result.Clear();
 
@@ -44,7 +44,6 @@ namespace DDS
             var deal = new deal(DdsEnum.Convert(state.Trump), DdsEnum.Convert(state.TrickLeader), 
                                 in playedCards,
                                 state.RemainingCards);
-            //var futureTricks = new FutureTricks();
             FutureTricks futureTricks = default;
             var threadIndex = GetThreadIndex(); // fast (cached) on repeated calls
 
@@ -63,20 +62,6 @@ namespace DDS
 
             Inspect(hresult);
 
-            //for (int i = 0; i < futureTricks.cards; i++)
-            //{
-            //    result.Add(new CardPotential(CardDeck.Instance[DdsEnum.Convert((Suit)futureTricks.suit[i]), DdsEnum.Convert((Rank)futureTricks.rank[i])], futureTricks.score[i], futureTricks.equals[i] == 0));
-            //    var firstEqual = true;
-            //    for (Rank rank = Rank.Two; rank <= Rank.Ace; rank++)
-            //    {
-            //        if ((futureTricks.equals[i] & ((uint)(2 << ((int)rank) - 1))) > 0)
-            //        {
-            //            result.Add(new CardPotential(CardDeck.Instance[DdsEnum.Convert((Suit)futureTricks.suit[i]), DdsEnum.Convert(rank)], futureTricks.score[i], firstEqual));
-            //            firstEqual = false;
-            //        }
-            //    };
-            //}
-
             // Remove the fixed statement for already fixed pointers (FutureTricks fields are already pointers)
             int* suitPtr = futureTricks.suit;
             int* rankPtr = futureTricks.rank;
@@ -85,13 +70,14 @@ namespace DDS
             {
                 for (int i = 0; i < futureTricks.cards; i++)
                 {
-                    var suit = (Suit)suitPtr[i];
+                    var ddsSuit = (Suit)suitPtr[i];
+                    var suit = DdsEnum.Convert(ddsSuit);
                     var rank = (Rank)rankPtr[i];
                     var score = scorePtr[i];
                     var eqMask = (uint)equalsPtr[i];
 
                     // highest card (primary)
-                    result.Add(new CardPotential(CardDeck.Instance[DdsEnum.Convert(suit), DdsEnum.Convert(rank)], score, eqMask == 0));
+                    result.Add(new CardPotential(CardDeck.Instance[suit, DdsEnum.Convert(rank)], score, eqMask == 0));
 
                     // iterate equivalent lower ranks using bit scanning
                     if (eqMask != 0)
@@ -102,8 +88,8 @@ namespace DDS
                         {
                             int bit = BitOperations.TrailingZeroCount(eqMask);
                             eqMask &= eqMask - 1;
-                            var eqRank = (Rank)(bit + 2 - (int)Rank.Two); // adjust if mask mapping differs
-                            result.Add(new CardPotential(CardDeck.Instance[DdsEnum.Convert(suit), DdsEnum.Convert(eqRank)], score, firstEqual));
+                            var eqRank = (Rank)(bit + 2 - (int)Rank.Two);
+                            result.Add(new CardPotential(CardDeck.Instance[suit, DdsEnum.Convert(eqRank)], score, firstEqual));
                             firstEqual = false;
                         }
                     }
@@ -121,7 +107,6 @@ namespace DDS
                 // Try to claim a free bit
                 lock (maskLock)
                 {
-                    //var maskAll = maxThreads == 32 ? 0xFFFFFFFFu : ((1u << maxThreads) - 1u);
                     var maskAll = (maxThreads == 32) ? unchecked((int)0xFFFFFFFF) : ((1 << maxThreads) - 1);
                     while (true)
                     {
@@ -147,19 +132,19 @@ namespace DDS
                 }
             }
 
-            // Optionally free a specific index (not used on the hot path)
-            static void ReleaseIndex(int idx)
-            {
-                if (idx < 0 || idx >= maxThreads) return;
+            //// Optionally free a specific index (not used on the hot path)
+            //static void ReleaseIndex(int idx)
+            //{
+            //    if (idx < 0 || idx >= maxThreads) return;
 
-                while (true)
-                {
-                    int mask = threadMask;
-                    int newMask = mask & ~(1 << idx);
-                    var old = Interlocked.CompareExchange(ref threadMask, newMask, mask);
-                    if (old == mask) return;
-                }
-            }
+            //    while (true)
+            //    {
+            //        int mask = threadMask;
+            //        int newMask = mask & ~(1 << idx);
+            //        var old = Interlocked.CompareExchange(ref threadMask, newMask, mask);
+            //        if (old == mask) return;
+            //    }
+            //}
         }
 
         // Use carefully: should only be called when there are no active SolveBoard calls
@@ -219,7 +204,9 @@ namespace DDS
             var hresult = ddsImports.CalcAllTables(tableDeals, -1, Convert(in trumps), ref results, ref parResults);
             Inspect(hresult);
 
-            var result = new List<TableResults>();
+            //var result = new List<TableResults>();
+            var result = tableResultsPool.Value!;
+            result.Clear();
             for (int deal = 0; deal < deals.Count; deal++)
             {
                 TableResults tableResult;
