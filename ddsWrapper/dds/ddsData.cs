@@ -3,9 +3,11 @@
 // High-level managed types. Nice domain model, strings, arrays.
 // Mapped into blittable interop structs.
 
+using Bridge;
+using DDS.Interop;
 using System;
 using System.Collections.Generic;
-using DDS.Interop;
+using System.Runtime.InteropServices;
 
 namespace DDS
 {
@@ -39,11 +41,11 @@ namespace DDS
   }
 
   // Your richer Deal type
-  public class Deal
-  {
-    public bool[,,] Cards { get; }  // [seat, suit, rank]
-    public Deal(bool[,,] cards) => Cards = cards;
-  }
+  //public class Deal
+  //{
+  //  public bool[,,] Cards { get; }  // [seat, suit, rank]
+  //  public Deal(bool[,,] cards) => Cards = cards;
+  //}
 
   // ------------------------
   // Conversion helpers
@@ -64,26 +66,39 @@ namespace DDS
     public static ddTableDeal ToInteropTableDeal(Deal deal)
     {
       ddTableDeal d = default;
-      for (int seat = 0; seat < 4; seat++)
-        for (int suit = 0; suit < 4; suit++)
+      for (Hand seat = Hand.North; seat <= Hand.West; seat++)
+        for (Suit suit = Suit.Spades; suit <= Suit.Clubs; suit++)
         {
           uint mask = 0;
-          for (int r = 2; r <= 14; r++)
-            if (deal.Cards[seat, suit, r])
-              mask |= (uint)(1 << (r - 1));
+          for (Rank r = Rank.Two; r <= Rank.Ace; r++)
+            if (deal[DdsEnum.Convert(seat), DdsEnum.Convert(suit), DdsEnum.Convert(r)])
+              mask |= (uint)(1 << ((int)r - 1));
 
-          d.Set(seat, suit, mask);
+          d.Set((int)seat, (int)suit, mask);
         }
       return d;
     }
 
-    public static ddTableDeals ToInteropTableDeals(in List<Deal> deals)
+    public static unsafe ddTableDeals ToInteropTableDeals(in List<Deal> deals)
     {
-      ddTableDeals d = default;
-      d.noOfTables = deals.Count;
-      //tableDeals = new ddTableDeal[ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains];
-      for (int hand = 0; hand < deals.Count; hand++) d.tableDeals[hand] = ToInteropTableDeal(deals[hand]);
-      return d;
+      int count = deals.Count;
+
+      // Allocate unmanaged memory for N ddTableDeal structs
+      int size = sizeof(ddTableDeal) * count;
+      ddTableDeal* ptr = (ddTableDeal*)Marshal.AllocHGlobal(size);
+
+      // Fill the unmanaged array
+      for (int i = 0; i < count; i++)
+      {
+        ptr[i] = ToInteropTableDeal(deals[i]);  // your existing converter
+      }
+
+      // Return the interop struct pointing to unmanaged memory
+      return new ddTableDeals
+      {
+        noOfTables = count,
+        tableDeals = ptr
+      };
     }
 
     public static dealPBN ToInteropDealPBN(
@@ -128,15 +143,15 @@ namespace DDS
         d.currentTrickSuit[2] = (int)played.S3;
         d.currentTrickRank[2] = (int)played.R3;
 
-        for (int seat = 0; seat < 4; seat++)
-          for (int suit = 0; suit < 4; suit++)
+        for (Hand seat = Hand.North; seat <= Hand.West; seat++)
+          for (Suit suit = Suit.Spades; suit <= Suit.Clubs; suit++)
           {
             uint mask = 0;
-            for (int r = 2; r <= 14; r++)
-              if (dealRemaining.Cards[seat, suit, r])
-                mask |= (uint)(1 << (r - 1));
+            for (Rank r = Rank.Two; r <= Rank.Ace; r++)
+              if (dealRemaining[DdsEnum.Convert(seat), DdsEnum.Convert(suit), DdsEnum.Convert(r)])
+                mask |= (uint)(1 << ((int)r - 1));
 
-            d.remainCards[seat * 4 + suit] = mask;
+            d.remainCards[(int)seat * 4 + (int)suit] = mask;
           }
       }
       return d;

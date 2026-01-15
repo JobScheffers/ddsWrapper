@@ -7,16 +7,16 @@ using Bridge;
 [MemoryDiagnoser]
 public class SolveBoardBench
 {
-    private DDS.Deal deal1;
-    private DDS.Deal deal2;
-    private DDS.Deal deal3;
+    private Deal deal1;
+    private Deal deal2;
+    private Deal deal3;
 
     [GlobalSetup]
     public void Setup()
     {
         // Ensure DDS is initialized
         ddsWrapper.ForgetPreviousBoard();
-        deal1 = DdsInteropConverters.ToInteropTableDeal( new ("N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9."));
+        deal1 = new ("N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9.");
         deal2 = new ("N:JT984.T7.AQ83.4 Q7532.82.97.832 K.AQJ53.KJ42.AK A6.K964.T65.Q96");
         deal3 = new ("N:9..85432.QJ9 754.JT73.KT. J82.KQ6.QJ.6 AKQT63.5..8");
     }

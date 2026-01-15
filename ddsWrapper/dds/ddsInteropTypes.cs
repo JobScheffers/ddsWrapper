@@ -57,6 +57,22 @@ namespace DDS.Interop
   {
     public int noOfBoards;
     public ddTableResults* results;
+
+    public ddTablesResult(int deals)
+    {
+      noOfBoards = deals;
+
+      // Allocate unmanaged memory for `deals` ddTableResults entries
+      results = (ddTableResults*)NativeMemory.Alloc(
+          (nuint)deals,
+          (nuint)sizeof(ddTableResults));
+
+      // Initialize each entry (optional but recommended)
+      for (int i = 0; i < deals; i++)
+      {
+        results[i] = default;
+      }
+    }
   }
 
   [StructLayout(LayoutKind.Sequential)]

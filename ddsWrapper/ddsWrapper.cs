@@ -199,8 +199,7 @@ namespace DDS
         public static List<TableResults> PossibleTricks(in List<Deal> deals, in List<Suits> trumps)
         {
             var tableDeals = DdsInteropConverters.ToInteropTableDeals(in deals);
-            //var results = new ddTablesResult(deals.Count);
-            ddTablesResult results = default;
+            var results = new ddTablesResult(deals.Count);
             var parResults = new allParResults();
 
             var hresult = ddsImports.CalcAllTables(tableDeals, -1, Convert(in trumps), ref results, ref parResults);

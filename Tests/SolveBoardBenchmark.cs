@@ -124,7 +124,7 @@ namespace Tests
 
             void Work()
             {
-                var state1 = new GameState(in deal1., Suits.Spades, Seats.West, CardDeck.Instance[Suits.Hearts, Ranks.King], Bridge.Card.Null, Bridge.Card.Null);
+                var state1 = new GameState(in deal1, Suits.Spades, Seats.West, CardDeck.Instance[Suits.Hearts, Ranks.King], Bridge.Card.Null, Bridge.Card.Null);
                 var result1 = ddsWrapper.BestCards(state1);
                 var state2 = new GameState(in deal2, Suits.Hearts, Seats.South);
                 var result2 = ddsWrapper.BestCards(state2);
