@@ -8,9 +8,9 @@ namespace Microsoft.VisualStudio.TestPlatform.TestHost
         public static void Main()
         {
             var tests = new DdsTests();
-            //tests.SolveBoard_From_Multiple_Threads();
+            tests.SolveBoard_From_Multiple_Threads();
             //tests.SolveBoard3();
-            tests.CalcAllTables();
+            //tests.CalcAllTables();
         }
     }
 }

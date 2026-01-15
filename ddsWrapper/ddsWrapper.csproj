@@ -24,41 +24,16 @@
 	</PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bridge.Fundamentals" Version="2025.1.19.3" />
-		<!--<PackageReference Include="System.Runtime.InteropServices" Version="10.0.0.0" />-->
-	</ItemGroup>
+    <!--<PackageReference Include="Bridge.Fundamentals" Version="2025.1.19.3" />-->
+    <PackageReference Include="Bridge.Fundamentals" Version="2026.1.14.2" />
+  </ItemGroup>
 
 	<ItemGroup>
-		<!--<None Update="dds.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<Pack>true</Pack>
-			--><!--<PackagePath>lib\$(TargetFramework)\</PackagePath>--><!--
-			<PackagePath>runtimes\win\native\</PackagePath>
-		</None>-->
 		<None Update="dds.dll" Pack="true" PackagePath="runtimes/win/native/dds.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 	
-  <!--<ItemGroup>
-    <None Update="dds.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      --><!--<Pack>true</Pack>
-			<PackagePath>lib\dds.dll</PackagePath>--><!--
-		</None>
-  </ItemGroup>-->
-	
-	<!--<ItemGroup>
-		<_PackageFiles Include="dds.dll">
-			<BuildAction>None</BuildAction>
-			<PackagePath>lib\net8.0\</PackagePath>
-		</_PackageFiles>
-		<_PackageFiles Include="dds.dll">
-			<BuildAction>None</BuildAction>
-			<PackagePath>lib\netstandard2.0\</PackagePath>
-		</_PackageFiles>
-	</ItemGroup>-->
-
 	<ItemGroup>
 		<_PackageFiles Include="dds.dll">
 			<BuildAction>None</BuildAction>

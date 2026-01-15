@@ -15,8 +15,8 @@ namespace Tests
         {
             // Configuration
             const int warmupIterations = 10;
-            const int measureIterations = 400;
-            const int fixedThreadCount = 4;
+            const int measureIterations = 4000;
+            int fixedThreadCount = Environment.ProcessorCount;
             ddsWrapper.ForgetPreviousBoard();
 
             // Sample board (reuse any existing sample from your tests)
