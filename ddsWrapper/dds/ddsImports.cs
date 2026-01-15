@@ -1,18 +1,15 @@
 ﻿
 // ddsImports.cs
-// Target: net7.0 or net8.0
 
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security;
+using DDS.Interop;
 
 namespace DDS
 {
-  [SuppressUnmanagedCodeSecurity] // Optional: only if acceptable in your trust boundary
-  internal static partial class ddsImports
+  internal static unsafe partial class ddsImports
   {
-    // Omit ".dll" to allow cross-platform probing (Windows: dds.dll, Linux: libdds.so, macOS: libdds.dylib)
     private const string dllPath = "dds";
 
     public const int ddsMaxNumberOfBoards = 200;
@@ -28,23 +25,21 @@ namespace DDS
 
     public static int MaxThreads => _maxThreads.Value;
 
-    // -----------------------------
-    // LibraryImport declarations
-    // -----------------------------
+    // ---------------------
+    //   LibraryImport API
+    // ---------------------
 
     [LibraryImport(dllPath, EntryPoint = "CalcDDtablePBN")]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
     internal static partial int CalcDDtablePBN(
-        in ddTableDealPBN tableDealPbn,
+        in ddTableDealPBN deal,
         ref ddTableResults tablep);
 
     [LibraryImport(dllPath, EntryPoint = "SolveBoardPBN")]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
     internal static partial int SolveBoardPBN(
-        in dealPBN dealPBN,
-        int target,
-        int solutions,
-        int mode,
+        in dealPBN deal,
+        int target, int solutions, int mode,
         ref FutureTricks futureTricks,
         int threadIndex);
 
@@ -52,9 +47,7 @@ namespace DDS
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
     internal static partial int SolveBoard(
         in deal deal,
-        int target,
-        int solutions,
-        int mode,
+        int target, int solutions, int mode,
         ref FutureTricks futureTricks,
         int threadIndex);
 
@@ -63,8 +56,8 @@ namespace DDS
     internal static partial int CalcAllTablesPBN(
         in ddTableDealsPBN deals,
         int mode,
-        [MarshalAs(UnmanagedType.LPArray)] int[] trumpFilter,
-        ref ddTablesResult tableResults,
+        int[] trumpFilter,
+        ref ddTablesResult results,
         ref allParResults parResults);
 
     [LibraryImport(dllPath, EntryPoint = "CalcAllTables")]
@@ -72,8 +65,8 @@ namespace DDS
     internal static partial int CalcAllTables(
         in ddTableDeals deals,
         int mode,
-        [MarshalAs(UnmanagedType.LPArray)] int[] trumpFilter,
-        ref ddTablesResult tableResults,
+        int[] trumpFilter,
+        ref ddTablesResult results,
         ref allParResults parResults);
 
     [LibraryImport(dllPath, EntryPoint = "DealerPar")]
@@ -84,24 +77,18 @@ namespace DDS
         int dealer,
         int vulnerable);
 
-    [LibraryImport(dllPath, EntryPoint = "SetMaxThreads")]
-    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
-    internal static partial void SetMaxThreads(int userThreads);
-
     [LibraryImport(dllPath, EntryPoint = "GetDDSInfo")]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
     internal static partial void GetDDSInfo(ref DDSInfo info);
 
-    // If the native function expects a writable char buffer, use an unsafe pointer for performance.
-    // Safe IntPtr version (if you must):
+    // Unsafe version for perf
     [LibraryImport(dllPath, EntryPoint = "ErrorMessage")]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
-    internal static partial void ErrorMessage(int code, IntPtr buffer);
+    private static partial void ErrorMessageNative(int code, sbyte* buffer);
 
-    // Faster unsafe version for hot paths:
-    [LibraryImport(dllPath, EntryPoint = "ErrorMessage")]
+    [LibraryImport(dllPath, EntryPoint = "SetMaxThreads")]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
-    private static partial void ErrorMessageUnsafe(int code, sbyte* buffer);
+    internal static partial void SetMaxThreads(int userThreads);
 
     [LibraryImport(dllPath, EntryPoint = "SetResources")]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
@@ -111,127 +98,30 @@ namespace DDS
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
     internal static partial int FreeMemory();
 
-    // -----------------------------
-    // Convenience wrappers
-    // -----------------------------
+    // -------------------------
+    //   Convenience wrappers
+    // -------------------------
 
-    internal static unsafe void ErrorMessage(int code, Span<sbyte> buffer)
+    private static unsafe string GetErrorMessage(int code)
     {
-      fixed (sbyte* p = buffer)
-      {
-        ErrorMessageUnsafe(code, p);
-      }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void ThrowIfError(int rc, string apiName)
-    {
-      if (rc >= 0) return;
-
       Span<sbyte> buf = stackalloc sbyte[256];
-      ErrorMessage(rc, buf);
+      fixed (sbyte* p = buf)
+        ErrorMessageNative(code, p);
 
-      string msg = AnsiToString(buf);
-      throw new ExternalException($"{apiName} failed with code {rc}: {msg}", rc);
+      int len = 0;
+      while (len < buf.Length && buf[len] != 0) len++;
+
+      return new string((sbyte*)Unsafe.AsPointer(ref buf[0]), 0, len);
     }
 
-    private static unsafe string AnsiToString(Span<sbyte> buf)
+    internal static void ThrowIfError(int rc, string name)
     {
-      int len = 0;
-      for (; len < buf.Length; len++)
-      {
-        if (buf[len] == 0) break;
-      }
-      if (len == 0) return string.Empty;
+      if (rc >= 0)
+        return;
 
-      fixed (sbyte* p = buf)
-      {
-        return new string(p, 0, len);
-      }
+      throw new ExternalException(
+          $"{name} failed with code {rc}: {GetErrorMessage(rc)}",
+          rc);
     }
   }
-
-  // -----------------------------------------
-  // Placeholder blittable structs — replace with real layouts
-  // -----------------------------------------
-
-  //[StructLayout(LayoutKind.Sequential)]
-  //internal struct DDSInfo
-  //{
-  //  public int noOfThreads;
-  //  public int versionMajor;
-  //  public int versionMinor;
-  //}
-
-  //[StructLayout(LayoutKind.Sequential)]
-  //internal struct dealPBN
-  //{
-  //  public int dealer;
-  //  public int vulnerable;
-  //  // ...
-  //}
-
-  //[StructLayout(LayoutKind.Sequential)]
-  //internal struct deal
-  //{
-  //  public int dealer;
-  //  public int vulnerable;
-  //  // ...
-  //}
-
-  //[StructLayout(LayoutKind.Sequential)]
-  //internal struct FutureTricks
-  //{
-  //  public int nodes;
-  //  public int cards;
-  //  // ...
-  //}
-
-  //[StructLayout(LayoutKind.Sequential)]
-  //internal struct ddTableDealPBN
-  //{
-  //  public int dummy;
-  //  // ...
-  //}
-
-  //[StructLayout(LayoutKind.Sequential)]
-  //internal struct ddTableDealsPBN
-  //{
-  //  public IntPtr deals; // or use unsafe fixed buffers if fixed-size
-  //  public int noOfDeals;
-  //}
-
-  //[StructLayout(LayoutKind.Sequential)]
-  //internal struct ddTableDeals
-  //{
-  //  public IntPtr deals;
-  //  public int noOfDeals;
-  //}
-
-  //[StructLayout(LayoutKind.Sequential)]
-  //internal struct ddTableResults
-  //{
-  //  public int score00;
-  //  public int score01;
-  //  // ...
-  //}
-
-  //[StructLayout(LayoutKind.Sequential)]
-  //internal struct ddTablesResult
-  //{
-  //  public IntPtr pResults;
-  //  public int noOfBoards;
-  //}
-
-  //[StructLayout(LayoutKind.Sequential)]
-  //internal struct allParResults
-  //{
-  //  public int dummy;
-  //}
-
-  //[StructLayout(LayoutKind.Sequential)]
-  //internal struct parResultsDealer
-  //{
-  //  public int dealerScore;
-  //}
 }

@@ -20,9 +20,9 @@ namespace Tests
             ddsWrapper.ForgetPreviousBoard();
 
             // Sample board (reuse any existing sample from your tests)
-            var deal1 = new Deal("N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9.");
-            var deal2 = new Deal("N:JT984.T7.AQ83.4 Q7532.82.97.832 K.AQJ53.KJ42.AK A6.K964.T65.Q96");
-            var deal3 = new Deal("N:9..85432.QJ9 754.JT73.KT. J82.KQ6.QJ.6 AKQT63.5..8");
+            var deal1 = new Bridge.Deal("N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9.");
+            var deal2 = new Bridge.Deal("N:JT984.T7.AQ83.4 Q7532.82.97.832 K.AQJ53.KJ42.AK A6.K964.T65.Q96");
+            var deal3 = new Bridge.Deal("N:9..85432.QJ9 754.JT73.KT. J82.KQ6.QJ.6 AKQT63.5..8");
 
             Trace.WriteLine($"SolveBoard benchmark - warmup {warmupIterations}, measure {measureIterations}, parallelDegree {fixedThreadCount}");
 
@@ -124,7 +124,7 @@ namespace Tests
 
             void Work()
             {
-                var state1 = new GameState(in deal1, Suits.Spades, Seats.West, CardDeck.Instance[Suits.Hearts, Ranks.King], Bridge.Card.Null, Bridge.Card.Null);
+                var state1 = new GameState(in deal1., Suits.Spades, Seats.West, CardDeck.Instance[Suits.Hearts, Ranks.King], Bridge.Card.Null, Bridge.Card.Null);
                 var result1 = ddsWrapper.BestCards(state1);
                 var state2 = new GameState(in deal2, Suits.Hearts, Seats.South);
                 var result2 = ddsWrapper.BestCards(state2);

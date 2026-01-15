@@ -1,362 +1,186 @@
-﻿using Bridge;
-using System.Runtime.InteropServices;
+﻿
+// ddsRichTypes.cs
+// High-level managed types. Nice domain model, strings, arrays.
+// Mapped into blittable interop structs.
+
+using System;
+using System.Collections.Generic;
+using DDS.Interop;
 
 namespace DDS
 {
-    [StructLayout(LayoutKind.Sequential)]
-    internal readonly ref struct parResultsDealer
+  public enum Suit { Spades = 0, Hearts = 1, Diamonds = 2, Clubs = 3, NT = 4 }
+  public enum Rank { Two = 2, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace }
+  public enum Hand { North = 0, East = 1, South = 2, West = 3 }
+
+  public readonly struct Card
+  {
+    public Suit Suit { get; }
+    public Rank Rank { get; }
+    public Card(Suit s, Rank r) { Suit = s; Rank = r; }
+  }
+
+  // Example of your played-cards structure
+  public readonly struct PlayedCards
+  {
+    public Suit S1 { get; }
+    public Suit S2 { get; }
+    public Suit S3 { get; }
+    public Rank R1 { get; }
+    public Rank R2 { get; }
+    public Rank R3 { get; }
+
+    public PlayedCards(Suit s1, Rank r1, Suit s2, Rank r2, Suit s3, Rank r3)
     {
-        public readonly int number;
-        public readonly int score;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 10)]
-        public readonly string contracts;
+      S1 = s1; R1 = r1;
+      S2 = s2; R2 = r2;
+      S3 = s3; R3 = r3;
+    }
+  }
+
+  // Your richer Deal type
+  public class Deal
+  {
+    public bool[,,] Cards { get; }  // [seat, suit, rank]
+    public Deal(bool[,,] cards) => Cards = cards;
+  }
+
+  // ------------------------
+  // Conversion helpers
+  // ------------------------
+
+  public static unsafe class DdsInteropConverters
+  {
+    public static ddTableDealPBN ToInteropTableDealPbn(string pbn)
+    {
+      ddTableDealPBN d = default;
+      var span = AsSpan(ref d);
+      WriteAnsiToSpan(pbn, span);
+      //fixed (sbyte* p = d.cards)
+      //  WriteAnsi(pbn, p, 80);
+      return d;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    internal readonly struct ddTableResults
+    public static ddTableDeal ToInteropTableDeal(Deal deal)
     {
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
-        private readonly int[] resTable;
-
-        public ddTableResults()
+      ddTableDeal d = default;
+      for (int seat = 0; seat < 4; seat++)
+        for (int suit = 0; suit < 4; suit++)
         {
-            resTable = new int[20];
+          uint mask = 0;
+          for (int r = 2; r <= 14; r++)
+            if (deal.Cards[seat, suit, r])
+              mask |= (uint)(1 << (r - 1));
+
+          d.Set(seat, suit, mask);
+        }
+      return d;
+    }
+
+    public static ddTableDeals ToInteropTableDeals(in List<Deal> deals)
+    {
+      ddTableDeals d = default;
+      d.noOfTables = deals.Count;
+      //tableDeals = new ddTableDeal[ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains];
+      for (int hand = 0; hand < deals.Count; hand++) d.tableDeals[hand] = ToInteropTableDeal(deals[hand]);
+      return d;
+    }
+
+    public static dealPBN ToInteropDealPBN(
+        Suit trump, Hand leader,
+        IReadOnlyList<Card> currentTrick, string remaining)
+    {
+      dealPBN d = default;
+      d.trump = (int)trump;
+      d.first = (int)leader;
+
+      unsafe
+      {
+        for (int i = 0; i < currentTrick.Count && i < 3; i++)
+        {
+          d.currentTrickSuit[i] = (int)currentTrick[i].Suit;
+          d.currentTrickRank[i] = (int)currentTrick[i].Rank;
         }
 
-        public int this[Hand hand, Suit suit]
-        {
-            get { return this[(int)hand, (int)suit]; }
-        }
 
-        public int this[int hand, int suit]
-        {
-            get { return resTable[4 * suit + hand]; }
-        }
+        var span = AsSpan(ref d);
+        WriteAnsiToSpan(remaining, span);
+      }
+
+      return d;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    internal readonly struct ddTableDealPBN
+    public static deal ToInteropDeal(
+        Suit trump, Hand leader,
+        PlayedCards played,
+        Deal dealRemaining)
     {
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
-        public readonly string cards;
+      deal d = default;
+      d.trump = (int)trump;
+      d.first = (int)leader;
 
-        public ddTableDealPBN(in string hands)
-        {
-            cards = hands;
-        }
+      unsafe
+      {
+        d.currentTrickSuit[0] = (int)played.S1;
+        d.currentTrickRank[0] = (int)played.R1;
+        d.currentTrickSuit[1] = (int)played.S2;
+        d.currentTrickRank[1] = (int)played.R2;
+        d.currentTrickSuit[2] = (int)played.S3;
+        d.currentTrickRank[2] = (int)played.R3;
+
+        for (int seat = 0; seat < 4; seat++)
+          for (int suit = 0; suit < 4; suit++)
+          {
+            uint mask = 0;
+            for (int r = 2; r <= 14; r++)
+              if (dealRemaining.Cards[seat, suit, r])
+                mask |= (uint)(1 << (r - 1));
+
+            d.remainCards[seat * 4 + suit] = mask;
+          }
+      }
+      return d;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    internal readonly struct ddTableDealsPBN
+    // ASCII write helper
+    private static unsafe void WriteAnsi(
+        ReadOnlySpan<char> src, sbyte* dest, int cap)
     {
-        public readonly int noOfTables;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains)]
-        public readonly ddTableDealPBN[] deals;
-
-        public ddTableDealsPBN(in List<string> hands)
-        {
-            noOfTables = hands.Count;
-            deals = new ddTableDealPBN[ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains];
-            for (int hand = 0; hand < hands.Count; hand++) deals[hand] = new ddTableDealPBN(hands[hand]);
-        }
+      int i = 0;
+      for (; i < src.Length && i < cap - 1; i++)
+        dest[i] = (sbyte)(src[i] <= 0x7F ? src[i] : '?');
+      dest[i] = 0;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    internal readonly struct ddTableDeal
+
+    public static void WriteAnsiToSpan(ReadOnlySpan<char> src, Span<sbyte> dest)
     {
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
-        public readonly uint[,] cards;
+      int max = dest.Length;
+      int i = 0;
 
-        public ddTableDeal(in Deal deal)
-        {
-            cards = new uint[4, 4];
-            for (Seats seat = Seats.North; seat <= Seats.West; seat++)
-            {
-                var hand = (int)DdsEnum.Convert(seat);
-                for (Suits suit = Suits.Clubs; suit <= Suits.Spades; suit++)
-                {
-                    var ddsSuit = (int)DdsEnum.Convert(suit);
-                    for (Ranks rank = Ranks.Two; rank <= Ranks.Ace; rank++)
-                    {
-                        if (deal[seat, suit, rank])
-                        {
-                            cards[hand, ddsSuit] |= (uint)(2 << ((int)rank + 2) - 1);
-                        }
-                    }
-                }
-            }
-        }
+      // Copy characters until we reach capacity‑1 (reserve space for NUL)
+      for (; i < src.Length && i < max - 1; i++)
+      {
+        char ch = src[i];
+        dest[i] = (sbyte)(ch <= 0x7F ? ch : '?');
+      }
+
+      // NUL terminate
+      dest[i] = 0;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    internal readonly struct ddTableDeals
+
+    public static unsafe Span<sbyte> AsSpan(ref dealPBN d)
     {
-        public readonly int noOfTables;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains)]
-        public readonly ddTableDeal[] tableDeals;
-
-        public ddTableDeals(in List<Deal> deals)
-        {
-            noOfTables = deals.Count;
-            tableDeals = new ddTableDeal[ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains];
-            for (int hand = 0; hand < deals.Count; hand++) tableDeals[hand] = new ddTableDeal(deals[hand]);
-        }
+      fixed (dealPBN* p = &d)
+        return new Span<sbyte>(p->remainCards, 80);
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    internal readonly struct ddTablesResult
+    public static unsafe Span<sbyte> AsSpan(ref ddTableDealPBN d)
     {
-        public readonly int noOfBoards;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains)]
-        public readonly ddTableResults[] results;
-
-        public ddTablesResult(int deals)
-        {
-            noOfBoards = deals;
-            results = new ddTableResults[ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains];
-            for (int deal = 0; deal < deals; deal++) results[deal] = new ddTableResults();
-        }
+      fixed (ddTableDealPBN* p = &d)
+        return new Span<sbyte>(p->cards, 80);
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    internal readonly struct parResults
-    {
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-        public readonly parScore[] parScores;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-        public readonly parContract[] parContracts;
-
-        public parResults()
-        {
-            parScores = new parScore[2];
-            parContracts = new parContract[2];
-        }
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal readonly struct parScore
-    {
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 16)]
-        public readonly string score;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal readonly struct parContract
-    {
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-        public readonly string score;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal readonly struct allParResults
-    {
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
-        public readonly parResults[] results;
-
-        public allParResults()
-        {
-            results = new parResults[20];
-            for (int i = 0; i < 20; i++) results[i] = new parResults();
-        }
-    }
-
-    internal readonly struct dealPBN
-    {
-        public readonly int trump;
-
-        public readonly int first;
-
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-        public readonly int[] currentTrickSuit;
-
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-        public readonly int[] currentTrickRank;
-
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
-        public readonly string remainCards;
-
-        public dealPBN(Suit _trump, Hand trickLeader, in Card[] currentTrick, in string remainingCards)
-        {
-            trump = (int)_trump;
-            first = (int)trickLeader;
-            remainCards = remainingCards;
-            currentTrickSuit = new int[3];
-            currentTrickRank = new int[3];
-            for (int i = 0; i < currentTrick.Length; i++)
-            {
-                currentTrickSuit[i] = (int)currentTrick[i].Suit;
-                currentTrickRank[i] = (int)currentTrick[i].Rank;
-            }
-        }
-    }
-
-#pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
-    internal readonly struct deal
-#pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
-    {
-        public readonly int trump;
-
-        public readonly int first;
-
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-        public readonly int[] currentTrickSuit = new int[3];
-
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-        public readonly int[] currentTrickRank = new int[3];
-
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
-        public readonly uint[,] remainCards;
-
-        public deal(Suit _trump, Hand trickLeader, in PlayedCards playedCards, in Deal remainingCards)
-        {
-            //Debug.WriteLine(remainingCards.ToPBN());
-            trump = (int)_trump;
-            first = (int)trickLeader;
-            remainCards = new uint[4,4];
-            for (Seats seat = Seats.North; seat <= Seats.West; seat++)
-            {
-                var hand = (int)DdsEnum.Convert(seat);
-                for (Suits suit = Suits.Clubs; suit <= Suits.Spades; suit++)
-                {
-                    var ddsSuit = (int)DdsEnum.Convert(suit);
-                    for (Ranks rank = Ranks.Two; rank <= Ranks.Ace; rank++)
-                    {
-                        if (remainingCards[seat, suit, rank])
-                        {
-                            remainCards[hand, ddsSuit] |= (uint)(2 << ((int)DdsEnum.Convert(rank)) - 1);
-                        }
-                    }
-                }
-            }
-
-            currentTrickSuit[0] = (int)playedCards.Card1Suit;
-            currentTrickRank[0] = (int)playedCards.Card1Rank;
-            currentTrickSuit[1] = (int)playedCards.Card2Suit;
-            currentTrickRank[1] = (int)playedCards.Card2Rank;
-            currentTrickSuit[2] = (int)playedCards.Card3Suit;
-            currentTrickRank[2] = (int)playedCards.Card3Rank;
-        }
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal readonly struct DDSInfo
-    {
-        public readonly int major, minor, patch;
-
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 10)]
-        public readonly string versionString;
-
-        // Currently 0 = unknown, 1 = Windows, 2 = Cygwin, 3 = Linux, 4 = Apple
-        public readonly int system;
-
-        // We know 32 and 64-bit systems.
-        public readonly int numBits;
-
-        // Currently 0 = unknown, 1 = Microsoft Visual C++, 2 = mingw,
-        // 3 = GNU g++, 4 = clang
-        public readonly int compiler;
-
-        // Currently 0 = none, 1 = DllMain, 2 = Unix-style
-        public readonly int constructor;
-
-        public readonly int numCores;
-
-        // Currently 
-        // 0 = none, 
-        // 1 = Windows (native), 
-        // 2 = OpenMP, 
-        // 3 = GCD,
-        // 4 = Boost,
-        // 5 = STL,
-        // 6 = TBB,
-        // 7 = STLIMPL (for_each), experimental only
-        // 8 = PPLIMPL (for_each), experimental only
-        public readonly int threading;
-
-        // The actual number of threads configured
-        public readonly int noOfThreads;
-
-        // This will break if there are > 128 threads...
-        // The string is of the form LLLSSS meaning 3 large TT memories
-        // and 3 small ones.
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-        public readonly string threadSizes;
-
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1024)]
-        public readonly string systemString;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal unsafe struct FutureTricks
-    {
-        /// <summary>
-        /// /* Number of searched nodes */
-        /// </summary>
-        [MarshalAs(UnmanagedType.I4)]
-        public int nodes;
-
-        /// <summary>
-        /// /*  No of alternative cards  */
-        /// </summary>
-        [MarshalAs(UnmanagedType.I4)]
-        public int cards;
-
-        /// <summary>
-        /// /* 0=Spades, 1=Hearts, 2=Diamonds, 3=Clubs */
-        /// </summary>
-        public fixed int suit[13];
-
-        /// <summary>
-        /// /* 2-14 for 2 through Ace */ 
-        /// </summary>
-        public fixed int rank[13];
-
-        /// <summary>
-        /// /* Bit string of ranks for equivalent lower rank cards. The decimal value range between 4 (=2) and 8192 (King=rank 13). 
-        ///  When there are several ”equals”, the value is the sum of each ”equal”. */
-        /// </summary>
-        public fixed int equals[13];
-
-        /// <summary>
-        /// /* -1 indicates that target was not reached, otherwise target or max number of tricks */ 
-        /// </summary>
-        public fixed int score[13];
-    }
-
-    public enum Suit { Spades = 0, Hearts = 1, Diamonds = 2, Clubs = 3, NT = 4}
-
-    public enum Rank { Two = 2, Three = 3, Four = 4, Five = 5, Six = 6, Seven = 7, Eight = 8, Nine = 9, Ten = 10, Jack = 11, Queen = 12, King = 13, Ace = 14 }
-
-    public enum Hand { North = 0, East = 1, South = 2, West = 3 }
-
-    public enum Vulnerable { None = 0, Both = 1, NSonly = 2, EWonly = 3 }
-
-    internal readonly struct Card
-    {
-        public Suit Suit { get; }
-        public Rank Rank { get; }
-
-        public Card(Suit s, Rank r) { Suit = s; Rank = r; }
-        public override string ToString() => $"{Suit.ToString()[0]}{(Rank < Rank.Ten ? ((int)Rank).ToString() : Rank.ToString()[0])}";
-    }
-
-    internal readonly ref struct PlayedCards
-    {
-        public Suit Card1Suit { get; }
-        public Suit Card2Suit { get; }
-        public Suit Card3Suit { get; }
-        public Rank Card1Rank { get; }
-        public Rank Card2Rank { get; }
-        public Rank Card3Rank { get; }
-
-        public PlayedCards(Suit s1, Rank r1, Suit s2, Rank r2, Suit s3, Rank r3)
-        {
-            Card1Suit = s1;
-            Card1Rank = r1;
-            Card2Suit = s2;
-            Card2Rank = r2;
-            Card3Suit = s3;
-            Card3Rank = r3;
-        }
-    }
+  }
 }

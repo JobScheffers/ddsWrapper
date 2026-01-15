@@ -1,5 +1,6 @@
 ﻿using Bridge;
 using System.Numerics;
+using DDS.Interop;
 
 namespace DDS
 {
@@ -41,8 +42,8 @@ namespace DDS
             result.Clear();
 
             var playedCards = DdsEnum.Convert(state.PlayedByMan1, state.PlayedByMan2, state.PlayedByMan3);
-            var deal = new deal(DdsEnum.Convert(state.Trump), DdsEnum.Convert(state.TrickLeader), 
-                                in playedCards,
+            var deal = DdsInteropConverters.ToInteropDeal(DdsEnum.Convert(state.Trump), DdsEnum.Convert(state.TrickLeader), 
+                                playedCards,
                                 state.RemainingCards);
             FutureTricks futureTricks = default;
             var threadIndex = GetThreadIndex(); // fast (cached) on repeated calls
@@ -60,7 +61,7 @@ namespace DDS
                 // never exceeds ddsImports.MaxThreads.
             }
 
-            Inspect(hresult);
+            ddsImports.ThrowIfError(hresult, nameof(ddsImports.SolveBoard));
 
             // Remove the fixed statement for already fixed pointers (FutureTricks fields are already pointers)
             int* suitPtr = futureTricks.suit;
@@ -179,17 +180,17 @@ namespace DDS
 
         public static TableResults PossibleTricks(in string pbn)
         {
-            var deal = new ddTableDealPBN(pbn);
+            var deal = DdsInteropConverters.ToInteropTableDealPbn(pbn);
             var results = new ddTableResults();
             var hresult = ddsImports.CalcDDtablePBN(deal, ref results);
-            Inspect(hresult);
+            ddsImports.ThrowIfError(hresult, nameof(ddsImports.CalcDDtablePBN));
 
             TableResults result;
             for (Hand hand = Hand.North; hand <= Hand.West; hand++)
             {
                 for (Suit suit = Suit.Spades; suit <= Suit.NT; suit++)
                 {
-                    result[DdsEnum.Convert(hand), DdsEnum.Convert(suit)] = results[hand, suit];
+                    result[DdsEnum.Convert(hand), DdsEnum.Convert(suit)] = results.Get((int)hand, (int)suit);
                 };
             };
             return result;
@@ -197,12 +198,13 @@ namespace DDS
 
         public static List<TableResults> PossibleTricks(in List<Deal> deals, in List<Suits> trumps)
         {
-            var tableDeals = new ddTableDeals(in deals);
-            var results = new ddTablesResult(deals.Count);
+            var tableDeals = DdsInteropConverters.ToInteropTableDeals(in deals);
+            //var results = new ddTablesResult(deals.Count);
+            ddTablesResult results = default;
             var parResults = new allParResults();
 
             var hresult = ddsImports.CalcAllTables(tableDeals, -1, Convert(in trumps), ref results, ref parResults);
-            Inspect(hresult);
+            ddsImports.ThrowIfError(hresult, nameof(ddsImports.CalcAllTables));
 
             //var result = new List<TableResults>();
             var result = tableResultsPool.Value!;
@@ -214,7 +216,7 @@ namespace DDS
                 {
                     for (Suit suit = Suit.Spades; suit <= Suit.NT; suit++)
                     {
-                        tableResult[DdsEnum.Convert(hand), DdsEnum.Convert(suit)] = (results.results[deal])[hand, suit];
+                        tableResult[DdsEnum.Convert(hand), DdsEnum.Convert(suit)] = results.results[deal].Get((int)hand, (int)suit);
                     };
                 };
                 result.Add(tableResult);
@@ -244,32 +246,32 @@ namespace DDS
             return result;
         }
 
-        private static void Inspect(int returnCode)
-        {
-            if (returnCode == 1) return;
-            //throw new Exception(Error(returnCode));
+        //private static void Inspect(int returnCode)
+        //{
+        //    if (returnCode == 1) return;
+        //    //throw new Exception(Error(returnCode));
 
-            switch (returnCode)
-            {
-                case 1: return;     // no fault
-                case -1: throw new Exception("dds unknown fault");
-                case -2: throw new Exception("dds SolveBoard: 0 cards");
-                case -4: throw new Exception("dds SolveBoard: duplicate cards");
-                case -10: throw new Exception("dds SolveBoard: too many cards");
-                case -12: throw new Exception("dds SolveBoard: either currentTrickSuit or currentTrickRank have wrong data");
-                case -14: throw new Exception("dds SolveBoard: wrong number of remaining cards for a hand");
-                case -15: throw new Exception("dds SolveBoard: thread number is less than 0 or higher than the maximum permitted");
-                case -201: throw new Exception("dds CalcAllTables: the denomination filter vector has no entries");
-                default: throw new Exception($"dds undocumented fault {returnCode}");
-            }
-        }
+        //    switch (returnCode)
+        //    {
+        //        case 1: return;     // no fault
+        //        case -1: throw new Exception("dds unknown fault");
+        //        case -2: throw new Exception("dds SolveBoard: 0 cards");
+        //        case -4: throw new Exception("dds SolveBoard: duplicate cards");
+        //        case -10: throw new Exception("dds SolveBoard: too many cards");
+        //        case -12: throw new Exception("dds SolveBoard: either currentTrickSuit or currentTrickRank have wrong data");
+        //        case -14: throw new Exception("dds SolveBoard: wrong number of remaining cards for a hand");
+        //        case -15: throw new Exception("dds SolveBoard: thread number is less than 0 or higher than the maximum permitted");
+        //        case -201: throw new Exception("dds CalcAllTables: the denomination filter vector has no entries");
+        //        default: throw new Exception($"dds undocumented fault {returnCode}");
+        //    }
+        //}
 
-        public static string Error(int returnCode)
-        {
-            if (returnCode == 1) return "";
-            var error = new Char[80];
-            ddsImports.ErrorMessage(returnCode, error);
-            return new string(error);
-        }
+        //public static string Error(int returnCode)
+        //{
+        //    if (returnCode == 1) return "";
+        //    var error = new Char[80];
+        //    ddsImports.ErrorMessage(returnCode, error);
+        //    return new string(error);
+        //}
     }
 }
