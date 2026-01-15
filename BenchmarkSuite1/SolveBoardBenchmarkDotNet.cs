@@ -1,12 +1,9 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
-using BenchmarkDotNet.Loggers;
-using BenchmarkDotNet.Exporters;
 using DDS;
 using Bridge;
 
-[Config(typeof(BenchmarkConfig))]
 [SimpleJob(RuntimeMoniker.Net70)]
 [MemoryDiagnoser]
 public class SolveBoardBench
@@ -35,14 +32,5 @@ public class SolveBoardBench
         var r1 = ddsWrapper.BestCards(state1);
         var r2 = ddsWrapper.BestCards(state2);
         var r3 = ddsWrapper.BestCards(in state3);
-    }
-}
-
-public class BenchmarkConfig : ManualConfig
-{
-    public BenchmarkConfig()
-    {
-        AddLogger(ConsoleLogger.Default);
-        AddExporter(MarkdownExporter.GitHub);
     }
 }

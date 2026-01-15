@@ -1,67 +1,237 @@
-﻿using System.Runtime.InteropServices;
+﻿
+// ddsImports.cs
+// Target: net7.0 or net8.0
+
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Security;
 
 namespace DDS
 {
-    internal static class ddsImports
+  [SuppressUnmanagedCodeSecurity] // Optional: only if acceptable in your trust boundary
+  internal static partial class ddsImports
+  {
+    // Omit ".dll" to allow cross-platform probing (Windows: dds.dll, Linux: libdds.so, macOS: libdds.dylib)
+    private const string dllPath = "dds";
+
+    public const int ddsMaxNumberOfBoards = 200;
+    public const int ddsStrains = 5;
+    public const int ddsMaxThreads = 16;
+
+    private static readonly Lazy<int> _maxThreads = new(() =>
     {
-        public const int ddsMaxNumberOfBoards = 200;
-        public const int ddsStrains = 5;
-        public const int ddsMaxThreads = 16;
-        private const string dllPath = "dds.dll";
-        public static readonly int MaxThreads;
+      DDSInfo info = default;
+      GetDDSInfo(ref info);
+      return info.noOfThreads > ddsMaxThreads ? ddsMaxThreads : info.noOfThreads;
+    });
 
-        [DllImport(dllPath)]
-        public static extern int CalcDDtablePBN(ddTableDealPBN tableDealPbn, ref ddTableResults tablep);
+    public static int MaxThreads => _maxThreads.Value;
 
-        /// <summary>
-        /// For equivalent  cards only the highest is returned.
-        /// target=1-13, solutions=1:  Returns only one of the cards. 
-        /// Its returned score is the same as target whentarget or higher tricks can be won. 
-        ///  Otherwise, score –1 is returned if target cannot be reached, or score 0 if no tricks can be won. 
-        /// target=-1, solutions=1:  Returns only one of the optimum cards and its score.
-        /// </summary>
-        /// <param name="dealPBN"></param>
-        /// <param name="target">the number of tricks to be won by the side to play, -1 means that the program shall find the maximum number</param>
-        /// <param name="solutions"></param>
-        /// <param name="mode"></param>
-        /// <param name="futureTricks"></param>
-        /// <param name="threadIndex"></param>
-        /// <returns></returns>
-        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int SolveBoardPBN(dealPBN dealPBN, int target, int solutions, int mode, ref FutureTricks futureTricks, int threadIndex);
+    // -----------------------------
+    // LibraryImport declarations
+    // -----------------------------
 
-        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int SolveBoard(deal deal, int target, int solutions, int mode, ref FutureTricks futureTricks, int threadIndex);
+    [LibraryImport(dllPath, EntryPoint = "CalcDDtablePBN")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial int CalcDDtablePBN(
+        in ddTableDealPBN tableDealPbn,
+        ref ddTableResults tablep);
 
-        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int CalcAllTablesPBN(ddTableDealsPBN deals, int mode, int[] trumpFilter, ref ddTablesResult tableResults, ref allParResults parResults);
+    [LibraryImport(dllPath, EntryPoint = "SolveBoardPBN")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial int SolveBoardPBN(
+        in dealPBN dealPBN,
+        int target,
+        int solutions,
+        int mode,
+        ref FutureTricks futureTricks,
+        int threadIndex);
 
-        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int CalcAllTables(ddTableDeals deals, int mode, int[] trumpFilter, ref ddTablesResult tableResults, ref allParResults parResults);
+    [LibraryImport(dllPath, EntryPoint = "SolveBoard")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial int SolveBoard(
+        in deal deal,
+        int target,
+        int solutions,
+        int mode,
+        ref FutureTricks futureTricks,
+        int threadIndex);
 
-        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int DealerPar(ref ddTableResults tablep, ref parResultsDealer presp, int dealer, int vulnerable);
+    [LibraryImport(dllPath, EntryPoint = "CalcAllTablesPBN")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial int CalcAllTablesPBN(
+        in ddTableDealsPBN deals,
+        int mode,
+        [MarshalAs(UnmanagedType.LPArray)] int[] trumpFilter,
+        ref ddTablesResult tableResults,
+        ref allParResults parResults);
 
-        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetMaxThreads(int userThreads);
+    [LibraryImport(dllPath, EntryPoint = "CalcAllTables")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial int CalcAllTables(
+        in ddTableDeals deals,
+        int mode,
+        [MarshalAs(UnmanagedType.LPArray)] int[] trumpFilter,
+        ref ddTablesResult tableResults,
+        ref allParResults parResults);
 
-        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void GetDDSInfo(ref DDSInfo info);
+    [LibraryImport(dllPath, EntryPoint = "DealerPar")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial int DealerPar(
+        ref ddTableResults tablep,
+        ref parResultsDealer presp,
+        int dealer,
+        int vulnerable);
 
-        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void ErrorMessage(int code, Char[] line);
+    [LibraryImport(dllPath, EntryPoint = "SetMaxThreads")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial void SetMaxThreads(int userThreads);
 
-        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetResources(int maxMemoryMB, int maxThreads);
+    [LibraryImport(dllPath, EntryPoint = "GetDDSInfo")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial void GetDDSInfo(ref DDSInfo info);
 
-        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int FreeMemory();
+    // If the native function expects a writable char buffer, use an unsafe pointer for performance.
+    // Safe IntPtr version (if you must):
+    [LibraryImport(dllPath, EntryPoint = "ErrorMessage")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial void ErrorMessage(int code, IntPtr buffer);
 
-        static ddsImports()
-        {
-            DDSInfo info = default;
-            GetDDSInfo(ref info);
-            MaxThreads = info.noOfThreads > ddsMaxThreads ? ddsMaxThreads : info.noOfThreads;
-        }
+    // Faster unsafe version for hot paths:
+    [LibraryImport(dllPath, EntryPoint = "ErrorMessage")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    private static partial void ErrorMessageUnsafe(int code, sbyte* buffer);
+
+    [LibraryImport(dllPath, EntryPoint = "SetResources")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial void SetResources(int maxMemoryMB, int maxThreads);
+
+    [LibraryImport(dllPath, EntryPoint = "FreeMemory")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial int FreeMemory();
+
+    // -----------------------------
+    // Convenience wrappers
+    // -----------------------------
+
+    internal static unsafe void ErrorMessage(int code, Span<sbyte> buffer)
+    {
+      fixed (sbyte* p = buffer)
+      {
+        ErrorMessageUnsafe(code, p);
+      }
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void ThrowIfError(int rc, string apiName)
+    {
+      if (rc >= 0) return;
+
+      Span<sbyte> buf = stackalloc sbyte[256];
+      ErrorMessage(rc, buf);
+
+      string msg = AnsiToString(buf);
+      throw new ExternalException($"{apiName} failed with code {rc}: {msg}", rc);
+    }
+
+    private static unsafe string AnsiToString(Span<sbyte> buf)
+    {
+      int len = 0;
+      for (; len < buf.Length; len++)
+      {
+        if (buf[len] == 0) break;
+      }
+      if (len == 0) return string.Empty;
+
+      fixed (sbyte* p = buf)
+      {
+        return new string(p, 0, len);
+      }
+    }
+  }
+
+  // -----------------------------------------
+  // Placeholder blittable structs — replace with real layouts
+  // -----------------------------------------
+
+  //[StructLayout(LayoutKind.Sequential)]
+  //internal struct DDSInfo
+  //{
+  //  public int noOfThreads;
+  //  public int versionMajor;
+  //  public int versionMinor;
+  //}
+
+  //[StructLayout(LayoutKind.Sequential)]
+  //internal struct dealPBN
+  //{
+  //  public int dealer;
+  //  public int vulnerable;
+  //  // ...
+  //}
+
+  //[StructLayout(LayoutKind.Sequential)]
+  //internal struct deal
+  //{
+  //  public int dealer;
+  //  public int vulnerable;
+  //  // ...
+  //}
+
+  //[StructLayout(LayoutKind.Sequential)]
+  //internal struct FutureTricks
+  //{
+  //  public int nodes;
+  //  public int cards;
+  //  // ...
+  //}
+
+  //[StructLayout(LayoutKind.Sequential)]
+  //internal struct ddTableDealPBN
+  //{
+  //  public int dummy;
+  //  // ...
+  //}
+
+  //[StructLayout(LayoutKind.Sequential)]
+  //internal struct ddTableDealsPBN
+  //{
+  //  public IntPtr deals; // or use unsafe fixed buffers if fixed-size
+  //  public int noOfDeals;
+  //}
+
+  //[StructLayout(LayoutKind.Sequential)]
+  //internal struct ddTableDeals
+  //{
+  //  public IntPtr deals;
+  //  public int noOfDeals;
+  //}
+
+  //[StructLayout(LayoutKind.Sequential)]
+  //internal struct ddTableResults
+  //{
+  //  public int score00;
+  //  public int score01;
+  //  // ...
+  //}
+
+  //[StructLayout(LayoutKind.Sequential)]
+  //internal struct ddTablesResult
+  //{
+  //  public IntPtr pResults;
+  //  public int noOfBoards;
+  //}
+
+  //[StructLayout(LayoutKind.Sequential)]
+  //internal struct allParResults
+  //{
+  //  public int dummy;
+  //}
+
+  //[StructLayout(LayoutKind.Sequential)]
+  //internal struct parResultsDealer
+  //{
+  //  public int dealerScore;
+  //}
 }
