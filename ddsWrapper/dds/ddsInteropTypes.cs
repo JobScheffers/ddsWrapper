@@ -85,75 +85,109 @@ namespace DDS.Interop
         }
     }
 
+    //[StructLayout(LayoutKind.Sequential)]
+    //public unsafe struct ddTableDeals : IDisposable
+    //{
+    //    public int noOfTables;
+    //    public ddTableDeal* tableDeals;
+
+    //    /// <summary>
+    //    /// Allocates an unmanaged array of <see cref="ddTableDeal"/> with length <paramref name="deals"/>.
+    //    /// Caller owns the memory and must call Dispose() to free it.
+    //    /// </summary>
+    //    public ddTableDeals(int deals)
+    //    {
+    //        ArgumentOutOfRangeException.ThrowIfNegative(deals);
+    //        ArgumentOutOfRangeException.ThrowIfGreaterThan(deals, ddsImports.ddsMaxNumberOfBoards);
+    //        noOfTables = deals;
+    //        //if (deals == 0) { tableDeals = null; return; }
+
+    //        //deals = ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains;
+
+    //        tableDeals = (ddTableDeal*)NativeMemory.Alloc((nuint)deals, (nuint)sizeof(ddTableDeal));
+    //        //nuint bytes = (nuint)deals * (nuint)sizeof(ddTableDeal);
+    //        //Unsafe.InitBlockUnaligned((void*)tableDeals, 0, (uint)bytes);
+    //    }
+
+    //    public void Dispose()
+    //    {
+    //        if (tableDeals != null)
+    //        {
+    //            NativeMemory.Free(tableDeals);
+    //            tableDeals = null;
+    //            noOfTables = 0;
+    //        }
+    //    }
+    //}
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct ddTableDeals : IDisposable
+    public unsafe struct ddTableDeals
     {
         public int noOfTables;
-        public ddTableDeal* tableDeals;
+        public fixed uint tableDeals[ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains * 16];
 
         /// <summary>
-        /// Allocates an unmanaged array of <see cref="ddTableDeal"/> with length <paramref name="deals"/>.
-        /// Caller owns the memory and must call Dispose() to free it.
+        /// Indexer to access the 16-card array for a specific deal
         /// </summary>
-        public ddTableDeals(int deals)
+        public Span<uint> this[int deal]
         {
-            ArgumentOutOfRangeException.ThrowIfNegative(deals);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(deals, ddsImports.ddsMaxNumberOfBoards);
-            noOfTables = deals;
-            //if (deals == 0) { tableDeals = null; return; }
+            get
+            {
+                if (deal < 0 || deal >= noOfTables)
+                    throw new ArgumentOutOfRangeException(nameof(deal));
 
-            //deals = ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains;
-
-            tableDeals = (ddTableDeal*)NativeMemory.Alloc((nuint)deals, (nuint)sizeof(ddTableDeal));
-            //nuint bytes = (nuint)deals * (nuint)sizeof(ddTableDeal);
-            //Unsafe.InitBlockUnaligned((void*)tableDeals, 0, (uint)bytes);
+                fixed (uint* p = tableDeals)
+                {
+                    // Each deal has 16 uints (4 hands × 4 suits)
+                    return new Span<uint>(p + deal * 16, 16);
+                }
+            }
         }
 
-        public void Dispose()
+        /// <summary>
+        /// Convenience: access one card by deal, hand, suit
+        /// </summary>
+        public uint this[int deal, int hand, int suit]
         {
-            if (tableDeals != null)
+            get
             {
-                NativeMemory.Free(tableDeals);
-                tableDeals = null;
-                noOfTables = 0;
+                var span = this[deal];
+                return span[hand * 4 + suit];
+            }
+            set
+            {
+                var span = this[deal];
+                span[hand * 4 + suit] = value;
             }
         }
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct ddTablesResult : IDisposable
+    public unsafe struct ddTablesResult
     {
         public int noOfBoards;
-        public ddTableResults* results;
+        public fixed int results[
+            ddsImports.ddsMaxNumberOfBoards *
+            ddsImports.ddsStrains *
+            20];
 
-        /// <summary>
-        /// Allocates unmanaged memory for <paramref name="deals"/> ddTableResults entries.
-        /// Caller owns the memory and must call Dispose() to free it.
-        /// </summary>
-        public ddTablesResult(int deals)
+        public ddTablesResult(int deals, int strains)
         {
             ArgumentOutOfRangeException.ThrowIfNegative(deals);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(deals, ddsImports.ddsMaxNumberOfBoards);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(deals * strains, ddsImports.ddsMaxNumberOfBoards);
             noOfBoards = deals;
-            //if (deals == 0) { results = null; return; }
-
-            //deals = ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains;
-
-            // Allocate 'deals' elements of ddTableResults
-            results = (ddTableResults*)NativeMemory.Alloc((nuint)deals, (nuint)sizeof(ddTableResults));
-
-            // Zero-init the allocated bytes
-            //nuint bytes = (nuint)deals * (nuint)sizeof(ddTableResults);
-            //Unsafe.InitBlockUnaligned((void*)results, 0, (uint)bytes);
         }
 
-        public void Dispose()
+        public int this[int deal, int hand, int suit]
         {
-            if (results != null)
+            get
             {
-                NativeMemory.Free(results);
-                results = null;
-                noOfBoards = 0;
+                Debug.Assert(deal >= 0 && deal < noOfBoards);
+                Debug.Assert(hand >= 0 && hand < 4);
+                Debug.Assert(suit >= 0 && suit < 5);
+
+                int tableOffset = deal * 20;
+                int cell = hand + suit * 4;
+                return results[tableOffset + cell];
             }
         }
     }
@@ -170,36 +204,51 @@ namespace DDS.Interop
         public fixed sbyte score[128];
     }
 
+    //[StructLayout(LayoutKind.Sequential)]
+    //public unsafe struct parResults
+    //{
+    //    public fixed byte _scores[32];
+    //    public fixed byte _contracts[256];
+
+    //    public ref parScore Score(int i)
+    //    {
+    //        Debug.Assert(i >= 0 && i < (32 / 16));
+    //        fixed (byte* p = _scores) return ref ((parScore*)p)[i];
+    //    }
+
+    //    public ref parContract Contract(int i)
+    //    {
+    //        Debug.Assert(i >= 0 && i < (256 / 128));
+    //        fixed (byte* p = _contracts) return ref ((parContract*)p)[i];
+    //    }
+    //}
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct parResults
     {
-        public fixed byte _scores[32];
-        public fixed byte _contracts[256];
-
-        public ref parScore Score(int i)
-        {
-            Debug.Assert(i >= 0 && i < (32 / 16));
-            fixed (byte* p = _scores) return ref ((parScore*)p)[i];
-        }
-
-        public ref parContract Contract(int i)
-        {
-            Debug.Assert(i >= 0 && i < (256 / 128));
-            fixed (byte* p = _contracts) return ref ((parContract*)p)[i];
-        }
+        public fixed sbyte parScores[2 * 16];       // 2 parScore
+        public fixed sbyte parContracts[2 * 128];   // 2 parContract
     }
+
+
+    //[StructLayout(LayoutKind.Sequential)]
+    //public unsafe struct allParResults
+    //{
+    //    public fixed byte _pad[5760];   // 20 parResults = 20 × 288 = 5760
+
+    //    public ref parResults Result(int i)
+    //    {
+    //        Debug.Assert(i >= 0 && i < 20);
+    //        fixed (byte* p = _pad) return ref ((parResults*)p)[i];
+    //    }
+    //}
 
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct allParResults
     {
-        public fixed byte _pad[5760];   // 20 parResults = 20 × 288 = 5760
-
-        public ref parResults Result(int i)
-        {
-            Debug.Assert(i >= 0 && i < 20);
-            fixed (byte* p = _pad) return ref ((parResults*)p)[i];
-        }
+        public fixed sbyte results[20 * (2 * 16 + 2 * 128)];
+        // 20 * 288 = 5760 bytes
     }
+
 
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct dealPBN
@@ -246,5 +295,11 @@ namespace DDS.Interop
         public int noOfThreads;
         public fixed sbyte threadSizes[128];
         public fixed sbyte systemString[1024];
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct TrumpFilter5
+    {
+        public fixed int values[5];
     }
 }

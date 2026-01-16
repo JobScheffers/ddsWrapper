@@ -5,7 +5,6 @@
 
 using Bridge;
 using DDS.Interop;
-using System.Runtime.InteropServices;
 
 namespace DDS
 {
@@ -69,20 +68,35 @@ namespace DDS
         public static unsafe ddTableDeals ToInteropTableDeals(in List<Deal> deals)
         {
             int count = deals.Count;
-            var tableDeals = new ddTableDeals(count);
+            if (count > ddsImports.ddsMaxNumberOfBoards)
+                throw new ArgumentOutOfRangeException(nameof(deals),
+                    $"Cannot exceed {ddsImports.ddsMaxNumberOfBoards} deals.");
 
-            //// Allocate unmanaged memory for N ddTableDeal structs
-            //int size = sizeof(ddTableDeal) * count;
-            //ddTableDeal* ptr = (ddTableDeal*)Marshal.AllocHGlobal(size);
-            ddTableDeal* ptr = tableDeals.tableDeals;
+            ddTableDeals tableDeals = default;
+            tableDeals.noOfTables = count;
 
-            // Fill the unmanaged array
-            for (int i = 0; i < count; i++)
+            for (int dealIndex = 0; dealIndex < count; dealIndex++)
             {
-                ptr[i] = ToInteropTableDeal(deals[i]);  // your existing converter
+                // Get the span for this deal (16 uints)
+                Span<uint> dealSpan = tableDeals[dealIndex];
+                for (Seats seat = Seats.North; seat <= Seats.West; seat++)
+                {
+                    var ddsHand = (int)DdsEnum.Convert(seat);
+                    for (Suits suit = Suits.Clubs; suit <= Suits.Spades; suit++)
+                    {
+                        var ddsSuit = (int)DdsEnum.Convert(suit);
+                        uint mask = 0;
+                        for (Ranks r = Ranks.Two; r <= Ranks.Ace; r++)
+                        {
+                            if (deals[dealIndex][seat, suit, r])
+                                mask |= (uint)(2 << ((int)DdsEnum.Convert(r)) - 1);
+                        }
+
+                        dealSpan[ddsHand * 4 + ddsSuit] = mask;
+                    }
+                }
             }
 
-            // Return the interop struct pointing to unmanaged memory
             return tableDeals;
         }
 
@@ -174,7 +188,6 @@ namespace DDS
             // NUL terminate
             dest[i] = 0;
         }
-
 
         public static unsafe Span<sbyte> AsSpan(ref dealPBN d)
         {

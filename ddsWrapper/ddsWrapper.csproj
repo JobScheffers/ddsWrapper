@@ -48,5 +48,9 @@
 			<PackagePath>runtimes\win\native\</PackagePath>
 		</_PackageFiles>
 	</ItemGroup>
+	
+	<ItemGroup>
+	  <Folder Include="Properties\" />
+	</ItemGroup>
 
 </Project>
