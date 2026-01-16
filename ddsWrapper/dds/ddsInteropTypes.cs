@@ -49,7 +49,7 @@ namespace DDS.Interop
         /// </summary>
         public ddTableDealsPBN(int count)
         {
-            if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
+            ArgumentOutOfRangeException.ThrowIfNegative(count);
             noOfTables = count;
             if (count == 0) { deals = null; return; }
 
@@ -57,7 +57,7 @@ namespace DDS.Interop
             //deals = (ddTableDealPBN*)NativeMemory.Alloc((nuint)count, (nuint)sizeof(ddTableDealPBN));
 
             // Zero-init the allocated bytes
-            nuint bytes = (nuint)count * (nuint)sizeof(ddTableDealPBN);
+            //nuint bytes = (nuint)count * (nuint)sizeof(ddTableDealPBN);
             //Unsafe.InitBlockUnaligned((void*)deals, 0, (uint)bytes);
         }
 
@@ -97,15 +97,15 @@ namespace DDS.Interop
         /// </summary>
         public ddTableDeals(int deals)
         {
-            if (deals < 0) throw new ArgumentOutOfRangeException(nameof(deals));
-            if (deals > ddsImports.ddsMaxNumberOfBoards) throw new ArgumentOutOfRangeException(nameof(deals));
+            ArgumentOutOfRangeException.ThrowIfNegative(deals);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(deals, ddsImports.ddsMaxNumberOfBoards);
             noOfTables = deals;
             //if (deals == 0) { tableDeals = null; return; }
 
             //deals = ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains;
 
             tableDeals = (ddTableDeal*)NativeMemory.Alloc((nuint)deals, (nuint)sizeof(ddTableDeal));
-            nuint bytes = (nuint)deals * (nuint)sizeof(ddTableDeal);
+            //nuint bytes = (nuint)deals * (nuint)sizeof(ddTableDeal);
             //Unsafe.InitBlockUnaligned((void*)tableDeals, 0, (uint)bytes);
         }
 
@@ -132,8 +132,8 @@ namespace DDS.Interop
         /// </summary>
         public ddTablesResult(int deals)
         {
-            if (deals < 0) throw new ArgumentOutOfRangeException(nameof(deals));
-            if (deals > ddsImports.ddsMaxNumberOfBoards) throw new ArgumentOutOfRangeException(nameof(deals));
+            ArgumentOutOfRangeException.ThrowIfNegative(deals);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(deals, ddsImports.ddsMaxNumberOfBoards);
             noOfBoards = deals;
             //if (deals == 0) { results = null; return; }
 
@@ -143,7 +143,7 @@ namespace DDS.Interop
             results = (ddTableResults*)NativeMemory.Alloc((nuint)deals, (nuint)sizeof(ddTableResults));
 
             // Zero-init the allocated bytes
-            nuint bytes = (nuint)deals * (nuint)sizeof(ddTableResults);
+            //nuint bytes = (nuint)deals * (nuint)sizeof(ddTableResults);
             //Unsafe.InitBlockUnaligned((void*)results, 0, (uint)bytes);
         }
 

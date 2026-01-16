@@ -13,29 +13,20 @@ namespace DDS
     public enum Rank { Two = 2, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace }
     public enum Hand { North = 0, East = 1, South = 2, West = 3 }
 
-    public readonly struct Card
+    public readonly struct Card(Suit s, Rank r)
     {
-        public Suit Suit { get; }
-        public Rank Rank { get; }
-        public Card(Suit s, Rank r) { Suit = s; Rank = r; }
+        public Suit Suit { get; } = s; public Rank Rank { get; } = r;
     }
 
     // Example of your played-cards structure
-    public readonly struct PlayedCards
+    public readonly struct PlayedCards(Suit s1, Rank r1, Suit s2, Rank r2, Suit s3, Rank r3)
     {
-        public Suit S1 { get; }
-        public Suit S2 { get; }
-        public Suit S3 { get; }
-        public Rank R1 { get; }
-        public Rank R2 { get; }
-        public Rank R3 { get; }
-
-        public PlayedCards(Suit s1, Rank r1, Suit s2, Rank r2, Suit s3, Rank r3)
-        {
-            S1 = s1; R1 = r1;
-            S2 = s2; R2 = r2;
-            S3 = s3; R3 = r3;
-        }
+        public Suit S1 { get; } = s1;
+        public Suit S2 { get; } = s2;
+        public Suit S3 { get; } = s3;
+        public Rank R1 { get; } = r1;
+        public Rank R2 { get; } = r2;
+        public Rank R3 { get; } = r3;
     }
 
     // ------------------------

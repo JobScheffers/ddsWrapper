@@ -135,7 +135,7 @@ namespace Tests
             var result =
                 Profiler.Time(() =>
                 {
-                    return ddsWrapper.PossibleTricks(new List<Deal> { deal1, deal2, deal3 }, []);
+                    return ddsWrapper.PossibleTricks([deal1, deal2, deal3], []);
                 }, out var elapsedTime, 10);
             Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
 
@@ -175,7 +175,7 @@ namespace Tests
             Trace.WriteLine("       C  D  H  S  NT");
             DdsEnum.ForEachHand(seat =>
             {
-                Trace.Write($"{seat.ToString().PadRight(5)}");
+                Trace.Write($"{seat,-5}");
                 DdsEnum.ForEachTrump(suit =>
                 {
                     Trace.Write($" {result[seat, suit]:00}");

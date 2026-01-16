@@ -9,7 +9,7 @@ namespace DDS
         // atomic bitmask: bit==1 means occupied
         private static int threadMask = 0;
         private static readonly int maxThreads;
-        private static readonly object maskLock = new();
+        private static readonly Lock maskLock = new();
 
         // per-managed-thread cached index; -1 means none claimed yet
         private static readonly ThreadLocal<int> threadLocalIndex = new(() => -1);
@@ -151,8 +151,8 @@ namespace DDS
         // Use carefully: should only be called when there are no active SolveBoard calls
         public static void ForgetPreviousBoard()
         {
+            _ = ddsImports.FreeMemory();
             var max = ddsImports.MaxThreads;
-            ddsImports.FreeMemory();
             ddsImports.SetResources(1000, max);
 
             // reset the global mask; caller must ensure no concurrent SolveBoard calls

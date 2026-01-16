@@ -3,38 +3,24 @@ using System.Diagnostics;
 
 namespace DDS
 {
-    public readonly ref struct GameState
+    [method: DebuggerStepThrough]
+    public readonly ref struct GameState(in Deal remainingCards, Suits trump, Seats trickLeader, Bridge.Card playedByMan1, Bridge.Card playedByMan2, Bridge.Card playedByMan3)
     {
-        public Deal RemainingCards { get; }
-        public Suits Trump { get; }
-        public Seats TrickLeader { get; }
-        public Bridge.Card PlayedByMan1 { get; }
-        public Bridge.Card PlayedByMan2 { get; }
-        public Bridge.Card PlayedByMan3 { get; }
+        public Deal RemainingCards { get; } = remainingCards;
+        public Suits Trump { get; } = trump;
+        public Seats TrickLeader { get; } = trickLeader;
+        public Bridge.Card PlayedByMan1 { get; } = playedByMan1;
+        public Bridge.Card PlayedByMan2 { get; } = playedByMan2;
+        public Bridge.Card PlayedByMan3 { get; } = playedByMan3;
 
         [DebuggerStepThrough]
         public GameState(in Deal remainingCards, Suits trump, Seats trickLeader) : this(in remainingCards, trump, trickLeader, Bridge.Card.Null, Bridge.Card.Null, Bridge.Card.Null) { }
-
-        [DebuggerStepThrough]
-        public GameState(in Deal remainingCards, Suits trump, Seats trickLeader, Bridge.Card playedByMan1, Bridge.Card playedByMan2, Bridge.Card playedByMan3)
-        {
-            RemainingCards = remainingCards;
-            Trump = trump;
-            TrickLeader = trickLeader;
-            PlayedByMan1 = playedByMan1;
-            PlayedByMan2 = playedByMan2;
-            PlayedByMan3 = playedByMan3;
-            //Debug.WriteLine(RemainingCards.ToPBN());
-        }
     }
 
-    public readonly struct CardPotential
+    public readonly struct CardPotential(Bridge.Card card, int tricks, bool isPrimary)
     {
-        public Bridge.Card Card { get; }
-        public int Tricks { get; }
-        public bool IsPrimary { get; }
+        public Bridge.Card Card { get; } = card; public int Tricks { get; } = tricks; public bool IsPrimary { get; } = isPrimary;
 
-        public CardPotential(Bridge.Card card, int tricks, bool isPrimary) { Card = card; Tricks = tricks; IsPrimary = isPrimary; }
         public override string ToString() => $"{Card}:{Tricks}{(IsPrimary ? " p" : "")}";
     }
 
@@ -106,7 +92,7 @@ namespace DDS
                 Seats.East => Hand.East,
                 Seats.South => Hand.South,
                 Seats.West => Hand.West,
-                _ => throw new ArgumentOutOfRangeException(),
+                _ => throw new ArgumentOutOfRangeException(nameof(seat), seat.ToString()),
             };
         }
 
@@ -119,7 +105,7 @@ namespace DDS
                 Suits.Hearts => Suit.Hearts,
                 Suits.Diamonds => Suit.Diamonds,
                 Suits.Clubs => Suit.Clubs,
-                _ => throw new ArgumentOutOfRangeException(),
+                _ => throw new ArgumentOutOfRangeException(nameof(suit), suit.ToString()),
             };
         }
 
@@ -140,7 +126,7 @@ namespace DDS
                 Ranks.Four => DDS.Rank.Four,
                 Ranks.Three => DDS.Rank.Three,
                 Ranks.Two => DDS.Rank.Two,
-                _ => throw new ArgumentOutOfRangeException(),
+                _ => throw new ArgumentOutOfRangeException(nameof(rank), rank.ToString()),
             };
         }
 
@@ -152,7 +138,7 @@ namespace DDS
                 Hand.East => Seats.East,
                 Hand.North => Seats.North,
                 Hand.South => Seats.South,
-                _ => throw new ArgumentOutOfRangeException(),
+                _ => throw new ArgumentOutOfRangeException(nameof(seat), seat.ToString()),
             };
         }
 
@@ -165,7 +151,7 @@ namespace DDS
                 Suit.Hearts => Suits.Hearts,
                 Suit.Diamonds => Suits.Diamonds,
                 Suit.Clubs => Suits.Clubs,
-                _ => throw new ArgumentOutOfRangeException(),
+                _ => throw new ArgumentOutOfRangeException(nameof(suit), suit.ToString()),
             };
         }
 
@@ -186,7 +172,7 @@ namespace DDS
                 DDS.Rank.Four => Ranks.Four,
                 DDS.Rank.Three => Ranks.Three,
                 DDS.Rank.Two => Ranks.Two,
-                _ => throw new ArgumentOutOfRangeException(),
+                _ => throw new ArgumentOutOfRangeException(nameof(rank), rank.ToString()),
             };
         }
 
