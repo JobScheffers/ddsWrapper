@@ -190,7 +190,7 @@ namespace DDS
             {
                 for (Suit suit = Suit.Spades; suit <= Suit.NT; suit++)
                 {
-                    result[DdsEnum.Convert(hand), DdsEnum.Convert(suit)] = results.Get((int)hand, (int)suit);
+                    result[DdsEnum.Convert(hand), DdsEnum.Convert(suit)] = results[(int)hand, (int)suit];
                 };
             };
             return result;
@@ -198,7 +198,7 @@ namespace DDS
 
         public static List<TableResults> PossibleTricks(in List<Deal> deals, in List<Suits> trumps)
         {
-            var tableDeals = DdsInteropConverters.ToInteropTableDeals(in deals);
+            using var tableDeals = DdsInteropConverters.ToInteropTableDeals(in deals);
             var results = new ddTablesResult(deals.Count);
             var parResults = new allParResults();
 
@@ -215,12 +215,13 @@ namespace DDS
                 {
                     for (Suit suit = Suit.Spades; suit <= Suit.NT; suit++)
                     {
-                        tableResult[DdsEnum.Convert(hand), DdsEnum.Convert(suit)] = results.results[deal].Get((int)hand, (int)suit);
+                        tableResult[DdsEnum.Convert(hand), DdsEnum.Convert(suit)] = results.results[deal][(int)hand, (int)suit];
                     };
                 };
                 result.Add(tableResult);
             }
 
+            results.Dispose();
             return result;
         }
 

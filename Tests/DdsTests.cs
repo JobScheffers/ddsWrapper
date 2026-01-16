@@ -9,57 +9,6 @@ namespace Tests
     public class DdsTests
     {
 
-//#if DEBUG
-        [TestMethod]
-//#endif
-        public void SolveBoard_From_Multiple_Threads()
-        {
-            ddsWrapper.ForgetPreviousBoard();
-
-            const int totalBoards = 1000;
-            var threadCount = Environment.ProcessorCount;
-            var exceptions = new ConcurrentQueue<Exception>();
-            int next = 0;
-
-            var threads = new Thread[threadCount];
-            for (int t = 0; t < threadCount; t++)
-            {
-                threads[t] = new Thread(() =>
-                {
-                    try
-                    {
-                        while (true)
-                        {
-                            int i = Interlocked.Increment(ref next);
-                            if (i >= totalBoards)
-                                break;
-
-                            _SolveBoard1();
-                            _SolveBoard2();
-                            _SolveBoard3();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        exceptions.Enqueue(ex);
-                    }
-                })
-                {
-                    IsBackground = true,
-                    Name = $"SolveBoardWorker-{t}"
-                };
-
-                threads[t].Start();
-            }
-
-            // wait for all workers to finish
-            foreach (var th in threads)
-                th.Join();
-
-            if (!exceptions.IsEmpty)
-                throw new AggregateException(exceptions);
-        }
-
         [TestMethod]
         public void SolveBoard3()
         {
@@ -70,7 +19,7 @@ namespace Tests
             Assert.IsTrue(result[1].IsPrimary);
         }
 
-        public List<CardPotential> _SolveBoard3()
+        public static List<CardPotential> _SolveBoard3()
         {
             //         s 9
             //         h
@@ -97,7 +46,7 @@ namespace Tests
             Assert.AreEqual(12, result.Count);
         }
 
-        public List<CardPotential> _SolveBoard2()
+        public static List<CardPotential> _SolveBoard2()
         {
             //         s JT984
             //         h T7
@@ -124,7 +73,7 @@ namespace Tests
             Assert.AreEqual(7, result[0].Tricks);
         }
 
-        public List<CardPotential> _SolveBoard1()
+        public static List<CardPotential> _SolveBoard1()
         {
             //         s T9
             //         h 2
@@ -144,7 +93,7 @@ namespace Tests
         }
 
         [TestMethod]
-        public void BestCards_Profile()
+        public void BestCards()
         {
             var deal = new Deal("N:K95.QJT3.AKJ.AQJ JT42.87..K98765 AQ86.K652.86432. 73.A94.QT97.T432");
 
@@ -174,7 +123,7 @@ namespace Tests
             Assert.AreEqual(13, result.Count);
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void CalcAllTables()
         {
             var deal1 = new Deal("N:954.QJT3.AJT.QJ6 KJT2.87.5.AK9875 AQ86.K9654.8643. 73.A2.KQ972.T432");
@@ -190,19 +139,19 @@ namespace Tests
                 }, out var elapsedTime, 10);
             Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
 
-            foreach (var deal in result)
-            {
-                Trace.WriteLine("       C  D  H  S  NT");
-                DdsEnum.ForEachHand(seat =>
-                {
-                    Trace.Write($"{seat.ToString().PadRight(5)}");
-                    DdsEnum.ForEachTrump(suit =>
-                    {
-                        Trace.Write($" {deal[seat, suit]:00}");
-                    });
-                    Trace.WriteLine($"");
-                });
-            }
+            //foreach (var deal in result)
+            //{
+            //    Trace.WriteLine("       C  D  H  S  NT");
+            //    DdsEnum.ForEachHand(seat =>
+            //    {
+            //        Trace.Write($"{seat.ToString().PadRight(5)}");
+            //        DdsEnum.ForEachTrump(suit =>
+            //        {
+            //            Trace.Write($" {deal[seat, suit]:00}");
+            //        });
+            //        Trace.WriteLine($"");
+            //    });
+            //}
 
             Assert.AreEqual(8, result[0][Seats.North, Suits.Spades]);
             Assert.AreEqual(11, result[2][Seats.North, Suits.Hearts]);

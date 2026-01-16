@@ -1,5 +1,6 @@
 using Bridge;
 using DDS;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -8,7 +9,58 @@ namespace Tests
     [TestClass]
     public class SolveBoardBenchmark
     {
-//#if DEBUG
+        //#if DEBUG
+        [TestMethod]
+        //#endif
+        public void SolveBoard_From_Multiple_Threads()
+        {
+            ddsWrapper.ForgetPreviousBoard();
+
+            const int totalBoards = 10000;
+            var threadCount = Environment.ProcessorCount;
+            var exceptions = new ConcurrentQueue<Exception>();
+            int next = 0;
+
+            var threads = new Thread[threadCount];
+            for (int t = 0; t < threadCount; t++)
+            {
+                threads[t] = new Thread(() =>
+                {
+                    try
+                    {
+                        while (true)
+                        {
+                            int i = Interlocked.Increment(ref next);
+                            if (i >= totalBoards)
+                                break;
+
+                            DdsTests._SolveBoard1();
+                            DdsTests._SolveBoard2();
+                            DdsTests._SolveBoard3();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        exceptions.Enqueue(ex);
+                    }
+                })
+                {
+                    IsBackground = true,
+                    Name = $"SolveBoardWorker-{t}"
+                };
+
+                threads[t].Start();
+            }
+
+            // wait for all workers to finish
+            foreach (var th in threads)
+                th.Join();
+
+            if (!exceptions.IsEmpty)
+                throw new AggregateException(exceptions);
+        }
+
+        //#if DEBUG
         [TestMethod]
 //#endif
         public void RunSolveBoardBenchmark()
@@ -131,24 +183,6 @@ namespace Tests
                 var state3 = new GameState(in deal3, Suits.Spades, Seats.West, CardDeck.Instance[Suits.Clubs, Ranks.Seven], Bridge.Card.Null, Bridge.Card.Null);
                 var result3 = ddsWrapper.BestCards(in state3);
             }
-        }
-
-//#if DEBUG
-        [TestMethod]
-//#endif
-        public void InspectFutureTricksViaReflection()
-        {
-            var asm = typeof(ddsWrapper).Assembly;
-            var ftType = asm.GetType("DDS.FutureTricks", throwOnError: true);
-            Trace.WriteLine($"Found type: {ftType.FullName}, IsPublic={ftType.IsPublic}, IsValueType={ftType.IsValueType}");
-
-            // Get managed Marshal size
-            var marshalSize = Marshal.SizeOf(ftType);
-            Trace.WriteLine($"Marshal.SizeOf(FutureTricks) = {marshalSize} bytes");
-
-            // If you need sizeof at compile time you'll need InternalsVisibleTo + unsafe sizeof(FutureTricks)
-            // You can still make a P/Invoke call that returns sizeof in native code, or expose a managed accessor.
-            Assert.IsTrue(marshalSize > 0);
         }
     }
 }

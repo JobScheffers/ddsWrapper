@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.TestPlatform.TestHost
     {
         public static void Main()
         {
-            var tests = new DdsTests();
+            var tests = new SolveBoardBenchmark();
             tests.SolveBoard_From_Multiple_Threads();
             //tests.SolveBoard3();
             //tests.CalcAllTables();
