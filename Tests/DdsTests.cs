@@ -34,7 +34,7 @@ namespace Tests
             //         d QJ
             //         c 6
             var deal = new Deal("N:9..85432.QJ9 754.JT73.KT. J82.KQ6.QJ.6 AKQT63.5..8");
-            var state = new GameState(in deal, Suits.Spades, Seats.West, CardDeck.Instance[Suits.Clubs, Ranks.Seven], Bridge.Card.Null, Bridge.Card.Null );
+            var state = new GameState(in deal, Suits.Spades, Seats.West, Card.Get(Suits.Clubs, Ranks.Seven), Bridge.Card.Null, Bridge.Card.Null );
             return ddsWrapper.BestCards(in state);
         }
 
@@ -88,7 +88,7 @@ namespace Tests
             //         d 
             //         c A9862
             var deal = new Deal("N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9.");
-            var state = new GameState(in deal, Suits.Spades, Seats.West, CardDeck.Instance[Suits.Hearts, Ranks.King], Bridge.Card.Null, Bridge.Card.Null);
+            var state = new GameState(in deal, Suits.Spades, Seats.West, Card.Get(Suits.Hearts, Ranks.King), Bridge.Card.Null, Bridge.Card.Null);
             return ddsWrapper.BestCards(state);
         }
 
@@ -97,7 +97,7 @@ namespace Tests
         {
             var deal = new Deal("N:K95.QJT3.AKJ.AQJ JT42.87..K98765 AQ86.K652.86432. 73.A94.QT97.T432");
 
-            var state = new GameState(in deal, Suits.Hearts, Seats.East, CardDeck.Instance[Suits.Diamonds, Ranks.Five], Bridge.Card.Null, Bridge.Card.Null);
+            var state = new GameState(in deal, Suits.Hearts, Seats.East, Card.Get(Suits.Diamonds, Ranks.Five), Bridge.Card.Null, Bridge.Card.Null);
             var result = ddsWrapper.BestCards(state);
             Assert.AreEqual(11, result[0].Tricks);
             Assert.AreEqual(5, result.Count);
@@ -108,7 +108,7 @@ namespace Tests
         {
             var deal = new Deal("N:K95.QJT3.AKJ.AQJ JT42.87..K98765 AQ86.K652.86432. 73.A94.QT97.T432");
             Debug.WriteLine(deal.ToPBN());
-            var state = new GameState(in deal, Suits.Hearts, Seats.East, CardDeck.Instance[Suits.Diamonds, Ranks.Five], Bridge.Card.Null, Bridge.Card.Null);
+            var state = new GameState(in deal, Suits.Hearts, Seats.East, Card.Get(Suits.Diamonds, Ranks.Five), Bridge.Card.Null, Bridge.Card.Null);
             var result = ddsWrapper.BestCard(state);
             Assert.AreEqual(11, result.Tricks);
         }
