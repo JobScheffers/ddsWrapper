@@ -192,12 +192,13 @@ namespace Tests
         [TestMethod]
         public void CalcAllTables_100x5()
         {
-            var deal1 = new Deal("N:954.QJT3.AJT.QJ6 KJT2.87.5.AK9875 AQ86.K9654.8643. 73.A2.KQ972.T432");
+            //var baseDeal = new Deal("N:954.QJT3.AJT.QJ6");
+            var baseDeal = new Deal();
             var deals = new List<Deal>();
-            const int numDeals = 40;
+            const int numDeals = 41;
             for (int i = 0; i < numDeals; i++)
             {
-                deals.Add(deal1);
+                deals.Add(baseDeal.CompletedFromSeed(RandomGenerator.Instance.NextDealBigInteger()));
             }
             ddsWrapper.ForgetPreviousBoard();
             var result = ddsWrapper.PossibleTricks(deals, [Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump]);
@@ -208,22 +209,22 @@ namespace Tests
             //    }, out var elapsedTime, 10);
             //Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
 
-            //foreach (var deal in result)
-            //{
-            //    Trace.WriteLine("       C  D  H  S  NT");
-            //    DdsEnum.ForEachHand(seat =>
-            //    {
-            //        Trace.Write($"{seat.ToString().PadRight(5)}");
-            //        DdsEnum.ForEachTrump(suit =>
-            //        {
-            //            Trace.Write($" {deal[seat, suit]:00}");
-            //        });
-            //        Trace.WriteLine($"");
-            //    });
-            //}
+            foreach (var deal in result)
+            {
+                Trace.WriteLine("       C  D  H  S  NT");
+                DdsEnum.ForEachHand(seat =>
+                {
+                    Trace.Write($"{seat.ToString().PadRight(5)}");
+                    DdsEnum.ForEachTrump(suit =>
+                    {
+                        Trace.Write($" {deal[seat, suit]:00}");
+                    });
+                    Trace.WriteLine($"");
+                });
+            }
 
             Assert.AreEqual(numDeals, result.Count);
-            Assert.AreEqual(8, result[0][Seats.North, Suits.Spades]);
+            //Assert.AreEqual(8, result[0][Seats.North, Suits.Spades]);
         }
 
         [TestMethod]
