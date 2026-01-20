@@ -8,17 +8,17 @@ using DDS.Interop;
 
 namespace DDS
 {
-    public enum Suit { Spades = 0, Hearts = 1, Diamonds = 2, Clubs = 3, NT = 4 }
-    public enum Rank { Two = 2, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace }
-    public enum Hand { North = 0, East = 1, South = 2, West = 3 }
+    internal enum Suit { Spades = 0, Hearts = 1, Diamonds = 2, Clubs = 3, NT = 4 }
+    internal enum Rank { Two = 2, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace }
+    internal enum Hand { North = 0, East = 1, South = 2, West = 3 }
 
-    public readonly struct Card(Suit s, Rank r)
+    internal readonly struct Card(Suit s, Rank r)
     {
         public Suit Suit { get; } = s; public Rank Rank { get; } = r;
     }
 
     // Example of your played-cards structure
-    public readonly struct PlayedCards(Suit s1, Rank r1, Suit s2, Rank r2, Suit s3, Rank r3)
+    internal readonly struct PlayedCards(Suit s1, Rank r1, Suit s2, Rank r2, Suit s3, Rank r3)
     {
         public Suit S1 { get; } = s1;
         public Suit S2 { get; } = s2;
@@ -32,7 +32,7 @@ namespace DDS
     // Conversion helpers
     // ------------------------
 
-    public static unsafe class DdsInteropConverters
+    internal static unsafe class DdsInteropConverters
     {
         public static ddTableDealPBN ToInteropTableDealPbn(string pbn)
         {
@@ -135,31 +135,38 @@ namespace DDS
             return tableDeals;
         }
 
-        public static dealPBN ToInteropDealPBN(
-            Suit trump, Hand leader,
-            IReadOnlyList<Card> currentTrick, string remaining)
-        {
-            dealPBN d = default;
-            d.trump = (int)trump;
-            d.first = (int)leader;
+        //public static dealPBN ToInteropDealPBN(
+        //    Suit trump, Hand leader,
+        //    IReadOnlyList<Card> currentTrick, string remaining)
+        //{
+        //    dealPBN d = default;
+        //    d.trump = (int)trump;
+        //    d.first = (int)leader;
+        //internal static dealPBN ToInteropDealPBN(
+        //    Suit trump, Hand leader,
+        //    IReadOnlyList<Card> currentTrick, string remaining)
+        //{
+        //    dealPBN d = default;
+        //    d.trump = (int)trump;
+        //    d.first = (int)leader;
 
-            unsafe
-            {
-                for (int i = 0; i < currentTrick.Count && i < 3; i++)
-                {
-                    d.currentTrickSuit[i] = (int)currentTrick[i].Suit;
-                    d.currentTrickRank[i] = (int)currentTrick[i].Rank;
-                }
+        //    unsafe
+        //    {
+        //        for (int i = 0; i < currentTrick.Count && i < 3; i++)
+        //        {
+        //            d.currentTrickSuit[i] = (int)currentTrick[i].Suit;
+        //            d.currentTrickRank[i] = (int)currentTrick[i].Rank;
+        //        }
 
 
-                var span = AsSpan(ref d);
-                WriteAnsiToSpan(remaining, span);
-            }
+        //        var span = AsSpan(ref d);
+        //        WriteAnsiToSpan(remaining, span);
+        //    }
 
-            return d;
-        }
+        //    return d;
+        //}
 
-        public static deal ToInteropDeal(
+        internal static deal ToInteropDeal(
             Suit trump, Hand leader,
             PlayedCards played,
             Deal dealRemaining)

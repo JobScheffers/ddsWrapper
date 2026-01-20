@@ -84,7 +84,7 @@ namespace DDS
             toDo(Seats.West);
         }
 
-        public static DDS.Hand Convert(Seats seat)
+        internal static DDS.Hand Convert(Seats seat)
         {
             return seat switch
             {
@@ -96,7 +96,7 @@ namespace DDS
             };
         }
 
-        public static DDS.Suit Convert(Suits suit)
+        internal static DDS.Suit Convert(Suits suit)
         {
             return suit switch
             {
@@ -109,7 +109,7 @@ namespace DDS
             };
         }
 
-        public static DDS.Rank Convert(Ranks rank)
+        internal static DDS.Rank Convert(Ranks rank)
         {
             return rank switch
             {
@@ -130,7 +130,7 @@ namespace DDS
             };
         }
 
-        public static Seats Convert(DDS.Hand seat)
+        internal static Seats Convert(DDS.Hand seat)
         {
             return seat switch
             {
@@ -142,7 +142,7 @@ namespace DDS
             };
         }
 
-        public static Suits Convert(DDS.Suit suit)
+        internal static Suits Convert(DDS.Suit suit)
         {
             return suit switch
             {
@@ -155,7 +155,7 @@ namespace DDS
             };
         }
 
-        public static Ranks Convert(DDS.Rank rank)
+        internal static Ranks Convert(DDS.Rank rank)
         {
             return rank switch
             {
