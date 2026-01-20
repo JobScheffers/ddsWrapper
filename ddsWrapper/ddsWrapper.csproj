@@ -24,9 +24,8 @@
 	</PropertyGroup>
 
   <ItemGroup>
-    <!--<PackageReference Include="Bridge.Fundamentals" Version="2025.1.19.3" />-->
-    <PackageReference Include="Bridge.Fundamentals" Version="2026.1.19.4" />
-  </ItemGroup>
+		<PackageReference Include="Bridge.Fundamentals" Version="2026.1.20.1" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<None Update="dds.dll" Pack="true" PackagePath="runtimes/win/native/dds.dll">
