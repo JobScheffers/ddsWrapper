@@ -1,4 +1,6 @@
-﻿using Bridge;
+﻿#define newCalc
+
+using Bridge;
 using System.Numerics;
 using DDS.Interop;
 
@@ -9,7 +11,7 @@ namespace DDS
         // atomic bitmask: bit==1 means occupied
         private static int threadMask = 0;
         private static readonly int maxThreads;
-        private static readonly object maskLock = new();
+        private static readonly Lock maskLock = new();
 
         // per-managed-thread cached index; -1 means none claimed yet
         private static readonly ThreadLocal<int> threadLocalIndex = new(() => -1);
@@ -151,8 +153,8 @@ namespace DDS
         // Use carefully: should only be called when there are no active SolveBoard calls
         public static void ForgetPreviousBoard()
         {
+            _ = ddsImports.FreeMemory();
             var max = ddsImports.MaxThreads;
-            ddsImports.FreeMemory();
             ddsImports.SetResources(1000, max);
 
             // reset the global mask; caller must ensure no concurrent SolveBoard calls
@@ -188,26 +190,51 @@ namespace DDS
             TableResults result;
             for (Hand hand = Hand.North; hand <= Hand.West; hand++)
             {
+                var seat = DdsEnum.Convert(hand);
                 for (Suit suit = Suit.Spades; suit <= Suit.NT; suit++)
                 {
-                    result[DdsEnum.Convert(hand), DdsEnum.Convert(suit)] = results[(int)hand, (int)suit];
-                };
-            };
+                    result[seat, DdsEnum.Convert(suit)] = results[(int)hand, (int)suit];
+                }
+            }
+            return result;
+        }
+
+        public static TableResults PossibleTricks(in Deal _deal)
+        {
+            var deal = DdsInteropConverters.ToInteropTableDeal(_deal);
+            var results = new ddTableResults();
+            var hresult = ddsImports.CalcDDtable(deal, ref results);
+            ddsImports.ThrowIfError(hresult, nameof(ddsImports.CalcDDtable));
+
+            TableResults result;
+            for (Hand hand = Hand.North; hand <= Hand.West; hand++)
+            {
+                var seat = DdsEnum.Convert(hand);
+                for (Suit suit = Suit.Spades; suit <= Suit.NT; suit++)
+                {
+                    result[seat, DdsEnum.Convert(suit)] = results[(int)hand, (int)suit];
+                }
+            }
             return result;
         }
 
         public static List<TableResults> PossibleTricks(in List<Deal> deals, in List<Suits> trumps)
         {
-            using var tableDeals = DdsInteropConverters.ToInteropTableDeals(in deals);
-            var results = new ddTablesResult(deals.Count);
-            var parResults = new allParResults();
+            if (trumps == null || trumps.Count == 0)
+            {
+                throw new ArgumentException("trumps must contain at least one suit");
+            }
 
-            var hresult = ddsImports.CalcAllTables(tableDeals, -1, Convert(in trumps), ref results, ref parResults);
-            ddsImports.ThrowIfError(hresult, nameof(ddsImports.CalcAllTables));
-
-            //var result = new List<TableResults>();
             var result = tableResultsPool.Value!;
             result.Clear();
+
+            var tableDeals = DdsInteropConverters.ToInteropTableDeals(in deals);
+            var results = new ddTablesResult(deals.Count, trumps.Count);
+            var parResults = new allParResults();
+
+            var hresult = ddsImports.CalcAllTables(tableDeals, -1, Convert(in trumps!), ref results, ref parResults);
+            ddsImports.ThrowIfError(hresult, nameof(ddsImports.CalcAllTables));
+
             for (int deal = 0; deal < deals.Count; deal++)
             {
                 TableResults tableResult;
@@ -215,63 +242,39 @@ namespace DDS
                 {
                     for (Suit suit = Suit.Spades; suit <= Suit.NT; suit++)
                     {
-                        tableResult[DdsEnum.Convert(hand), DdsEnum.Convert(suit)] = results.results[deal][(int)hand, (int)suit];
-                    };
-                };
+                        tableResult[DdsEnum.Convert(hand), DdsEnum.Convert(suit)] = results[deal, (int)hand, (int)suit];
+                    }
+                }
                 result.Add(tableResult);
             }
 
-            results.Dispose();
             return result;
         }
 
-        private static int[] Convert(in List<Suits> trumps)
+        private static TrumpFilter5 Convert(in List<Suits> trumps)
         {
-            var result = new int[5] { 1, 1, 1, 1, 1 };
+            TrumpFilter5 result;
+            result.values[0] = 1;
+            result.values[1] = 1;
+            result.values[2] = 1;
+            result.values[3] = 1;
+            result.values[4] = 1;
             if (trumps == null || trumps.Count == 0)
             {
-                result[0] = 0;
-                result[1] = 0;
-                result[2] = 0;
-                result[3] = 0;
-                result[4] = 0;
+                result.values[0] = 0;
+                result.values[1] = 0;
+                result.values[2] = 0;
+                result.values[3] = 0;
+                result.values[4] = 0;
             }
             else
             {
                 foreach (Suits suit in trumps)
                 {
-                    result[(int)DdsEnum.Convert(suit)] = 0;
+                    result.values[(int)DdsEnum.Convert(suit)] = 0;
                 }
             }
             return result;
         }
-
-        //private static void Inspect(int returnCode)
-        //{
-        //    if (returnCode == 1) return;
-        //    //throw new Exception(Error(returnCode));
-
-        //    switch (returnCode)
-        //    {
-        //        case 1: return;     // no fault
-        //        case -1: throw new Exception("dds unknown fault");
-        //        case -2: throw new Exception("dds SolveBoard: 0 cards");
-        //        case -4: throw new Exception("dds SolveBoard: duplicate cards");
-        //        case -10: throw new Exception("dds SolveBoard: too many cards");
-        //        case -12: throw new Exception("dds SolveBoard: either currentTrickSuit or currentTrickRank have wrong data");
-        //        case -14: throw new Exception("dds SolveBoard: wrong number of remaining cards for a hand");
-        //        case -15: throw new Exception("dds SolveBoard: thread number is less than 0 or higher than the maximum permitted");
-        //        case -201: throw new Exception("dds CalcAllTables: the denomination filter vector has no entries");
-        //        default: throw new Exception($"dds undocumented fault {returnCode}");
-        //    }
-        //}
-
-        //public static string Error(int returnCode)
-        //{
-        //    if (returnCode == 1) return "";
-        //    var error = new Char[80];
-        //    ddsImports.ErrorMessage(returnCode, error);
-        //    return new string(error);
-        //}
     }
 }

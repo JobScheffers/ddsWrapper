@@ -123,18 +123,49 @@ namespace Tests
         }
 
         [TestMethod]
-        public void PossibleTricks_3()
+        public void CalcAllTables_1()
+        {
+            var deal1 = new Deal("N:954.QJT3.AJT.QJ6 KJT2.87.5.AK9875 AQ86.K9654.8643. 73.A2.KQ972.T432");
+
+            ddsWrapper.ForgetPreviousBoard();
+            var result = ddsWrapper.PossibleTricks([ deal1 ], [ Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump ]);
+            //var result =
+            //    Profiler.Time(() =>
+            //    {
+            //        return ddsWrapper.PossibleTricks([deal1, deal2, deal3], []);
+            //    }, out var elapsedTime, 10);
+            //Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
+
+            foreach (var deal in result)
+            {
+                Trace.WriteLine("       C  D  H  S  NT");
+                DdsEnum.ForEachHand(seat =>
+                {
+                    Trace.Write($"{seat.ToString().PadRight(5)}");
+                    DdsEnum.ForEachTrump(suit =>
+                    {
+                        Trace.Write($" {deal[seat, suit]:00}");
+                    });
+                    Trace.WriteLine($"");
+                });
+            }
+
+            Assert.AreEqual(8, result[0][Seats.North, Suits.Spades]);
+        }
+
+        [TestMethod]
+        public void CalcAllTables_3()
         {
             var deal1 = new Deal("N:954.QJT3.AJT.QJ6 KJT2.87.5.AK9875 AQ86.K9654.8643. 73.A2.KQ972.T432");
             var deal2 = new Deal("N:954.QJT3.AKJ.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.QT97.T432");
             var deal3 = new Deal("N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432");
 
             ddsWrapper.ForgetPreviousBoard();
-            var result = ddsWrapper.PossibleTricks(new List<Deal> { deal1, deal2, deal3 }, []);
+            var result = ddsWrapper.PossibleTricks([deal1, deal2, deal3], [Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump]);
             //var result =
             //    Profiler.Time(() =>
             //    {
-            //        return ddsWrapper.PossibleTricks(new List<Deal> { deal1, deal2, deal3 }, []);
+            //        return ddsWrapper.PossibleTricks([deal1, deal2, deal3], []);
             //    }, out var elapsedTime, 10);
             //Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
 
@@ -152,8 +183,46 @@ namespace Tests
             //    });
             //}
 
+            Assert.AreEqual(3, result.Count);
             Assert.AreEqual(8, result[0][Seats.North, Suits.Spades]);
             Assert.AreEqual(11, result[2][Seats.North, Suits.Hearts]);
+        }
+
+        [TestMethod]
+        public void CalcAllTables_100x5()
+        {
+            var deal1 = new Deal("N:954.QJT3.AJT.QJ6 KJT2.87.5.AK9875 AQ86.K9654.8643. 73.A2.KQ972.T432");
+            var deals = new List<Deal>();
+            const int numDeals = 40;
+            for (int i = 0; i < numDeals; i++)
+            {
+                deals.Add(deal1);
+            }
+            ddsWrapper.ForgetPreviousBoard();
+            var result = ddsWrapper.PossibleTricks(deals, [Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump]);
+            //var result =
+            //    Profiler.Time(() =>
+            //    {
+            //        return ddsWrapper.PossibleTricks([deal1, deal2, deal3], []);
+            //    }, out var elapsedTime, 10);
+            //Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
+
+            //foreach (var deal in result)
+            //{
+            //    Trace.WriteLine("       C  D  H  S  NT");
+            //    DdsEnum.ForEachHand(seat =>
+            //    {
+            //        Trace.Write($"{seat.ToString().PadRight(5)}");
+            //        DdsEnum.ForEachTrump(suit =>
+            //        {
+            //            Trace.Write($" {deal[seat, suit]:00}");
+            //        });
+            //        Trace.WriteLine($"");
+            //    });
+            //}
+
+            Assert.AreEqual(numDeals, result.Count);
+            Assert.AreEqual(8, result[0][Seats.North, Suits.Spades]);
         }
 
         [TestMethod]
@@ -174,7 +243,53 @@ namespace Tests
             Trace.WriteLine("       C  D  H  S  NT");
             DdsEnum.ForEachHand(seat =>
             {
-                Trace.Write($"{seat.ToString().PadRight(5)}");
+                Trace.Write($"{seat,-5}");
+                DdsEnum.ForEachTrump(suit =>
+                {
+                    Trace.Write($" {result[seat, suit]:00}");
+                });
+                Trace.WriteLine($"");
+            });
+
+            //        C  D  H  S NT
+            // North 01 05 02 06 04
+            // East  12 08 11 07 08
+            // South 01 05 02 06 04
+            // West  12 08 11 07 09
+            Assert.AreEqual(4, result[Seats.North, Suits.NoTrump]);
+            Assert.AreEqual(6, result[Seats.North, Suits.Spades]);
+            Assert.AreEqual(2, result[Seats.North, Suits.Hearts]);
+            Assert.AreEqual(5, result[Seats.North, Suits.Diamonds]);
+            Assert.AreEqual(1, result[Seats.North, Suits.Clubs]);
+            Assert.AreEqual(8, result[Seats.East, Suits.NoTrump]);
+            Assert.AreEqual(7, result[Seats.East, Suits.Spades]);
+            Assert.AreEqual(11, result[Seats.East, Suits.Hearts]);
+            Assert.AreEqual(8, result[Seats.East, Suits.Diamonds]);
+            Assert.AreEqual(12, result[Seats.East, Suits.Clubs]);
+            Assert.AreEqual(4, result[Seats.South, Suits.NoTrump]);
+            Assert.AreEqual(6, result[Seats.South, Suits.Spades]);
+            Assert.AreEqual(2, result[Seats.South, Suits.Hearts]);
+            Assert.AreEqual(5, result[Seats.South, Suits.Diamonds]);
+            Assert.AreEqual(1, result[Seats.South, Suits.Clubs]);
+            Assert.AreEqual(9, result[Seats.West, Suits.NoTrump]);
+            Assert.AreEqual(7, result[Seats.West, Suits.Spades]);
+            Assert.AreEqual(11, result[Seats.West, Suits.Hearts]);
+            Assert.AreEqual(8, result[Seats.West, Suits.Diamonds]);
+            Assert.AreEqual(12, result[Seats.West, Suits.Clubs]);
+        }
+
+        [TestMethod]
+        public void CalcDDtable()
+        {
+            var deal = new Deal("N:AQJ7.832.853.T93 .974.QJ72.AQ8652 T952.AT.KT96.J74 K8643.KQJ65.A4.K");
+
+            var result = ddsWrapper.PossibleTricks(in deal);
+
+            Trace.WriteLine(deal);
+            Trace.WriteLine("       C  D  H  S  NT");
+            DdsEnum.ForEachHand(seat =>
+            {
+                Trace.Write($"{seat,-5}");
                 DdsEnum.ForEachTrump(suit =>
                 {
                     Trace.Write($" {result[seat, suit]:00}");
