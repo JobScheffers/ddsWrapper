@@ -1,6 +1,5 @@
 using Bridge;
 using DDS;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 
 namespace Tests
@@ -123,21 +122,21 @@ namespace Tests
             Assert.AreEqual(13, result.Count);
         }
 
-        //[TestMethod]
-        public void CalcAllTables()
+        [TestMethod]
+        public void PossibleTricks_3()
         {
             var deal1 = new Deal("N:954.QJT3.AJT.QJ6 KJT2.87.5.AK9875 AQ86.K9654.8643. 73.A2.KQ972.T432");
             var deal2 = new Deal("N:954.QJT3.AKJ.QJ6 KJT2.87.5.AK9875 AQ86.K652.86432. 73.A94.QT97.T432");
             var deal3 = new Deal("N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432");
 
             ddsWrapper.ForgetPreviousBoard();
-            //var result = ddsWrapper.PossibleTricks(new List<DDS.Deal> { deal1, deal2, deal3 }, []);
-            var result =
-                Profiler.Time(() =>
-                {
-                    return ddsWrapper.PossibleTricks(new List<Deal> { deal1, deal2, deal3 }, []);
-                }, out var elapsedTime, 10);
-            Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
+            var result = ddsWrapper.PossibleTricks(new List<Deal> { deal1, deal2, deal3 }, []);
+            //var result =
+            //    Profiler.Time(() =>
+            //    {
+            //        return ddsWrapper.PossibleTricks(new List<Deal> { deal1, deal2, deal3 }, []);
+            //    }, out var elapsedTime, 10);
+            //Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
 
             //foreach (var deal in result)
             //{
