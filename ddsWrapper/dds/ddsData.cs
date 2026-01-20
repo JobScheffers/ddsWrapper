@@ -67,37 +67,7 @@ namespace DDS
 
         public static unsafe ddTableDeals ToInteropTableDeals(in List<Deal> deals)
         {
-            int count = deals.Count;
-            if (count > ddsImports.ddsMaxNumberOfBoards)
-                throw new ArgumentOutOfRangeException(nameof(deals),
-                    $"Cannot exceed {ddsImports.ddsMaxNumberOfBoards} deals.");
-
-            ddTableDeals tableDeals = default;
-            tableDeals.noOfTables = count;
-
-            for (int dealIndex = 0; dealIndex < count; dealIndex++)
-            {
-                // Get the span for this deal (16 uints)
-                Span<uint> dealSpan = tableDeals[dealIndex];
-                for (Seats seat = Seats.North; seat <= Seats.West; seat++)
-                {
-                    var ddsHand = (int)DdsEnum.Convert(seat);
-                    for (Suits suit = Suits.Clubs; suit <= Suits.Spades; suit++)
-                    {
-                        var ddsSuit = (int)DdsEnum.Convert(suit);
-                        uint mask = 0;
-                        for (Ranks r = Ranks.Two; r <= Ranks.Ace; r++)
-                        {
-                            if (deals[dealIndex][seat, suit, r])
-                                mask |= (uint)(2 << ((int)DdsEnum.Convert(r)) - 1);
-                        }
-
-                        dealSpan[ddsHand * 4 + ddsSuit] = mask;
-                    }
-                }
-            }
-
-            return tableDeals;
+            return ToInteropTableDeals(deals.ToArray());
         }
 
         public static unsafe ddTableDeals ToInteropTableDeals(in Deal[] deals)

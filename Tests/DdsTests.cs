@@ -1,6 +1,5 @@
 using Bridge;
 using DDS;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 
 namespace Tests
@@ -163,12 +162,6 @@ namespace Tests
 
             ddsWrapper.ForgetPreviousBoard();
             var result = ddsWrapper.PossibleTricks([deal1, deal2, deal3], [Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump]);
-            //var result =
-            //    Profiler.Time(() =>
-            //    {
-            //        return ddsWrapper.PossibleTricks([deal1, deal2, deal3], []);
-            //    }, out var elapsedTime, 10);
-            //Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
 
             //foreach (var deal in result)
             //{
@@ -192,22 +185,17 @@ namespace Tests
         [TestMethod]
         public void CalcAllTables_100x5()
         {
-            //var baseDeal = new Deal("N:954.QJT3.AJT.QJ6");
-            var baseDeal = new Deal();
+            var baseDeal = new Deal("N:954.QJT3.AJT.QJ6");
+            //var baseDeal = new Deal();
             var deals = new List<Deal>();
             const int numDeals = 41;
             for (int i = 0; i < numDeals; i++)
             {
                 deals.Add(baseDeal.CompletedFromSeed(RandomGenerator.Instance.NextDealBigInteger()));
+                Trace.WriteLine(deals[i].ToPBN());
             }
             ddsWrapper.ForgetPreviousBoard();
             var result = ddsWrapper.PossibleTricks(deals, [Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump]);
-            //var result =
-            //    Profiler.Time(() =>
-            //    {
-            //        return ddsWrapper.PossibleTricks([deal1, deal2, deal3], []);
-            //    }, out var elapsedTime, 10);
-            //Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
 
             foreach (var deal in result)
             {
@@ -224,7 +212,6 @@ namespace Tests
             }
 
             Assert.AreEqual(numDeals, result.Count);
-            //Assert.AreEqual(8, result[0][Seats.North, Suits.Spades]);
         }
 
         [TestMethod]
