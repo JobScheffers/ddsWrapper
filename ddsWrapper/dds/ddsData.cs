@@ -67,16 +67,21 @@ namespace DDS
 
         public static unsafe ddTableDeals ToInteropTableDeals(in List<Deal> deals)
         {
-            int count = deals.Count;
+            return ToInteropTableDeals(deals.ToArray());
+        }
+
+        public static unsafe ddTableDeals ToInteropTableDeals(in Deal[] deals)
+        {
+            int count = deals.Length;
             if (count > ddsImports.ddsMaxNumberOfBoards)
                 throw new ArgumentOutOfRangeException(nameof(deals),
                     $"Cannot exceed {ddsImports.ddsMaxNumberOfBoards} deals.");
 
             ddTableDeals tableDeals = default;
             tableDeals.noOfTables = count;
-
             for (int dealIndex = 0; dealIndex < count; dealIndex++)
             {
+                int cards = 0;
                 // Get the span for this deal (16 uints)
                 Span<uint> dealSpan = tableDeals[dealIndex];
                 for (Seats seat = Seats.North; seat <= Seats.West; seat++)
@@ -89,7 +94,10 @@ namespace DDS
                         for (Ranks r = Ranks.Two; r <= Ranks.Ace; r++)
                         {
                             if (deals[dealIndex][seat, suit, r])
+                            {
                                 mask |= (uint)(2 << ((int)DdsEnum.Convert(r)) - 1);
+                                cards++;
+                            }
                         }
 
                         dealSpan[ddsHand * 4 + ddsSuit] = mask;
@@ -135,6 +143,7 @@ namespace DDS
 
             unsafe
             {
+                int cards = 0;
                 for (Seats seat = Seats.North; seat <= Seats.West; seat++)
                 {
                     var ddsHand = (int)DdsEnum.Convert(seat);
@@ -145,7 +154,10 @@ namespace DDS
                         for (Ranks r = Ranks.Two; r <= Ranks.Ace; r++)
                         {
                             if (dealRemaining[seat, suit, r])
+                            {
                                 mask |= (uint)(2 << ((int)DdsEnum.Convert(r)) - 1);
+                                cards++;
+                            }
                         }
 
                         d.remainCards[ddsHand * 4 + ddsSuit] = mask;

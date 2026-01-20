@@ -228,24 +228,28 @@ namespace DDS
             var result = tableResultsPool.Value!;
             result.Clear();
 
-            var tableDeals = DdsInteropConverters.ToInteropTableDeals(in deals);
-            var results = new ddTablesResult(deals.Count, trumps.Count);
             var parResults = new allParResults();
 
-            var hresult = ddsImports.CalcAllTables(tableDeals, -1, Convert(in trumps!), ref results, ref parResults);
-            ddsImports.ThrowIfError(hresult, nameof(ddsImports.CalcAllTables));
-
-            for (int deal = 0; deal < deals.Count; deal++)
+            var maxDealsPerCall = 200 / trumps.Count;
+            foreach (var chunk in deals.Chunk(maxDealsPerCall))
             {
-                TableResults tableResult;
-                for (Hand hand = Hand.North; hand <= Hand.West; hand++)
+                var tableDeals = DdsInteropConverters.ToInteropTableDeals(in chunk);
+                var results = new ddTablesResult(chunk.Length, trumps.Count);
+                var hresult = ddsImports.CalcAllTables(tableDeals, -1, Convert(in trumps!), ref results, ref parResults);
+                ddsImports.ThrowIfError(hresult, nameof(ddsImports.CalcAllTables));
+
+                for (int deal = 0; deal < chunk.Length; deal++)
                 {
-                    for (Suit suit = Suit.Spades; suit <= Suit.NT; suit++)
+                    TableResults tableResult;
+                    for (Hand hand = Hand.North; hand <= Hand.West; hand++)
                     {
-                        tableResult[DdsEnum.Convert(hand), DdsEnum.Convert(suit)] = results[deal, (int)hand, (int)suit];
+                        for (Suit suit = Suit.Spades; suit <= Suit.NT; suit++)
+                        {
+                            tableResult[DdsEnum.Convert(hand), DdsEnum.Convert(suit)] = results[deal, (int)hand, (int)suit];
+                        }
                     }
+                    result.Add(tableResult);
                 }
-                result.Add(tableResult);
             }
 
             return result;
