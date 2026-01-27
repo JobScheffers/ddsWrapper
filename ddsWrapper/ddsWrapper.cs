@@ -21,6 +21,11 @@ namespace DDS
         private static readonly ThreadLocal<List<CardPotential>> listPool = new(() => new List<CardPotential>(16));
         private static readonly ThreadLocal<List<TableResults>> tableResultsPool = new(() => new List<TableResults>(16));
 
+        // Put these in DdsInteropConverters or a nearby static helper class
+        //private static readonly int[] SeatMap;
+        private static readonly int[] SuitMap;
+        //private static readonly int[] HandToSeat; // maps Hand index -> seat index used by TableResults
+
         static ddsWrapper()
         {
             maxThreads = ddsImports.MaxThreads;
@@ -28,6 +33,12 @@ namespace DDS
             {
                 throw new InvalidOperationException($"ddsImports.MaxThreads must be between 1 and 32 (was {maxThreads})");
             }
+
+            // Suits: Spades..NT -> DdsEnum.Convert
+            // Note: your Suit enum ordering may differ; adjust start/length accordingly.
+            SuitMap = new int[Enum.GetValues(typeof(Suit)).Length];
+            for (int s = 0; s < SuitMap.Length; s++)
+                SuitMap[s] = (int)DdsEnum.Convert((Suit)s);
         }
 
         private static unsafe List<CardPotential> SolveBoard(in GameState state, int target, int solutions, int mode)
@@ -188,14 +199,7 @@ namespace DDS
             ddsImports.ThrowIfError(hresult, nameof(ddsImports.CalcDDtablePBN));
 
             TableResults result;
-            for (Hand hand = Hand.North; hand <= Hand.West; hand++)
-            {
-                var seat = DdsEnum.Convert(hand);
-                for (Suit suit = Suit.Spades; suit <= Suit.NT; suit++)
-                {
-                    result[seat, DdsEnum.Convert(suit)] = results[(int)hand, (int)suit];
-                }
-            }
+            CopySingleTableResults(in results, ref result);
             return result;
         }
 
@@ -207,52 +211,73 @@ namespace DDS
             ddsImports.ThrowIfError(hresult, nameof(ddsImports.CalcDDtable));
 
             TableResults result;
-            for (Hand hand = Hand.North; hand <= Hand.West; hand++)
+            CopySingleTableResults(in results, ref result);
+            return result;
+        }
+
+        // Copy single ddTableResults -> TableResults
+        private static void CopySingleTableResults(in ddTableResults src, ref TableResults dst)
+        {
+            // assume TableResults is indexable by [seat, suit]
+            // use int loops and cached maps to avoid repeated conversions
+            for (int hand = 0; hand < 4; hand++)
             {
-                var seat = DdsEnum.Convert(hand);
-                for (Suit suit = Suit.Spades; suit <= Suit.NT; suit++)
+                for (int suit = 0; suit <= 4; suit++)
                 {
-                    result[seat, DdsEnum.Convert(suit)] = results[(int)hand, (int)suit];
+                    int suitIndex = SuitMap[suit];
+                    dst[hand, suitIndex] = src[hand, suit];
                 }
             }
-            return result;
         }
 
         public static List<TableResults> PossibleTricks(in List<Deal> deals, in List<Suits> trumps)
         {
             if (trumps == null || trumps.Count == 0)
-            {
                 throw new ArgumentException("trumps must contain at least one suit");
-            }
 
             var result = tableResultsPool.Value!;
             result.Clear();
 
             var parResults = new allParResults();
 
-            var maxDealsPerCall = 200 / trumps.Count;
-            foreach (var chunk in deals.Chunk(maxDealsPerCall))
+            int maxDealsPerCall = Math.Max(1, 200 / trumps.Count);
+            int total = deals.Count;
+
+            // Process in index-based chunks to avoid Chunk allocations
+            for (int offset = 0; offset < total; offset += maxDealsPerCall)
             {
-                var tableDeals = DdsInteropConverters.ToInteropTableDeals(in chunk);
-                var results = new ddTablesResult(chunk.Length, trumps.Count);
+                int len = Math.Min(maxDealsPerCall, total - offset);
+
+                // Use an IReadOnlyList<Deal> slice if you have one; otherwise pass the original list and an offset/length overload.
+                // Here we assume ToInteropTableDeals accepts IReadOnlyList<Deal> and an optional (offset,len) overload.
+                var tableDeals = DdsInteropConverters.ToInteropTableDeals(deals, offset, len);
+                var results = new ddTablesResult(len, trumps.Count);
+
                 var hresult = ddsImports.CalcAllTables(tableDeals, -1, Convert(in trumps!), ref results, ref parResults);
                 ddsImports.ThrowIfError(hresult, nameof(ddsImports.CalcAllTables));
 
-                for (int deal = 0; deal < chunk.Length; deal++)
+                for (int i = 0; i < len; i++)
                 {
-                    TableResults tableResult;
-                    for (Hand hand = Hand.North; hand <= Hand.West; hand++)
-                    {
-                        for (Suit suit = Suit.Spades; suit <= Suit.NT; suit++)
-                        {
-                            tableResult[DdsEnum.Convert(hand), DdsEnum.Convert(suit)] = results[deal, (int)hand, (int)suit];
-                        }
-                    }
+                    TableResults tableResult = default;
+                    CopyTablesResults(in results, i, ref tableResult);
                     result.Add(tableResult);
                 }
             }
 
             return result;
+        }
+
+        // Copy ddTablesResult (many deals x many trumps) -> TableResults list
+        private static void CopyTablesResults(in ddTablesResult src, int dealIndex, ref TableResults dst)
+        {
+            for (int hand = 0; hand < 4; hand++)
+            {
+                for (int suit = 0; suit <= 4; suit++)
+                {
+                    int suitIndex = SuitMap[suit];
+                    dst[hand, suitIndex] = src[dealIndex, hand, suit];
+                }
+            }
         }
 
         private static TrumpFilter5 Convert(in List<Suits> trumps)

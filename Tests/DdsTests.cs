@@ -1,5 +1,6 @@
 using Bridge;
 using DDS;
+using DDS.Interop;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
@@ -189,9 +190,37 @@ namespace Tests
             Assert.AreEqual(11, result[2][Seats.North, Suits.Hearts]);
         }
 
+        //[TestMethod]
+        public void CalcAllTables_100x40x5()
+        {
+            // check if the performance does not change over multiple runs
+
+            var baseDeal = new Deal("N:954.QJT3.AJT.QJ6");
+            //var baseDeal = new Deal();
+            var deals = new List<Deal>();
+            const int numDeals = 40;
+            for (int i = 0; i < numDeals; i++)
+            {
+                deals.Add(baseDeal.CompletedFromSeed(RandomGenerator.Instance.NextDealBigInteger()));
+            }
+
+            for (int round = 0; round < 100; round++)
+            {
+                ddsWrapper.ForgetPreviousBoard();
+                var result =
+                    Profiler.Time(() =>
+                    {
+                        return ddsWrapper.PossibleTricks(deals, [Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump]);
+                    }, out var elapsedTime);
+                Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
+            }
+        }
+
         [TestMethod]
         public void CalcAllTables_100x5()
         {
+            // check if it is possible to calculate more boards than the dds max
+
             //var baseDeal = new Deal("N:954.QJT3.AJT.QJ6");
             var baseDeal = new Deal();
             var deals = new List<Deal>();
@@ -202,12 +231,6 @@ namespace Tests
             }
             ddsWrapper.ForgetPreviousBoard();
             var result = ddsWrapper.PossibleTricks(deals, [Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump]);
-            //var result =
-            //    Profiler.Time(() =>
-            //    {
-            //        return ddsWrapper.PossibleTricks([deal1, deal2, deal3], []);
-            //    }, out var elapsedTime, 10);
-            //Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
 
             foreach (var deal in result)
             {

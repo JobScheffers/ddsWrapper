@@ -34,38 +34,48 @@ namespace DDS
 
     internal static unsafe class DdsInteropConverters
     {
-        public static ddTableDealPBN ToInteropTableDealPbn(string pbn)
-        {
-            ddTableDealPBN d = default;
-            var span = AsSpan(ref d);
-            WriteAnsiToSpan(pbn, span);
-            //fixed (sbyte* p = d.cards)
-            //  WriteAnsi(pbn, p, 80);
-            return d;
-        }
+        // Precompute maps once
+        private static readonly int[] SeatMap;
+        private static readonly int[] SuitMap;
+        private static readonly int[] RankMap;      // maps Ranks.Two..Ace -> 0..12 (or DdsEnum.Convert result)
+        private static readonly uint[] RankMask;    // mask for each rankIndex
 
-        public static ddTableDeal ToInteropTableDeal(Deal deal)
+        static DdsInteropConverters()
         {
-            ddTableDeal d = default;
+            SeatMap = new int[4];
             for (Seats seat = Seats.North; seat <= Seats.West; seat++)
+                SeatMap[(int)seat] = (int)DdsEnum.Convert(seat);
+
+            SuitMap = new int[4];
+            for (Suits suit = Suits.Clubs; suit <= Suits.Spades; suit++)
+                SuitMap[(int)suit] = (int)DdsEnum.Convert(suit);
+
+            // Ranks: Two..Ace
+            int rankCount = 13;
+            RankMap = new int[rankCount];
+            RankMask = new uint[rankCount];
+            for (Ranks r = Ranks.Two; r <= Ranks.Ace; r++)
             {
-                var ddsHand = (int)DdsEnum.Convert(seat);
-                for (Suits suit = Suits.Clubs; suit <= Suits.Spades; suit++)
-                {
-                    var ddsSuit = (int)DdsEnum.Convert(suit);
-                    uint mask = 0;
-                    for (Ranks r = Ranks.Two; r <= Ranks.Ace; r++)
-                    {
-                        if (deal[seat, suit, r])
-                            mask |= (uint)(2 << ((int)r + 2) - 1);
-                    }
-                    d.Set(ddsHand, ddsSuit, mask);
-                }
+                int conv = (int)DdsEnum.Convert(r);
+                // Map conv to a zero-based index for mask shifting.
+                // If DdsEnum.Convert returns 2..14 (matching Ranks), use conv - 2.
+                // Adjust here if DdsEnum.Convert uses a different mapping.
+                int rankIndex = conv;
+                RankMap[(int)r] = rankIndex;
+                RankMask[rankIndex - 2] = 1u << rankIndex;
             }
-            return d;
         }
 
+        // Public array overload delegates to the shared implementation
+        public static unsafe ddTableDeals ToInteropTableDeals(in Deal[] deals)
+            => ToInteropTableDeals((IReadOnlyList<Deal>)deals);
+
+        // Public List overload delegates to the shared implementation
         public static unsafe ddTableDeals ToInteropTableDeals(in List<Deal> deals)
+            => ToInteropTableDeals((IReadOnlyList<Deal>)deals);
+
+        // Core implementation that works for arrays, lists, or any IReadOnlyList<Deal>
+        private static unsafe ddTableDeals ToInteropTableDeals(IReadOnlyList<Deal> deals)
         {
             int count = deals.Count;
             if (count > ddsImports.ddsMaxNumberOfBoards)
@@ -75,67 +85,99 @@ namespace DDS
             ddTableDeals tableDeals = default;
             tableDeals.noOfTables = count;
 
+            // For each deal, fill the 16 uints (4 hands * 4 suits)
             for (int dealIndex = 0; dealIndex < count; dealIndex++)
             {
-                // Get the span for this deal (16 uints)
                 Span<uint> dealSpan = tableDeals[dealIndex];
-                for (Seats seat = Seats.North; seat <= Seats.West; seat++)
-                {
-                    var ddsHand = (int)DdsEnum.Convert(seat);
-                    for (Suits suit = Suits.Clubs; suit <= Suits.Spades; suit++)
-                    {
-                        var ddsSuit = (int)DdsEnum.Convert(suit);
-                        uint mask = 0;
-                        for (Ranks r = Ranks.Two; r <= Ranks.Ace; r++)
-                        {
-                            if (deals[dealIndex][seat, suit, r])
-                                mask |= (uint)(2 << ((int)DdsEnum.Convert(r)) - 1);
-                        }
-
-                        dealSpan[ddsHand * 4 + ddsSuit] = mask;
-                    }
-                }
+                FillDealSpan(deals[dealIndex], dealSpan);
             }
 
             return tableDeals;
         }
 
-        public static unsafe ddTableDeals ToInteropTableDeals(in Deal[] deals)
+        public static unsafe ddTableDeals ToInteropTableDeals(in List<Deal> deals, int offset, int len)
         {
-            int count = deals.Length;
-            if (count > ddsImports.ddsMaxNumberOfBoards)
-                throw new ArgumentOutOfRangeException(nameof(deals),
+            if (deals is null)
+                throw new ArgumentNullException(nameof(deals));
+            if (offset < 0 || len < 0 || offset + len > deals.Count)
+                throw new ArgumentOutOfRangeException(nameof(offset), "Invalid offset/len for deals list.");
+
+            if (len > ddsImports.ddsMaxNumberOfBoards)
+                throw new ArgumentOutOfRangeException(nameof(len),
                     $"Cannot exceed {ddsImports.ddsMaxNumberOfBoards} deals.");
 
             ddTableDeals tableDeals = default;
-            tableDeals.noOfTables = count;
-            for (int dealIndex = 0; dealIndex < count; dealIndex++)
-            {
-                int cards = 0;
-                // Get the span for this deal (16 uints)
-                Span<uint> dealSpan = tableDeals[dealIndex];
-                for (Seats seat = Seats.North; seat <= Seats.West; seat++)
-                {
-                    var ddsHand = (int)DdsEnum.Convert(seat);
-                    for (Suits suit = Suits.Clubs; suit <= Suits.Spades; suit++)
-                    {
-                        var ddsSuit = (int)DdsEnum.Convert(suit);
-                        uint mask = 0;
-                        for (Ranks r = Ranks.Two; r <= Ranks.Ace; r++)
-                        {
-                            if (deals[dealIndex][seat, suit, r])
-                            {
-                                mask |= (uint)(2 << ((int)DdsEnum.Convert(r)) - 1);
-                                cards++;
-                            }
-                        }
+            tableDeals.noOfTables = len;
 
-                        dealSpan[ddsHand * 4 + ddsSuit] = mask;
-                    }
-                }
+            // Fill each slot in the ddTableDeals directly from the list slice
+            for (int i = 0; i < len; i++)
+            {
+                // Get the span for this deal (16 uints)
+                Span<uint> dealSpan = tableDeals[i];
+
+                // Convert the deal at (offset + i) into the span.
+                // Reuses the centralized per-deal conversion logic.
+                FillDealSpan(deals[offset + i], dealSpan);
             }
 
             return tableDeals;
+        }
+
+        // Helper: convert a single Deal into the 16 uints in dealSpan
+        private static void FillDealSpan(Deal deal, Span<uint> dealSpan)
+        {
+            // Get a ref to the first element to allow Unsafe.Add writes if desired.
+            // For clarity we use indexed writes; JIT will optimize bounds checks away in many cases.
+            for (int seat = 0; seat < 4; seat++)
+            {
+                int ddsHandBase = 4 * SeatMap[seat]; // 4 * converted hand index
+
+                for (int suit = 0; suit < 4; suit++)
+                {
+                    uint mask = 0u;
+                    // iterate ranks Two..Ace by zero-based rank loop
+                    for (int r = 0; r < RankMap.Length; r++)
+                    {
+                        if (deal[(Seats)seat, (Suits)suit, (Ranks)r])
+                        {
+                            // Use precomputed mask; RankMap[r] gives the bit position
+                            mask |= RankMask[RankMap[r] - 2];
+                        }
+                    }
+
+                    int ddsSuit = SuitMap[suit];
+                    dealSpan[ddsHandBase + ddsSuit] = mask;
+                }
+            }
+        }
+
+        public static ddTableDealPBN ToInteropTableDealPbn(string pbn)
+        {
+            ddTableDealPBN d = default;
+            var span = AsSpan(ref d);
+            WriteAnsiToSpan(pbn, span);
+            return d;
+        }
+
+        public static ddTableDeal ToInteropTableDeal(Deal deal)
+        {
+            ddTableDeal d = default;
+            for (Seats seat = Seats.North; seat <= Seats.West; seat++)
+            {
+                var ddsHand = SeatMap[(int)seat];
+                for (Suits suit = Suits.Clubs; suit <= Suits.Spades; suit++)
+                {
+                    var ddsSuit = SuitMap[(int)suit];
+                    uint mask = 0;
+                    for (Ranks r = Ranks.Two; r <= Ranks.Ace; r++)
+                    {
+                        if (deal[seat, suit, r])
+                            mask |= (2u << ((int)r + 2) - 1);
+                    }
+                    d.Set(ddsHand, ddsSuit, mask);
+                }
+            }
+            return d;
         }
 
         //internal static dealPBN ToInteropDealPBN(
@@ -173,24 +215,22 @@ namespace DDS
 
             unsafe
             {
-                int cards = 0;
-                for (Seats seat = Seats.North; seat <= Seats.West; seat++)
+                for (int seat = 0; seat <= 3; seat++)
                 {
-                    var ddsHand = (int)DdsEnum.Convert(seat);
-                    for (Suits suit = Suits.Clubs; suit <= Suits.Spades; suit++)
+                    var ddsHand = 4 * seat;
+                    for (int suit = 0; suit <= 3; suit++)
                     {
-                        var ddsSuit = (int)DdsEnum.Convert(suit);
+                        var ddsSuit = SuitMap[(int)suit];
                         uint mask = 0;
-                        for (Ranks r = Ranks.Two; r <= Ranks.Ace; r++)
+                        for (int rank = 0; rank <= 12; rank++)
                         {
-                            if (dealRemaining[seat, suit, r])
+                            if (dealRemaining[seat, suit, rank])
                             {
-                                mask |= (uint)(2 << ((int)DdsEnum.Convert(r)) - 1);
-                                cards++;
+                                mask |= RankMask[RankMap[rank] - 2];
                             }
                         }
 
-                        d.remainCards[ddsHand * 4 + ddsSuit] = mask;
+                        d.remainCards[ddsHand + ddsSuit] = mask;
                     }
                 }
 
@@ -242,6 +282,5 @@ namespace DDS
             fixed (ddTableDealPBN* p = &d)
                 return new Span<sbyte>(p->cards, 80);
         }
-
     }
 }

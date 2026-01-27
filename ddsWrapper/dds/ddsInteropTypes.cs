@@ -85,40 +85,6 @@ namespace DDS.Interop
         }
     }
 
-    //[StructLayout(LayoutKind.Sequential)]
-    //public unsafe struct ddTableDeals : IDisposable
-    //{
-    //    public int noOfTables;
-    //    public ddTableDeal* tableDeals;
-
-    //    /// <summary>
-    //    /// Allocates an unmanaged array of <see cref="ddTableDeal"/> with length <paramref name="deals"/>.
-    //    /// Caller owns the memory and must call Dispose() to free it.
-    //    /// </summary>
-    //    public ddTableDeals(int deals)
-    //    {
-    //        ArgumentOutOfRangeException.ThrowIfNegative(deals);
-    //        ArgumentOutOfRangeException.ThrowIfGreaterThan(deals, ddsImports.ddsMaxNumberOfBoards);
-    //        noOfTables = deals;
-    //        //if (deals == 0) { tableDeals = null; return; }
-
-    //        //deals = ddsImports.ddsMaxNumberOfBoards * ddsImports.ddsStrains;
-
-    //        tableDeals = (ddTableDeal*)NativeMemory.Alloc((nuint)deals, (nuint)sizeof(ddTableDeal));
-    //        //nuint bytes = (nuint)deals * (nuint)sizeof(ddTableDeal);
-    //        //Unsafe.InitBlockUnaligned((void*)tableDeals, 0, (uint)bytes);
-    //    }
-
-    //    public void Dispose()
-    //    {
-    //        if (tableDeals != null)
-    //        {
-    //            NativeMemory.Free(tableDeals);
-    //            tableDeals = null;
-    //            noOfTables = 0;
-    //        }
-    //    }
-    //}
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct ddTableDeals
     {
@@ -204,24 +170,6 @@ namespace DDS.Interop
         public fixed sbyte score[128];
     }
 
-    //[StructLayout(LayoutKind.Sequential)]
-    //public unsafe struct parResults
-    //{
-    //    public fixed byte _scores[32];
-    //    public fixed byte _contracts[256];
-
-    //    public ref parScore Score(int i)
-    //    {
-    //        Debug.Assert(i >= 0 && i < (32 / 16));
-    //        fixed (byte* p = _scores) return ref ((parScore*)p)[i];
-    //    }
-
-    //    public ref parContract Contract(int i)
-    //    {
-    //        Debug.Assert(i >= 0 && i < (256 / 128));
-    //        fixed (byte* p = _contracts) return ref ((parContract*)p)[i];
-    //    }
-    //}
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct parResults
     {
@@ -229,18 +177,6 @@ namespace DDS.Interop
         public fixed sbyte parContracts[2 * 128];   // 2 parContract
     }
 
-
-    //[StructLayout(LayoutKind.Sequential)]
-    //public unsafe struct allParResults
-    //{
-    //    public fixed byte _pad[5760];   // 20 parResults = 20 × 288 = 5760
-
-    //    public ref parResults Result(int i)
-    //    {
-    //        Debug.Assert(i >= 0 && i < 20);
-    //        fixed (byte* p = _pad) return ref ((parResults*)p)[i];
-    //    }
-    //}
 
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct allParResults
