@@ -4,17 +4,17 @@ using System.Diagnostics;
 namespace DDS
 {
     [method: DebuggerStepThrough]
-    public readonly ref struct GameState(in Deal remainingCards, Suits trump, Seats trickLeader, Bridge.Card playedByMan1, Bridge.Card playedByMan2, Bridge.Card playedByMan3)
+    public readonly ref struct GameState(in Deal remainingCards, Suits trump, Seats trickLeader, int playedByMan1, int playedByMan2, int playedByMan3)
     {
         public Deal RemainingCards { get; } = remainingCards;
         public Suits Trump { get; } = trump;
         public Seats TrickLeader { get; } = trickLeader;
-        public Bridge.Card PlayedByMan1 { get; } = playedByMan1;
-        public Bridge.Card PlayedByMan2 { get; } = playedByMan2;
-        public Bridge.Card PlayedByMan3 { get; } = playedByMan3;
+        public Bridge.Card PlayedByMan1 { get; } = Bridge.Card.Get(playedByMan1);
+        public Bridge.Card PlayedByMan2 { get; } = Bridge.Card.Get(playedByMan2);
+        public Bridge.Card PlayedByMan3 { get; } = Bridge.Card.Get(playedByMan3);
 
         [DebuggerStepThrough]
-        public GameState(in Deal remainingCards, Suits trump, Seats trickLeader) : this(in remainingCards, trump, trickLeader, Bridge.Card.Null, Bridge.Card.Null, Bridge.Card.Null) { }
+        public GameState(in Deal remainingCards, Suits trump, Seats trickLeader) : this(in remainingCards, trump, trickLeader, Bridge.Card.Null.Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index) { }
     }
 
     public readonly struct CardPotential(Bridge.Card card, int tricks, bool isPrimary)
