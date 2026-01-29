@@ -19,7 +19,9 @@ namespace DDS
 
     public readonly struct CardPotential(Bridge.Card card, int tricks, bool isPrimary)
     {
-        public Bridge.Card Card { get; } = card; public int Tricks { get; } = tricks; public bool IsPrimary { get; } = isPrimary;
+        public int Card { get; } = card.Index; 
+        public int Tricks { get; } = tricks; 
+        public bool IsPrimary { get; } = isPrimary;
 
         public override string ToString() => $"{Card}:{Tricks}{(IsPrimary ? " p" : "")}";
     }
