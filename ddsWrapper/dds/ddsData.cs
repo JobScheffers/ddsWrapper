@@ -43,18 +43,18 @@ namespace DDS
         static DdsInteropConverters()
         {
             SeatMap = new int[4];
-            for (Seats seat = Seats.North; seat <= Seats.West; seat++)
+            foreach (Seats seat in SeatsExtensions.SeatsAscending)
                 SeatMap[(int)seat] = (int)DdsEnum.Convert(seat);
 
             SuitMap = new int[4];
-            for (Suits suit = Suits.Clubs; suit <= Suits.Spades; suit++)
+            foreach (Suits suit in SuitHelper.StandardSuitsAscending)
                 SuitMap[(int)suit] = (int)DdsEnum.Convert(suit);
 
             // Ranks: Two..Ace
             int rankCount = 13;
             RankMap = new int[rankCount];
             RankMask = new uint[rankCount];
-            for (Ranks r = Ranks.Two; r <= Ranks.Ace; r++)
+            foreach (Ranks r in RankHelper.RanksAscending)
             {
                 int conv = (int)DdsEnum.Convert(r);
                 // Map conv to a zero-based index for mask shifting.
@@ -162,14 +162,14 @@ namespace DDS
         public static ddTableDeal ToInteropTableDeal(Deal deal)
         {
             ddTableDeal d = default;
-            for (Seats seat = Seats.North; seat <= Seats.West; seat++)
+            foreach (Seats seat in SeatsExtensions.SeatsAscending)
             {
                 var ddsHand = SeatMap[(int)seat];
-                for (Suits suit = Suits.Clubs; suit <= Suits.Spades; suit++)
+                foreach (Suits suit in SuitHelper.StandardSuitsAscending)
                 {
                     var ddsSuit = SuitMap[(int)suit];
                     uint mask = 0;
-                    for (Ranks r = Ranks.Two; r <= Ranks.Ace; r++)
+                    foreach (Ranks r in RankHelper.RanksAscending)
                     {
                         if (deal[seat, suit, r])
                             mask |= (2u << ((int)r + 2) - 1);
