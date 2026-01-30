@@ -106,7 +106,7 @@ namespace DDS
         //   Convenience wrappers
         // -------------------------
 
-        private static unsafe string GetErrorMessage(int code)
+        internal static unsafe string GetErrorMessage(int code)
         {
             Span<sbyte> buf = stackalloc sbyte[256];
             fixed (sbyte* p = buf)

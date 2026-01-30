@@ -1,8 +1,10 @@
 ﻿#define newCalc
 
 using Bridge;
-using System.Numerics;
 using DDS.Interop;
+using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace DDS
 {
@@ -74,7 +76,12 @@ namespace DDS
                 // never exceeds ddsImports.MaxThreads.
             }
 
-            ddsImports.ThrowIfError(hresult, nameof(ddsImports.SolveBoard));
+            //ddsImports.ThrowIfError(hresult, nameof(ddsImports.SolveBoard));
+            if (hresult < 0)
+            {
+                var error = ddsImports.GetErrorMessage(hresult);
+                throw new ExternalException($"{nameof(ddsImports.SolveBoard)} failed with code {hresult}: {error}. {state.RemainingCards.ToPBN()} {state.PlayedByMan1} {state.PlayedByMan2} {state.PlayedByMan3}", hresult);
+            }
 
             // Remove the fixed statement for already fixed pointers (FutureTricks fields are already pointers)
             int* suitPtr = futureTricks.suit;

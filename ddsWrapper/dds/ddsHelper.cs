@@ -19,11 +19,12 @@ namespace DDS
 
     public readonly struct CardPotential(Bridge.Card card, int tricks, bool isPrimary)
     {
-        public int Card { get; } = card.Index; 
+        public Suits Suit { get; } = card.Suit;
+        public Ranks Rank { get; } = card.Rank;
         public int Tricks { get; } = tricks; 
         public bool IsPrimary { get; } = isPrimary;
 
-        public override string ToString() => $"{Card}:{Tricks}{(IsPrimary ? " p" : "")}";
+        public override string ToString() => $"{Suit.ToXML().ToLower()}{Rank.ToXML()}:{Tricks}{(IsPrimary ? " p" : "")}";
     }
 
     public unsafe struct TableResults
