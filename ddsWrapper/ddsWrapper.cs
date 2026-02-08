@@ -2,21 +2,29 @@
 
 using Bridge;
 using DDS.Interop;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Xml.Linq;
+using System.Threading;
 
 namespace DDS
 {
     public static unsafe partial class ddsWrapper
     {
+        // --- low-contention thread-index pool (replaces lock + ManualResetEvent pattern) ---
+        private static readonly SemaphoreSlim threadSemaphore;
+        private static readonly ConcurrentStack<int> threadStack;
+
+        // Thread-local flag: true when this managed thread acquired an index via semaphore.Wait()
+        private static readonly ThreadLocal<bool> semaphoreAcquired = new(() => false);
+
         // atomic bitmask: bit==1 means occupied
-        private static int threadMask = 0;
+        //private static int threadMask = 0;
         private static readonly int maxThreads;
         private static readonly Lock maskLock = new();
-
-        // per-managed-thread cached index; -1 means none claimed yet
-        private static readonly ThreadLocal<int> threadLocalIndex = new(() => -1);
+        private static readonly bool[] threadOccupied = new bool[16];
+        private static readonly ManualResetEventSlim resetEvent = new(false);
 
         // Thread-local pooled List to avoid repeated small allocations and internal array growth.
         // Each managed thread gets its own buffer; we Clear() and reuse it.  We return a fresh List copy to callers.
@@ -31,11 +39,18 @@ namespace DDS
         static ddsWrapper()
         {
             maxThreads = ddsImports.MaxThreads;
+        	Trace.WriteLine($"ddsImports.MaxThreads = {maxThreads}");
             if (maxThreads <= 0 || maxThreads > 32)
             {
                 throw new InvalidOperationException($"ddsImports.MaxThreads must be between 1 and 32 (was {maxThreads})");
             }
 
+            // initialize low-contention pool
+            threadSemaphore = new SemaphoreSlim(maxThreads, maxThreads);
+            threadStack = new ConcurrentStack<int>();
+            for (int i = 0; i < maxThreads; i++) threadStack.Push(i);
+
+            // Suits mapping initialization (unchanged)
             // Suits: Spades..NT -> DdsEnum.Convert
             // Note: your Suit enum ordering may differ; adjust start/length accordingly.
             SuitMap = new int[Enum.GetValues(typeof(Suit)).Length];
@@ -45,24 +60,16 @@ namespace DDS
 
         private static unsafe List<CardPotential> SolveBoard(in GameState state, int target, int solutions, int mode)
         {
-            // Parameter ”target” is the number of tricks to be won by the side to play, 
-            // -1 means that the program shall find the maximum number.
-            // For equivalent  cards only the highest is returned.
-            // target=1-13, solutions=1:  Returns only one of the cards. 
-            // Its returned score is the same as target when target or higher tricks can be won. 
-            // Otherwise, score –1 is returned if target cannot be reached, or score 0 if no tricks can be won. 
-            // target=-1, solutions=1:  Returns only one of the optimum cards and its score.
-
             var result = listPool.Value!;
             result.Clear();
 
             var playedCards = DdsEnum.Convert(state.PlayedByMan1, state.PlayedByMan2, state.PlayedByMan3);
-            var deal = DdsInteropConverters.ToInteropDeal(DdsEnum.Convert(state.Trump), DdsEnum.Convert(state.TrickLeader), 
-                                playedCards,
-                                state.RemainingCards);
+            var deal = DdsInteropConverters.ToInteropDeal(DdsEnum.Convert(state.Trump), DdsEnum.Convert(state.TrickLeader),
+                            playedCards,
+                            state.RemainingCards);
             FutureTricks futureTricks = default;
-            var threadIndex = GetThreadIndex(); // fast (cached) on repeated calls
 
+            var threadIndex = GetThreadIndex();
             int hresult;
             try
             {
@@ -70,13 +77,9 @@ namespace DDS
             }
             finally
             {
-                // NOTE: we intentionally do NOT release the index here.
-                // The index is cached per managed thread to avoid repeated allocation overhead.
-                // This is safe only when the number of concurrent managed threads using the library
-                // never exceeds ddsImports.MaxThreads.
+                ReleaseThreadIndex(threadIndex);
             }
 
-            //ddsImports.ThrowIfError(hresult, nameof(ddsImports.SolveBoard));
             if (hresult < 0)
             {
                 var error = ddsImports.GetErrorMessage(hresult);
@@ -119,53 +122,44 @@ namespace DDS
 
             return result;
 
-            // Returns cached per-thread index or claims a new one with CAS on threadMask
-            static int GetThreadIndex()
+            // low-contention GetThreadIndex / ReleaseThreadIndex local functions
+            int GetThreadIndex()
             {
-                var cached = threadLocalIndex.Value;
-                if (cached != -1) return cached;
-
-                // Try to claim a free bit
-                lock (maskLock)
+                // Fast-path: try to get an index without blocking
+                if (threadStack.TryPop(out var idx))
                 {
-                    var maskAll = (maxThreads == 32) ? unchecked((int)0xFFFFFFFF) : ((1 << maxThreads) - 1);
-                    while (true)
-                    {
-                        int mask = threadMask;
-                        int avail = (~mask) & maskAll;
-                        if (avail == 0)
-                        {
-                            throw new InvalidOperationException($"all threads are in use");
-                        }
-
-                        int bit = BitOperations.TrailingZeroCount(avail);
-                        int bitMask = 1 << bit;
-                        int newMask = mask | bitMask;
-
-                        // try to set the bit
-                        var old = Interlocked.CompareExchange(ref threadMask, newMask, mask);
-                        if (old == mask)
-                        {
-                            threadLocalIndex.Value = bit;
-                            return bit;
-                        }
-                    }
+                    // did not consume a semaphore permit
+                    semaphoreAcquired.Value = false;
+                    return idx;
                 }
+
+                // Slow-path: wait for a permit, then pop an index
+                threadSemaphore.Wait();
+
+                // mark that this managed thread acquired a permit
+                semaphoreAcquired.Value = true;
+
+                // There is guaranteed to be an index available, but TryPop may still fail transiently under races.
+                // Spin briefly until successful; this loop will be very short.
+                while (!threadStack.TryPop(out idx))
+                {
+                    Thread.SpinWait(1);
+                }
+                return idx;
             }
 
-            //// Optionally free a specific index (not used on the hot path)
-            //static void ReleaseIndex(int idx)
-            //{
-            //    if (idx < 0 || idx >= maxThreads) return;
+            void ReleaseThreadIndex(int threadIndex)
+            {
+                // push back
+                threadStack.Push(threadIndex);
 
-            //    while (true)
-            //    {
-            //        int mask = threadMask;
-            //        int newMask = mask & ~(1 << idx);
-            //        var old = Interlocked.CompareExchange(ref threadMask, newMask, mask);
-            //        if (old == mask) return;
-            //    }
-            //}
+                // only release the semaphore if this managed thread previously waited for a permit
+                if (semaphoreAcquired.Value)
+                {
+                    semaphoreAcquired.Value = false;
+                    threadSemaphore.Release();
+                }
+            }
         }
 
         // Use carefully: should only be called when there are no active SolveBoard calls
@@ -175,12 +169,13 @@ namespace DDS
             var max = ddsImports.MaxThreads;
             ddsImports.SetResources(1000, max);
 
-            // reset the global mask; caller must ensure no concurrent SolveBoard calls
-            Interlocked.Exchange(ref threadMask, 0);
+            // Reset the semaphore to 'max' permits and repopulate the stack.
+            // This is only safe if there are no concurrent SolveBoard calls.
+            while (threadSemaphore.CurrentCount < max) threadSemaphore.Release();
 
-            // reset per-thread cache for current thread only (other threads will still have their caches;
-            // it's caller responsibility to ensure no active threads exist when calling this).
-            threadLocalIndex.Value = -1;
+            // empty the stack then push 0..max-1
+            while (threadStack.TryPop(out _)) { }
+            for (int i = 0; i < max; i++) threadStack.Push(i);
         }
 
         public static List<CardPotential> BestCards(in GameState state)

@@ -1,6 +1,7 @@
 ﻿// ddsImports.cs
 
 using DDS.Interop;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -18,6 +19,7 @@ namespace DDS
         {
             DDSInfo info = default;
             GetDDSInfo(ref info);
+            Trace.WriteLine($"info.noOfThreads = {info.noOfThreads}");
             return info.noOfThreads > ddsMaxThreads ? ddsMaxThreads : info.noOfThreads;
         });
 

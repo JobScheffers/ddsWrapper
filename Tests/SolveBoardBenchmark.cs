@@ -15,8 +15,8 @@ namespace Tests
         {
             ddsWrapper.ForgetPreviousBoard();
 
-            const int totalBoards = 10000;
-            var threadCount = Environment.ProcessorCount;
+            const int totalBoards = 100000;
+            var threadCount = 2 * Environment.ProcessorCount;
             var exceptions = new ConcurrentQueue<Exception>();
             int next = 0;
 
