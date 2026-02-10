@@ -120,7 +120,7 @@ namespace Tests
         {
             var deal = new Deal("N:K95.QJT3.AKJ.AQJ JT42.87..K98765 AQ86.K652.86432. 73.A94.QT97.T432");
             Debug.WriteLine(deal.ToPBN());
-            Assert.ThrowsException<ExternalException>(() =>
+            Assert.Throws<ExternalException>(() =>
             {
                 var state = new GameState(in deal, Suits.Hearts, Seats.East, Card.Get(Suits.Hearts, Ranks.Five).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
                 var result = ddsWrapper.BestCard(state);

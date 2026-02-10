@@ -6,7 +6,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace DDS
 {
@@ -22,9 +21,8 @@ namespace DDS
         // atomic bitmask: bit==1 means occupied
         //private static int threadMask = 0;
         private static readonly int maxThreads;
-        private static readonly Lock maskLock = new();
         private static readonly bool[] threadOccupied = new bool[16];
-        private static readonly ManualResetEventSlim resetEvent = new(false);
+        //private static readonly ManualResetEventSlim resetEvent = new(false);
 
         // Thread-local pooled List to avoid repeated small allocations and internal array growth.
         // Each managed thread gets its own buffer; we Clear() and reuse it.  We return a fresh List copy to callers.

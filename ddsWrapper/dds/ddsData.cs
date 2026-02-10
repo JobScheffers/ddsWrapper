@@ -220,7 +220,7 @@ namespace DDS
                     var ddsHand = 4 * seat;
                     for (int suit = 0; suit <= 3; suit++)
                     {
-                        var ddsSuit = SuitMap[(int)suit];
+                        var ddsSuit = SuitMap[suit];
                         uint mask = 0;
                         for (int rank = 0; rank <= 12; rank++)
                         {
