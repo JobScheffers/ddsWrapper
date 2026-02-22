@@ -1,9 +1,6 @@
-﻿#define newCalc
-
-using Bridge;
+﻿using Bridge;
 using DDS.Interop;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -17,12 +14,8 @@ namespace DDS
 
         // Thread-local flag: true when this managed thread acquired an index via semaphore.Wait()
         private static readonly ThreadLocal<bool> semaphoreAcquired = new(() => false);
-
-        // atomic bitmask: bit==1 means occupied
-        //private static int threadMask = 0;
         private static readonly int maxThreads;
         private static readonly bool[] threadOccupied = new bool[16];
-        //private static readonly ManualResetEventSlim resetEvent = new(false);
 
         // Thread-local pooled List to avoid repeated small allocations and internal array growth.
         // Each managed thread gets its own buffer; we Clear() and reuse it.  We return a fresh List copy to callers.
@@ -30,14 +23,11 @@ namespace DDS
         private static readonly ThreadLocal<List<TableResults>> tableResultsPool = new(() => new List<TableResults>(16));
 
         // Put these in DdsInteropConverters or a nearby static helper class
-        //private static readonly int[] SeatMap;
         private static readonly int[] SuitMap;
-        //private static readonly int[] HandToSeat; // maps Hand index -> seat index used by TableResults
 
         static ddsWrapper()
         {
             maxThreads = ddsImports.MaxThreads;
-        	Trace.WriteLine($"ddsImports.MaxThreads = {maxThreads}");
             if (maxThreads <= 0 || maxThreads > 32)
             {
                 throw new InvalidOperationException($"ddsImports.MaxThreads must be between 1 and 32 (was {maxThreads})");
