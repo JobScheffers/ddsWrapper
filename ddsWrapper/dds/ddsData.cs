@@ -56,11 +56,10 @@ namespace DDS
             RankMask = new uint[rankCount];
             foreach (Ranks r in RankHelper.RanksAscending)
             {
-                int conv = (int)DdsEnum.Convert(r);
+                int rankIndex = (int)DdsEnum.Convert(r);
                 // Map conv to a zero-based index for mask shifting.
                 // If DdsEnum.Convert returns 2..14 (matching Ranks), use conv - 2.
                 // Adjust here if DdsEnum.Convert uses a different mapping.
-                int rankIndex = conv;
                 RankMap[(int)r] = rankIndex;
                 RankMask[rankIndex - 2] = 1u << rankIndex;
             }
