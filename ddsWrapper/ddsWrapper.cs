@@ -13,12 +13,13 @@ namespace DDS
         private static readonly ConcurrentStack<int> threadStack;
 
         // Thread-local flag: true when this managed thread acquired an index via semaphore.Wait()
-        private static readonly ThreadLocal<bool> semaphoreAcquired = new(() => false);
+        private static readonly ThreadLocal<bool> semaphoreAcquired = new();
         private static readonly int maxThreads;
-        private static readonly bool[] threadOccupied = new bool[16];
+        //private static readonly bool[] threadOccupied = new bool[16];
 
         // Thread-local pooled List to avoid repeated small allocations and internal array growth.
-        // Each managed thread gets its own buffer; we Clear() and reuse it.  We return a fresh List copy to callers.
+        // Each managed thread gets its own buffer; we Clear() and reuse it.
+        // Each managed thread gets its own buffer; we Clear() and reuse it.
         private static readonly ThreadLocal<List<CardPotential>> listPool = new(() => new List<CardPotential>(16));
         private static readonly ThreadLocal<List<TableResults>> tableResultsPool = new(() => new List<TableResults>(16));
 
@@ -41,8 +42,8 @@ namespace DDS
             // Suits mapping initialization (unchanged)
             // Suits: Spades..NT -> DdsEnum.Convert
             // Note: your Suit enum ordering may differ; adjust start/length accordingly.
-            SuitMap = new int[Enum.GetValues(typeof(Suit)).Length];
-            for (int s = 0; s < SuitMap.Length; s++)
+            SuitMap = new int[5];
+            for (int s = 0; s < 5; s++)
                 SuitMap[s] = (int)DdsEnum.Convert((Suit)s);
         }
 
@@ -74,7 +75,6 @@ namespace DDS
                 throw new ExternalException($"{nameof(ddsImports.SolveBoard)} failed with code {hresult}: {error}. {state.RemainingCards.ToPBN()} {state.PlayedByMan1} {state.PlayedByMan2} {state.PlayedByMan3}", hresult);
             }
 
-            // Remove the fixed statement for already fixed pointers (FutureTricks fields are already pointers)
             int* suitPtr = futureTricks.suit;
             int* rankPtr = futureTricks.rank;
             int* equalsPtr = futureTricks.equals;

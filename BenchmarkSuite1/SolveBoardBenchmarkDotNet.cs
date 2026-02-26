@@ -3,7 +3,7 @@ using BenchmarkDotNet.Jobs;
 using DDS;
 using Bridge;
 
-[SimpleJob(RuntimeMoniker.Net70)]
+[SimpleJob(RuntimeMoniker.Net10_0)]
 [MemoryDiagnoser]
 public class SolveBoardBench
 {

@@ -78,10 +78,11 @@ namespace DDS
         private static unsafe ddTableDeals ToInteropTableDeals(IReadOnlyList<Deal> deals)
         {
             int count = deals.Count;
+#if DEBUG
             if (count > ddsImports.ddsMaxNumberOfBoards)
                 throw new ArgumentOutOfRangeException(nameof(deals),
                     $"Cannot exceed {ddsImports.ddsMaxNumberOfBoards} deals.");
-
+#endif
             ddTableDeals tableDeals = default;
             tableDeals.noOfTables = count;
 
@@ -99,13 +100,14 @@ namespace DDS
         {
             if (deals is null)
                 throw new ArgumentNullException(nameof(deals));
+#if DEBUG
             if (offset < 0 || len < 0 || offset + len > deals.Count)
                 throw new ArgumentOutOfRangeException(nameof(offset), "Invalid offset/len for deals list.");
 
             if (len > ddsImports.ddsMaxNumberOfBoards)
                 throw new ArgumentOutOfRangeException(nameof(len),
                     $"Cannot exceed {ddsImports.ddsMaxNumberOfBoards} deals.");
-
+#endif
             ddTableDeals tableDeals = default;
             tableDeals.noOfTables = len;
 

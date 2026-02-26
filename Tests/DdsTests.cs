@@ -1,7 +1,5 @@
 using Bridge;
 using DDS;
-using DDS.Interop;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -144,13 +142,7 @@ namespace Tests
 
             ddsWrapper.ForgetPreviousBoard();
             var result = ddsWrapper.PossibleTricks([ deal1 ], [ Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump ]);
-            //var result =
-            //    Profiler.Time(() =>
-            //    {
-            //        return ddsWrapper.PossibleTricks([deal1, deal2, deal3], []);
-            //    }, out var elapsedTime, 10);
-            //Trace.WriteLine($"took {elapsedTime.TotalMilliseconds:F0} ms");
-
+#if DEBUG
             foreach (var deal in result)
             {
                 Trace.WriteLine("       C  D  H  S  NT");
@@ -164,7 +156,7 @@ namespace Tests
                     Trace.WriteLine($"");
                 });
             }
-
+#endif
             Assert.AreEqual(8, result[0][Seats.North, Suits.Spades]);
         }
 

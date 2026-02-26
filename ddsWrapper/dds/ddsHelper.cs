@@ -1,5 +1,6 @@
 ﻿using Bridge;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace DDS
 {
@@ -87,6 +88,7 @@ namespace DDS
             toDo(Seats.West);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static DDS.Hand Convert(Seats seat)
         {
             return seat switch
@@ -95,10 +97,11 @@ namespace DDS
                 Seats.East => Hand.East,
                 Seats.South => Hand.South,
                 Seats.West => Hand.West,
-                _ => throw new ArgumentOutOfRangeException(nameof(seat), seat.ToString()),
+                _ => ThrowOutOfRange<Seats, Hand>(seat),
             };
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static DDS.Suit Convert(Suits suit)
         {
             return suit switch
@@ -108,10 +111,11 @@ namespace DDS
                 Suits.Hearts => Suit.Hearts,
                 Suits.Diamonds => Suit.Diamonds,
                 Suits.Clubs => Suit.Clubs,
-                _ => throw new ArgumentOutOfRangeException(nameof(suit), suit.ToString()),
+                _ => ThrowOutOfRange<Suits, Suit>(suit),
             };
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static DDS.Rank Convert(Ranks rank)
         {
             return rank switch
@@ -129,10 +133,11 @@ namespace DDS
                 Ranks.Four => DDS.Rank.Four,
                 Ranks.Three => DDS.Rank.Three,
                 Ranks.Two => DDS.Rank.Two,
-                _ => throw new ArgumentOutOfRangeException(nameof(rank), rank.ToString()),
+                _ => ThrowOutOfRange<Ranks, Rank>(rank),
             };
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Seats Convert(DDS.Hand seat)
         {
             return seat switch
@@ -141,10 +146,11 @@ namespace DDS
                 Hand.East => Seats.East,
                 Hand.North => Seats.North,
                 Hand.South => Seats.South,
-                _ => throw new ArgumentOutOfRangeException(nameof(seat), seat.ToString()),
+                _ => ThrowOutOfRange<Hand, Seats>(seat),
             };
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Suits Convert(DDS.Suit suit)
         {
             return suit switch
@@ -154,10 +160,11 @@ namespace DDS
                 Suit.Hearts => Suits.Hearts,
                 Suit.Diamonds => Suits.Diamonds,
                 Suit.Clubs => Suits.Clubs,
-                _ => throw new ArgumentOutOfRangeException(nameof(suit), suit.ToString()),
+                _ => ThrowOutOfRange<Suit, Suits>(suit),
             };
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Ranks Convert(DDS.Rank rank)
         {
             return rank switch
@@ -175,21 +182,32 @@ namespace DDS
                 DDS.Rank.Four => Ranks.Four,
                 DDS.Rank.Three => Ranks.Three,
                 DDS.Rank.Two => Ranks.Two,
-                _ => throw new ArgumentOutOfRangeException(nameof(rank), rank.ToString()),
+                _ => ThrowOutOfRange<Rank, Ranks>(rank),
             };
         }
 
-        internal static PlayedCards Convert(Bridge.Card card1, Bridge.Card card2, Bridge.Card card3)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static PlayedCards Convert(in Bridge.Card card1, in Bridge.Card card2, in Bridge.Card card3)
         {
-            return new(
-                Bridge.Card.IsNull(card1) ? 0 : Convert(card1.Suit),
-                Bridge.Card.IsNull(card1) ? 0 : Convert(card1.Rank),
-                Bridge.Card.IsNull(card2) ? 0 : Convert(card2.Suit),
-                Bridge.Card.IsNull(card2) ? 0 : Convert(card2.Rank),
-                Bridge.Card.IsNull(card3) ? 0 : Convert(card3.Suit),
-                Bridge.Card.IsNull(card3) ? 0 : Convert(card3.Rank)
+            // Cache null checks to avoid doing the same work twice per card
+            var n1 = Bridge.Card.IsNull(card1);
+            var n2 = Bridge.Card.IsNull(card2);
+            var n3 = Bridge.Card.IsNull(card3);
+
+            return new PlayedCards(
+                n1 ? 0 : Convert(card1.Suit),
+                n1 ? 0 : Convert(card1.Rank),
+                n2 ? 0 : Convert(card2.Suit),
+                n2 ? 0 : Convert(card2.Rank),
+                n3 ? 0 : Convert(card3.Suit),
+                n3 ? 0 : Convert(card3.Rank)
             );
         }
+
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static T_Out ThrowOutOfRange<T_In, T_Out>(T_In value) where T_In: struct => throw new ArgumentOutOfRangeException(nameof(T_In), value.ToString());
     }
 
     public static class Profiler
