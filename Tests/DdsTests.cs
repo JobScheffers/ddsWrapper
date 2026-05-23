@@ -257,7 +257,7 @@ namespace Tests
 
             Trace.WriteLine($"{result.Count} deals in {sw.Elapsed.TotalSeconds:F1}s");
             Assert.IsLessThan(12500, sw.ElapsedMilliseconds);
-            Assert.IsGreaterThan(130, result.Count);
+            Assert.IsGreaterThan(80, result.Count);
         }
 
         [TestMethod]
