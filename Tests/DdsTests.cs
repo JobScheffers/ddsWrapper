@@ -234,7 +234,7 @@ namespace Tests
             ddsWrapper.ForgetPreviousBoard();
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
-            var result = ddsWrapper.PossibleTricks(deals, [Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump]);
+            var result = ddsWrapper.PossibleTricks(deals, [Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump], maxDuration: 10);
 
             sw.Stop();
 
