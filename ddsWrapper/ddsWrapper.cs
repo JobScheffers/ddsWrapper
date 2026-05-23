@@ -220,26 +220,28 @@ namespace DDS
             }
         }
 
-        public static List<TableResults> PossibleTricks(in List<Deal> deals, in List<Suits> trumps)
+        public static List<TableResults> PossibleTricks(in List<Deal> deals, in List<Suits> trumps, int maxDuration = 10)
         {
             if (trumps == null || trumps.Count == 0)
                 throw new ArgumentException("trumps must contain at least one suit");
 
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             var result = tableResultsPool.Value!;
             result.Clear();
 
             var parResults = new allParResults();
-
-            int maxDealsPerCall = Math.Max(1, 200 / trumps.Count);
+            int maxDealsPerCall = Math.Min(10, Math.Max(1, 200 / trumps.Count));        // to stay within maxDuration, we process in batches of 1..10 deals per call (adjust as needed based on performance testing)
             int total = deals.Count;
 
             // Process in index-based chunks to avoid Chunk allocations
             for (int offset = 0; offset < total; offset += maxDealsPerCall)
             {
+                // Check timeout before processing next batch
+                if (sw.Elapsed.TotalSeconds > maxDuration)
+                    break;
+
                 int len = Math.Min(maxDealsPerCall, total - offset);
 
-                // Use an IReadOnlyList<Deal> slice if you have one; otherwise pass the original list and an offset/length overload.
-                // Here we assume ToInteropTableDeals accepts IReadOnlyList<Deal> and an optional (offset,len) overload.
                 var tableDeals = DdsInteropConverters.ToInteropTableDeals(deals, offset, len);
                 var results = new ddTablesResult(len, trumps.Count);
 

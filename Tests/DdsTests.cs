@@ -216,37 +216,48 @@ namespace Tests
         }
 
         [TestMethod]
-        public void CalcAllTables_100x5()
+        public void PossibleTricks_100x5()
         {
             // check if it is possible to calculate more boards than the dds max
+
+            const bool printDeals = false;
 
             //var baseDeal = new Deal("N:954.QJT3.AJT.QJ6");
             var baseDeal = new Deal();
             var deals = new List<Deal>();
-            const int numDeals = 41;
+            const int numDeals = 410;
             for (int i = 0; i < numDeals; i++)
             {
                 deals.Add(baseDeal.CompletedFromSeed(RandomGenerator.Instance.NextDealBigInteger()));
-                Trace.WriteLine(deals[i].ToPBN());
+                if (printDeals) Trace.WriteLine(deals[i].ToPBN());
             }
             ddsWrapper.ForgetPreviousBoard();
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
             var result = ddsWrapper.PossibleTricks(deals, [Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump]);
 
-            foreach (var deal in result)
+            sw.Stop();
+
+            if (printDeals)
             {
-                Trace.WriteLine("       C  D  H  S  NT");
-                DdsEnum.ForEachHand(seat =>
+                foreach (var deal in result)
                 {
-                    Trace.Write($"{seat.ToString().PadRight(5)}");
-                    DdsEnum.ForEachTrump(suit =>
+                    Trace.WriteLine("       C  D  H  S  NT");
+                    DdsEnum.ForEachHand(seat =>
                     {
-                        Trace.Write($" {deal[seat, suit]:00}");
+                        Trace.Write($"{seat.ToString().PadRight(5)}");
+                        DdsEnum.ForEachTrump(suit =>
+                        {
+                            Trace.Write($" {deal[seat, suit]:00}");
+                        });
+                        Trace.WriteLine($"");
                     });
-                    Trace.WriteLine($"");
-                });
+                }
             }
 
-            Assert.AreEqual(numDeals, result.Count);
+            Trace.WriteLine($"{result.Count} deals in {sw.Elapsed.TotalSeconds:F1}s");
+            Assert.IsLessThan(12500, sw.ElapsedMilliseconds);
+            Assert.IsGreaterThan(130, result.Count);
         }
 
         [TestMethod]
