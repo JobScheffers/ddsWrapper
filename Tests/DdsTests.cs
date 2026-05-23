@@ -216,7 +216,7 @@ namespace Tests
         }
 
         [TestMethod]
-        public void PossibleTricks_100x5()
+        public void PossibleTricks_410Deals_5Trumps()
         {
             // check if it is possible to calculate more boards than the dds max
 
@@ -234,7 +234,8 @@ namespace Tests
             ddsWrapper.ForgetPreviousBoard();
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
-            var result = ddsWrapper.PossibleTricks(deals, [Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump], maxDuration: 10);
+            var result = ddsWrapper.PossibleTricks(deals, [Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump], maxDuration: 10);
+
 
             sw.Stop();
 
