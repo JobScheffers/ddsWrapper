@@ -183,5 +183,12 @@ namespace Tests
                 var result3 = ddsWrapper.BestCards(in state3);
             }
         }
+
+        //#if DEBUG
+        [TestMethod]
+        //#endif
+        public void RunBridgeAIBenchmark()
+        {
+        }
     }
 }

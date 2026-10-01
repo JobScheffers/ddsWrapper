@@ -26,6 +26,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="4.1.0" />
     <PackageReference Include="MSTest.TestFramework" Version="4.1.0" />
+    <PackageReference Include="Sodes.Bridge.AI" Version="2026.10.1.6" />
   </ItemGroup>
 
   <ItemGroup>
