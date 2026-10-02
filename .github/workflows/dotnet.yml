@@ -4,8 +4,7 @@
 name: .NET
 
 on:
-  push:
-    branches: [ "*" ]
+  push:          # no branch filter -> all branches
   pull_request:
     branches: [ "main" ]
 
