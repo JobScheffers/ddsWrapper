@@ -216,7 +216,8 @@ namespace Tests
         }
 
         [TestMethod]
-        public void PossibleTricks_410Deals_5Trumps()
+        public void PossibleTricks_410Deals_5Trumps()
+
         {
             // check if it is possible to calculate more boards than the dds max
 
