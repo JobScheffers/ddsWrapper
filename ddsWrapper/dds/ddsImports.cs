@@ -53,6 +53,13 @@ namespace DDS
             ref FutureTricks futureTricks,
             int threadIndex);
 
+        [LibraryImport(dllPath, EntryPoint = "SolveAllChunksBin")]
+        [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+        internal static partial int SolveAllChunksBin(
+            in Boards boards,
+            ref SolvedBoards solvedBoards,
+            int chunkSize = 1);
+
         [LibraryImport(dllPath, EntryPoint = "CalcAllTablesPBN")]
         [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
         internal static partial int CalcAllTablesPBN(

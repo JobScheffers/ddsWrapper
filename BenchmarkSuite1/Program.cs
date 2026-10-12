@@ -4,9 +4,9 @@ namespace BenchmarkSuite1
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static void Main(string[] _)
         {
-            var _ = BenchmarkRunner.Run(typeof(Program).Assembly);
+            BenchmarkRunner.Run(typeof(Program).Assembly);
         }
     }
 }

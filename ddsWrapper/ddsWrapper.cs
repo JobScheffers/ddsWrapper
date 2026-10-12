@@ -31,8 +31,10 @@ namespace DDS
             maxThreads = ddsImports.MaxThreads;
             if (maxThreads <= 0 || maxThreads > 32)
             {
-                throw new InvalidOperationException($"ddsImports.MaxThreads must be between 1 and 32 (was {maxThreads})");
+                throw new InvalidOperationException($"ddsImports.MaxThreads ({maxThreads}) must be between 1 and 32");
             }
+
+            ddsImports.SetResources(1000, maxThreads);
 
             // initialize low-contention pool
             threadSemaphore = new SemaphoreSlim(maxThreads, maxThreads);
@@ -150,25 +152,94 @@ namespace DDS
             }
         }
 
+        private static unsafe List<List<CardPotential>> SolveBoards(in List<GameState> states, int param1, int param2, int param3)
+        {
+            //var result = listPool.Value!;
+            //result.Clear();
+
+            var deals = new deal[states.Count];
+            for (int i = 0; i < states.Count; i++)
+            {
+                var state = states[i];
+                var playedCards = DdsEnum.Convert(state.PlayedByMan1, state.PlayedByMan2, state.PlayedByMan3);
+                var deal = DdsInteropConverters.ToInteropDeal(DdsEnum.Convert(state.Trump), DdsEnum.Convert(state.TrickLeader),
+                                playedCards,
+                                state.RemainingCards);
+                deals[i] = deal;
+            }
+            var boards = new Boards(deals);
+            SolvedBoards solvedBoards = new SolvedBoards(states.Count);
+
+            int hresult;
+            hresult = ddsImports.SolveAllChunksBin(boards, ref solvedBoards);
+
+            if (hresult < 0)
+            {
+                var error = ddsImports.GetErrorMessage(hresult);
+                throw new ExternalException($"{nameof(ddsImports.SolveAllChunksBin)} failed with code {hresult}: {error}.", hresult);
+            }
+
+            //int* suitPtr = futureTricks.suit;
+            //int* rankPtr = futureTricks.rank;
+            //int* equalsPtr = futureTricks.equals;
+            //int* scorePtr = futureTricks.score;
+            //{
+            //    for (int i = 0; i < futureTricks.cards; i++)
+            //    {
+            //        var ddsSuit = (Suit)suitPtr[i];
+            //        var suit = DdsEnum.Convert(ddsSuit);
+            //        var rank = (Rank)rankPtr[i];
+            //        var score = scorePtr[i];
+            //        var eqMask = (uint)equalsPtr[i];
+
+            //        // highest card (primary)
+            //        result.Add(new CardPotential(Bridge.Card.Get(suit, DdsEnum.Convert(rank)), score, eqMask == 0));
+
+            //        // iterate equivalent lower ranks using bit scanning
+            //        if (eqMask != 0)
+            //        {
+            //            bool firstEqual = true;
+            //            // eqMask uses bit positions for ranks; adjust mapping if needed.
+            //            while (eqMask != 0)
+            //            {
+            //                int bit = BitOperations.TrailingZeroCount(eqMask);
+            //                eqMask &= eqMask - 1;
+            //                var eqRank = (Rank)(bit + 2 - (int)Rank.Two);
+            //                result.Add(new CardPotential(Bridge.Card.Get(suit, DdsEnum.Convert(eqRank)), score, firstEqual));
+            //                firstEqual = false;
+            //            }
+            //        }
+            //    }
+            //}
+
+            return null;
+        }
+
         // Use carefully: should only be called when there are no active SolveBoard calls
         public static void ForgetPreviousBoard()
         {
-            _ = ddsImports.FreeMemory();
-            var max = ddsImports.MaxThreads;
-            ddsImports.SetResources(1000, max);
+            //_ = ddsImports.FreeMemory();
+            //var max = ddsImports.MaxThreads;
+            //ddsImports.SetResources(1000, max);
 
-            // Reset the semaphore to 'max' permits and repopulate the stack.
-            // This is only safe if there are no concurrent SolveBoard calls.
-            while (threadSemaphore.CurrentCount < max) threadSemaphore.Release();
+            //// Reset the semaphore to 'max' permits and repopulate the stack.
+            //// This is only safe if there are no concurrent SolveBoard calls.
+            //while (threadSemaphore.CurrentCount < max) threadSemaphore.Release();
 
-            // empty the stack then push 0..max-1
-            while (threadStack.TryPop(out _)) { }
-            for (int i = 0; i < max; i++) threadStack.Push(i);
+            //// empty the stack then push 0..max-1
+            //while (threadStack.TryPop(out _)) { }
+            //for (int i = 0; i < max; i++) threadStack.Push(i);
         }
 
         public static List<CardPotential> BestCards(in GameState state)
         {
             return SolveBoard(in state, -1, 2, 1);
+        }
+
+        public static List<List<CardPotential>> BestCards(in List<GameState> state)
+        {
+            var result = SolveBoards(in state, -1, 2, 1);
+            return new List<List<CardPotential>>();
         }
 
         public static CardPotential BestCard(in GameState state)
@@ -230,8 +301,11 @@ namespace DDS
             result.Clear();
 
             var parResults = new allParResults();
-            int maxDealsPerCall = Math.Min(10, Math.Max(1, 200 / trumps.Count));        // to stay within maxDuration, we process in batches of 1..10 deals per call (adjust as needed based on performance testing)
+            int trumpsCount = trumps.Count;
+            int maxDealsPerCall = Math.Min(40, Math.Max(1, 200 / trumpsCount));        // to stay within maxDuration, we process in batches of 1..10 deals per call (adjust as needed based on performance testing)
             int total = deals.Count;
+            var _trumps = Convert(in trumps!);
+            var results = new ddTablesResult(maxDealsPerCall, trumpsCount);
 
             // Process in index-based chunks to avoid Chunk allocations
             for (int offset = 0; offset < total; offset += maxDealsPerCall)
@@ -243,9 +317,8 @@ namespace DDS
                 int len = Math.Min(maxDealsPerCall, total - offset);
 
                 var tableDeals = DdsInteropConverters.ToInteropTableDeals(deals, offset, len);
-                var results = new ddTablesResult(len, trumps.Count);
 
-                var hresult = ddsImports.CalcAllTables(tableDeals, -1, Convert(in trumps!), ref results, ref parResults);
+                var hresult = ddsImports.CalcAllTables(tableDeals, -1, _trumps, ref results, ref parResults);
                 ddsImports.ThrowIfError(hresult, nameof(ddsImports.CalcAllTables));
 
                 for (int i = 0; i < len; i++)

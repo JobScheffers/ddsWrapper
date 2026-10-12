@@ -7,11 +7,11 @@ namespace Microsoft.VisualStudio.TestPlatform.TestHost
     {
         public static void Main()
         {
-            //var tests = new SolveBoardBenchmark();
+            var tests = new SolveBoardBenchmark();
             //tests.SolveBoard_From_Multiple_Threads();
-            //tests.SolveBoard3();
-            var tests = new DdsTests();
-            tests.CalcAllTables_1();
+            tests.ProfilerBenchmark();
+            //var tests = new DdsTests();
+            //tests.CalcAllTables_1();
         }
     }
 }
