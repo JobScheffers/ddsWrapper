@@ -69,9 +69,9 @@ namespace Tests
                 throw new AggregateException(exceptions);
         }
 
-        //#if DEBUG
+#if DEBUG
         [TestMethod]
-//#endif
+#endif
         public void RunSolveBoardBenchmark()
         {
             // Configuration

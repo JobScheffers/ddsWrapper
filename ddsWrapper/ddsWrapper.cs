@@ -311,10 +311,15 @@ namespace DDS
             for (int offset = 0; offset < total; offset += maxDealsPerCall)
             {
                 // Check timeout before processing next batch
-                if (sw.Elapsed.TotalSeconds > maxDuration)
+                var elapsedTime = sw.Elapsed.TotalSeconds;
+                var remainingTime = maxDuration - elapsedTime;
+                var timePerDeal = elapsedTime / (offset > 0 ? offset : 1);
+                var remainingDeals = remainingTime / timePerDeal;
+                if (elapsedTime > maxDuration || remainingDeals < 1)
                     break;
 
                 int len = Math.Min(maxDealsPerCall, total - offset);
+                if (len > remainingDeals) len = (int)Math.Floor(remainingDeals);
 
                 var tableDeals = DdsInteropConverters.ToInteropTableDeals(deals, offset, len);
 
