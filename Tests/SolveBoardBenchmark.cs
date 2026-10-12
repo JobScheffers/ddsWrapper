@@ -1,5 +1,6 @@
 using Bridge;
 using DDS;
+using DDS.Interop;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
@@ -8,6 +9,15 @@ namespace Tests
     [TestClass]
     public class SolveBoardBenchmark
     {
+        private Deal deal1, deal2, deal3;
+
+        public SolveBoardBenchmark()
+        {
+            deal1 = new Bridge.Deal("N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9.");
+            deal2 = new Bridge.Deal("N:JT984.T7.AQ83.4 Q7532.82.97.832 K.AQJ53.KJ42.AK A6.K964.T65.Q96");
+            deal3 = new Bridge.Deal("N:9..85432.QJ9 754.JT73.KT. J82.KQ6.QJ.6 AKQT63.5..8");
+        }
+
         //#if DEBUG
         [TestMethod]
         //#endif
@@ -71,16 +81,13 @@ namespace Tests
             ddsWrapper.ForgetPreviousBoard();
 
             // Sample board (reuse any existing sample from your tests)
-            var deal1 = new Bridge.Deal("N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9.");
-            var deal2 = new Bridge.Deal("N:JT984.T7.AQ83.4 Q7532.82.97.832 K.AQJ53.KJ42.AK A6.K964.T65.Q96");
-            var deal3 = new Bridge.Deal("N:9..85432.QJ9 754.JT73.KT. J82.KQ6.QJ.6 AKQT63.5..8");
 
             Trace.WriteLine($"SolveBoard benchmark - warmup {warmupIterations}, measure {measureIterations}, parallelDegree {fixedThreadCount}");
 
             // Warmup
             for (int i = 0; i < warmupIterations; i++)
             {
-                Work();
+                Work(deal1, deal2, deal3);
             }
 
             // Ensure a clean GC baseline for allocations measurement
@@ -94,7 +101,7 @@ namespace Tests
             var sw = Stopwatch.StartNew();
             for (int i = 0; i < measureIterations; i++)
             {
-                Work();
+                Work(deal1, deal2, deal3);
             }
             sw.Stop();
             var allocatedAfter = GC.GetAllocatedBytesForCurrentThread();
@@ -122,7 +129,7 @@ namespace Tests
                 {
                     for (int j = 0; j < localCount; j++)
                     {
-                        Work();
+                        Work(deal1, deal2, deal3);
                     }
                 });
                 threads[t].Start();
@@ -156,7 +163,7 @@ namespace Tests
                 {
                     for (int j = 0; j < localCount; j++)
                     {
-                        Work();
+                        Work(deal1, deal2, deal3);
                     }
                 });
                 threads[t].Start();
@@ -172,23 +179,22 @@ namespace Tests
 
             // Keep test green
             Assert.IsTrue(true);
-
-            void Work()
-            {
-                var state1 = new GameState(in deal1, Suits.Spades, Seats.West, Card.Get(Suits.Hearts, Ranks.King).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
-                var result1 = ddsWrapper.BestCards(state1);
-                var state2 = new GameState(in deal2, Suits.Hearts, Seats.South);
-                var result2 = ddsWrapper.BestCards(state2);
-                var state3 = new GameState(in deal3, Suits.Spades, Seats.West, Card.Get(Suits.Clubs, Ranks.Seven).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
-                var result3 = ddsWrapper.BestCards(in state3);
-            }
         }
 
-        //#if DEBUG
-        [TestMethod]
-        //#endif
-        public void RunBridgeAIBenchmark()
+        void Work(in Deal deal1,in Deal deal2,in Deal deal3)
         {
+            var state1 = new GameState(in deal1, Suits.Spades, Seats.West, Card.Get(Suits.Hearts, Ranks.King).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
+            var result1 = ddsWrapper.BestCards(state1);
+            var state2 = new GameState(in deal2, Suits.Hearts, Seats.South);
+            var result2 = ddsWrapper.BestCards(state2);
+            var state3 = new GameState(in deal3, Suits.Spades, Seats.West, Card.Get(Suits.Clubs, Ranks.Seven).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
+            var result3 = ddsWrapper.BestCards(in state3);
+        }
+
+        public void ProfilerBenchmark()
+        {
+            for (int i = 0; i < 1000; i++)
+                Work(deal1, deal2, deal3);
         }
     }
 }

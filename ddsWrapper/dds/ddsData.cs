@@ -5,6 +5,7 @@
 
 using Bridge;
 using DDS.Interop;
+using System.Runtime.CompilerServices;
 
 namespace DDS
 {
@@ -125,28 +126,35 @@ namespace DDS
         }
 
         // Helper: convert a single Deal into the 16 uints in dealSpan
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void FillDealSpan(Deal deal, Span<uint> dealSpan)
         {
-            // Get a ref to the first element to allow Unsafe.Add writes if desired.
-            // For clarity we use indexed writes; JIT will optimize bounds checks away in many cases.
+            // Cache frequently used arrays/lengths to locals to avoid repeated field access
+            var seatMapLoc = SeatMap;
+            var suitMapLoc = SuitMap;
+            var rankMapLoc = RankMap;
+            var rankMaskLoc = RankMask;
+            int rankCount = rankMapLoc.Length;
+
+            // For clarity we use indexed writes; JIT will elide bounds checks in tight loops.
             for (int seat = 0; seat < 4; seat++)
             {
-                int ddsHandBase = 4 * SeatMap[seat]; // 4 * converted hand index
+                int ddsHandBase = 4 * seatMapLoc[seat]; // 4 * converted hand index
 
                 for (int suit = 0; suit < 4; suit++)
                 {
                     uint mask = 0u;
                     // iterate ranks Two..Ace by zero-based rank loop
-                    for (int r = 0; r < RankMap.Length; r++)
+                    for (int r = 0; r < rankCount; r++)
                     {
                         if (deal[(Seats)seat, (Suits)suit, (Ranks)r])
                         {
                             // Use precomputed mask; RankMap[r] gives the bit position
-                            mask |= RankMask[RankMap[r] - 2];
+                            mask |= rankMaskLoc[rankMapLoc[r] - 2];
                         }
                     }
 
-                    int ddsSuit = SuitMap[suit];
+                    int ddsSuit = suitMapLoc[suit];
                     dealSpan[ddsHandBase + ddsSuit] = mask;
                 }
             }
@@ -205,6 +213,7 @@ namespace DDS
         //    return d;
         //}
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static deal ToInteropDeal(
             Suit trump, Hand leader,
             PlayedCards played,

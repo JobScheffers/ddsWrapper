@@ -207,6 +207,49 @@ namespace DDS.Interop
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct Boards
+    {
+        public int noOfBoards;
+        public deal* deals;                 // use pointer to make struct blittable
+        public fixed int target[ddsImports.ddsMaxNumberOfBoards];
+        public fixed int solutions[ddsImports.ddsMaxNumberOfBoards];
+        public fixed int mode[ddsImports.ddsMaxNumberOfBoards];
+
+        public Boards(ReadOnlySpan<deal> managedDeals)
+        {
+#if DEBUG
+            ArgumentOutOfRangeException.ThrowIfNegative(managedDeals.Length);
+            if (managedDeals.Length > ddsImports.ddsMaxNumberOfBoards)
+                throw new ArgumentOutOfRangeException(nameof(managedDeals), $"Count cannot exceed {ddsImports.ddsMaxNumberOfBoards}.");
+#endif
+            noOfBoards = managedDeals.Length;
+            deals = (deal*)Marshal.AllocHGlobal(sizeof(deal) * managedDeals.Length);
+            for (int i = 0; i < managedDeals.Length; i++)
+            {
+                deals[i] = managedDeals[i];
+            }
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct SolvedBoards
+    {
+        public int noOfBoards;
+        public FutureTricks* solvedBoard;
+
+        public SolvedBoards(int count)
+        {
+#if DEBUG
+            ArgumentOutOfRangeException.ThrowIfNegative(count);
+            if (count > ddsImports.ddsMaxNumberOfBoards)
+                throw new ArgumentOutOfRangeException(nameof(count), $"Count cannot exceed {ddsImports.ddsMaxNumberOfBoards}.");
+#endif
+            noOfBoards = count;
+            solvedBoard = (FutureTricks*)Marshal.AllocHGlobal(sizeof(FutureTricks) * count);
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public unsafe struct FutureTricks
     {
         public int nodes;

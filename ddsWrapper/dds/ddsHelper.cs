@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace DDS
 {
     [method: DebuggerStepThrough]
-    public readonly ref struct GameState(in Deal remainingCards, Suits trump, Seats trickLeader, int playedByMan1, int playedByMan2, int playedByMan3)
+    public readonly struct GameState(in Deal remainingCards, Suits trump, Seats trickLeader, int playedByMan1, int playedByMan2, int playedByMan3)
     {
         public Deal RemainingCards { get; } = remainingCards;
         public Suits Trump { get; } = trump;
