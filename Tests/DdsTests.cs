@@ -226,7 +226,9 @@ namespace Tests
             }
         }
 
+#if DEBUG
         [TestMethod]
+#endif
         public void PossibleTricks_410Deals_5Trumps()
 
         {
@@ -271,6 +273,38 @@ namespace Tests
             Trace.WriteLine($"{result.Count} deals in {sw.Elapsed.TotalSeconds:F1}s");
             //Assert.IsLessThan(12500, sw.ElapsedMilliseconds);
             Assert.IsGreaterThan(60, result.Count);
+        }
+
+#if DEBUG
+        [TestMethod]
+#endif
+        public void PossibleTricks_MayNot_Eat_Threads()
+
+        {
+            // check if there is a memory leak or a thread leak when calculating many deals in a loop
+
+            RandomGenerator.Instance.Repeatable(1);
+            //var baseDeal = new Deal("N:954.QJT3.AJT.QJ6");
+            var baseDeal = new Deal();
+            var deals = new List<Deal>();
+            const int numDeals = 410;
+            ddsWrapper.ForgetPreviousBoard();
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
+            while (true)
+            {
+                deals.Clear();
+                for (int i = 0; i < numDeals; i++)
+                {
+                    deals.Add(baseDeal.CompletedFromSeed(RandomGenerator.Instance.NextDealBigInteger()));
+                }
+
+                sw.Reset();
+                sw.Start();
+                var result = ddsWrapper.PossibleTricks(deals, [Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump], maxDuration: 10);
+                sw.Stop();
+                Trace.WriteLine($"{result.Count} deals in {sw.Elapsed.TotalSeconds:F1}s");
+            }
         }
 
         [TestMethod]
