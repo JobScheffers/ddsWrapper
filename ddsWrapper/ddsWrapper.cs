@@ -152,68 +152,68 @@ namespace DDS
             }
         }
 
-        private static unsafe List<List<CardPotential>> SolveBoards(in List<GameState> states, int param1, int param2, int param3)
-        {
-            //var result = listPool.Value!;
-            //result.Clear();
+        //private static unsafe List<List<CardPotential>> SolveBoards(in List<GameState> states, int param1, int param2, int param3)
+        //{
+        //    //var result = listPool.Value!;
+        //    //result.Clear();
 
-            var deals = new deal[states.Count];
-            for (int i = 0; i < states.Count; i++)
-            {
-                var state = states[i];
-                var playedCards = DdsEnum.Convert(state.PlayedByMan1, state.PlayedByMan2, state.PlayedByMan3);
-                var deal = DdsInteropConverters.ToInteropDeal(DdsEnum.Convert(state.Trump), DdsEnum.Convert(state.TrickLeader),
-                                playedCards,
-                                state.RemainingCards);
-                deals[i] = deal;
-            }
-            var boards = new Boards(deals);
-            SolvedBoards solvedBoards = new SolvedBoards(states.Count);
+        //    var deals = new deal[states.Count];
+        //    for (int i = 0; i < states.Count; i++)
+        //    {
+        //        var state = states[i];
+        //        var playedCards = DdsEnum.Convert(state.PlayedByMan1, state.PlayedByMan2, state.PlayedByMan3);
+        //        var deal = DdsInteropConverters.ToInteropDeal(DdsEnum.Convert(state.Trump), DdsEnum.Convert(state.TrickLeader),
+        //                        playedCards,
+        //                        state.RemainingCards);
+        //        deals[i] = deal;
+        //    }
+        //    var boards = new Boards(deals);
+        //    SolvedBoards solvedBoards = new SolvedBoards(states.Count);
 
-            int hresult;
-            hresult = ddsImports.SolveAllChunksBin(boards, ref solvedBoards);
+        //    int hresult;
+        //    hresult = ddsImports.SolveAllChunksBin(boards, ref solvedBoards);
 
-            if (hresult < 0)
-            {
-                var error = ddsImports.GetErrorMessage(hresult);
-                throw new ExternalException($"{nameof(ddsImports.SolveAllChunksBin)} failed with code {hresult}: {error}.", hresult);
-            }
+        //    if (hresult < 0)
+        //    {
+        //        var error = ddsImports.GetErrorMessage(hresult);
+        //        throw new ExternalException($"{nameof(ddsImports.SolveAllChunksBin)} failed with code {hresult}: {error}.", hresult);
+        //    }
 
-            //int* suitPtr = futureTricks.suit;
-            //int* rankPtr = futureTricks.rank;
-            //int* equalsPtr = futureTricks.equals;
-            //int* scorePtr = futureTricks.score;
-            //{
-            //    for (int i = 0; i < futureTricks.cards; i++)
-            //    {
-            //        var ddsSuit = (Suit)suitPtr[i];
-            //        var suit = DdsEnum.Convert(ddsSuit);
-            //        var rank = (Rank)rankPtr[i];
-            //        var score = scorePtr[i];
-            //        var eqMask = (uint)equalsPtr[i];
+        //    //int* suitPtr = futureTricks.suit;
+        //    //int* rankPtr = futureTricks.rank;
+        //    //int* equalsPtr = futureTricks.equals;
+        //    //int* scorePtr = futureTricks.score;
+        //    //{
+        //    //    for (int i = 0; i < futureTricks.cards; i++)
+        //    //    {
+        //    //        var ddsSuit = (Suit)suitPtr[i];
+        //    //        var suit = DdsEnum.Convert(ddsSuit);
+        //    //        var rank = (Rank)rankPtr[i];
+        //    //        var score = scorePtr[i];
+        //    //        var eqMask = (uint)equalsPtr[i];
 
-            //        // highest card (primary)
-            //        result.Add(new CardPotential(Bridge.Card.Get(suit, DdsEnum.Convert(rank)), score, eqMask == 0));
+        //    //        // highest card (primary)
+        //    //        result.Add(new CardPotential(Bridge.Card.Get(suit, DdsEnum.Convert(rank)), score, eqMask == 0));
 
-            //        // iterate equivalent lower ranks using bit scanning
-            //        if (eqMask != 0)
-            //        {
-            //            bool firstEqual = true;
-            //            // eqMask uses bit positions for ranks; adjust mapping if needed.
-            //            while (eqMask != 0)
-            //            {
-            //                int bit = BitOperations.TrailingZeroCount(eqMask);
-            //                eqMask &= eqMask - 1;
-            //                var eqRank = (Rank)(bit + 2 - (int)Rank.Two);
-            //                result.Add(new CardPotential(Bridge.Card.Get(suit, DdsEnum.Convert(eqRank)), score, firstEqual));
-            //                firstEqual = false;
-            //            }
-            //        }
-            //    }
-            //}
+        //    //        // iterate equivalent lower ranks using bit scanning
+        //    //        if (eqMask != 0)
+        //    //        {
+        //    //            bool firstEqual = true;
+        //    //            // eqMask uses bit positions for ranks; adjust mapping if needed.
+        //    //            while (eqMask != 0)
+        //    //            {
+        //    //                int bit = BitOperations.TrailingZeroCount(eqMask);
+        //    //                eqMask &= eqMask - 1;
+        //    //                var eqRank = (Rank)(bit + 2 - (int)Rank.Two);
+        //    //                result.Add(new CardPotential(Bridge.Card.Get(suit, DdsEnum.Convert(eqRank)), score, firstEqual));
+        //    //                firstEqual = false;
+        //    //            }
+        //    //        }
+        //    //    }
+        //    //}
 
-            return null;
-        }
+        //    return null;
+        //}
 
         // Use carefully: should only be called when there are no active SolveBoard calls
         public static void ForgetPreviousBoard()
@@ -238,7 +238,7 @@ namespace DDS
 
         public static List<List<CardPotential>> BestCards(in List<GameState> state)
         {
-            var result = SolveBoards(in state, -1, 2, 1);
+            //var result = SolveBoards(in state, -1, 2, 1);
             return new List<List<CardPotential>>();
         }
 
@@ -302,7 +302,7 @@ namespace DDS
 
             var parResults = new allParResults();
             int trumpsCount = trumps.Count;
-            int maxDealsPerCall = Math.Min(40, Math.Max(1, 200 / trumpsCount));        // to stay within maxDuration, we process in batches of 1..10 deals per call (adjust as needed based on performance testing)
+            int maxDealsPerCall = Math.Min(40, Math.Max(1, 200 / trumpsCount));        // to stay within maxDuration, we process in batches of 1..40 deals per call (adjust as needed based on performance testing)
             int total = deals.Count;
             var _trumps = Convert(in trumps!);
             var results = new ddTablesResult(maxDealsPerCall, trumpsCount);
