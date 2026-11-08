@@ -13,13 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\ddsWrapper\bridge-solver\lib\bridgesolver.dll" Pack="true">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <Link>bridgesolver.dll</Link>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ddsWrapper\ddsWrapper.csproj" />
   </ItemGroup>
 

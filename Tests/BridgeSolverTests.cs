@@ -72,8 +72,8 @@ namespace Tests
         {
             var deal = new Deal("N:K95.QJT3.KQJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.AT97.T432");
 
-            var state = new GameState(in deal, 13, Suits.Hearts, Seats.North, Seats.East, Card.Null.Index, Card.Null.Index, Card.Null.Index);
-            var result = BridgeSolverWrapper.BestCards(state, new List<Card>() { Card.Get(Suits.Diamonds, Ranks.Five), Card.Get(Suits.Spades, Ranks.Jack), Card.Get(Suits.Hearts, Ranks.Eight), Card.Get(Suits.Clubs, Ranks.Five) });
+            var state = new GameState(in deal, 13, Suits.Hearts, Seats.North, Seats.East, Bridge.Card.Null.Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
+            var result = BridgeSolverWrapper.BestCards(state, new List<Bridge.Card>() { Bridge.Card.Get(Suits.Diamonds, Ranks.Five), Bridge.Card.Get(Suits.Spades, Ranks.Jack), Bridge.Card.Get(Suits.Hearts, Ranks.Eight), Bridge.Card.Get(Suits.Clubs, Ranks.Five) });
             Assert.AreEqual(3, result[0].Tricks);
             //Assert.AreEqual(5, result.Count);
         }

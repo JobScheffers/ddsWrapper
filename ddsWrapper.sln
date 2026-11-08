@@ -15,8 +15,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenchmarkSuite1", "BenchmarkSuite1\BenchmarkSuite1.csproj", "{A20861A9-411E-6150-BF5C-69E8196E5D22}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bridgeSolverWrapper", "bridgeSolverWrapper\bridgeSolverWrapper.csproj", "{E7034A1A-4820-4C33-90AE-0019EFE7F5BC}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,18 +61,6 @@ Global
 		{A20861A9-411E-6150-BF5C-69E8196E5D22}.Release|x64.Build.0 = Release|Any CPU
 		{A20861A9-411E-6150-BF5C-69E8196E5D22}.Release|x86.ActiveCfg = Release|Any CPU
 		{A20861A9-411E-6150-BF5C-69E8196E5D22}.Release|x86.Build.0 = Release|Any CPU
-		{E7034A1A-4820-4C33-90AE-0019EFE7F5BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E7034A1A-4820-4C33-90AE-0019EFE7F5BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E7034A1A-4820-4C33-90AE-0019EFE7F5BC}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{E7034A1A-4820-4C33-90AE-0019EFE7F5BC}.Debug|x64.Build.0 = Debug|Any CPU
-		{E7034A1A-4820-4C33-90AE-0019EFE7F5BC}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{E7034A1A-4820-4C33-90AE-0019EFE7F5BC}.Debug|x86.Build.0 = Debug|Any CPU
-		{E7034A1A-4820-4C33-90AE-0019EFE7F5BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E7034A1A-4820-4C33-90AE-0019EFE7F5BC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E7034A1A-4820-4C33-90AE-0019EFE7F5BC}.Release|x64.ActiveCfg = Release|Any CPU
-		{E7034A1A-4820-4C33-90AE-0019EFE7F5BC}.Release|x64.Build.0 = Release|Any CPU
-		{E7034A1A-4820-4C33-90AE-0019EFE7F5BC}.Release|x86.ActiveCfg = Release|Any CPU
-		{E7034A1A-4820-4C33-90AE-0019EFE7F5BC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

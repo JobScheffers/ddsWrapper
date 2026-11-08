@@ -28,12 +28,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Update="bridgesolver.dll" Pack="true" PackagePath="runtimes/win/native/bridgesolver.dll">
+		  <PackagePath>runtimes/win/native/bridgesolver.dll</PackagePath>
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="dds.dll" Pack="true" PackagePath="runtimes/win/native/dds.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-    <None Update="bridge-solver\lib\bridgesolver.dll" Pack="true" PackagePath="runtimes/win/native/bridgesolver.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 	
 	<ItemGroup>

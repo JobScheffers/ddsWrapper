@@ -110,7 +110,7 @@ namespace BridgeSolver
             return [.. results.Where(result => result[0, 0] + result[1, 0] > 0)];
         }
 
-        public static List<CardPotential> BestCards(in GameState state, in List<Card> cards)
+        public static List<CardPotential> BestCards(in GameState state, in List<Bridge.Card> cards)
         {
             using (var analyzer = new Analyzer())
             {
@@ -121,7 +121,7 @@ namespace BridgeSolver
                         ""trump"": ""{state.Trump.ToXML()}"",
                         ""declarer"": ""{state.Declarer.ToXML()}"",
                         ""leader"": ""{state.TrickLeader.ToXML()}"",
-                        ""plays"": [{(state.PlayedByMan1.Index == Card.Null.Index ? "" : $"\"{state.PlayedByMan1}\",")}{(state.PlayedByMan2.Index == Card.Null.Index ? "" : $"\"{state.PlayedByMan2}\",")}{(state.PlayedByMan3.Index == Card.Null.Index ? "" : $"\"{state.PlayedByMan3}\",")}""?""]
+                        ""plays"": [{(state.PlayedByMan1.Index == Bridge.Card.Null.Index ? "" : $"\"{state.PlayedByMan1}\",")}{(state.PlayedByMan2.Index == Bridge.Card.Null.Index ? "" : $"\"{state.PlayedByMan2}\",")}{(state.PlayedByMan3.Index == Bridge.Card.Null.Index ? "" : $"\"{state.PlayedByMan3}\",")}""?""]
                     }}
                     ";
                 foreach (var card in cards)
