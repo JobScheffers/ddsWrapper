@@ -72,8 +72,6 @@ namespace BridgeSolver
 
             var sw = stopwatch.Value!;
             sw.Restart();
-            int total = deals.Count;
-            var results = tablesResults.Value!;
             var dealsLocal = deals; // avoid capturing 'in' parameter in lambda
             var _needed = needed; // avoid capturing 'in' parameter in lambda
             Parallel.For(0, total, deal =>
@@ -123,7 +121,7 @@ namespace BridgeSolver
                         ""trump"": ""{state.Trump.ToXML()}"",
                         ""declarer"": ""{state.Declarer.ToXML()}"",
                         ""leader"": ""{state.TrickLeader.ToXML()}"",
-                        ""plays"": [{(state.PlayedByMan1.Index == Bridge.Card.Null.Index ? "" : $"\"{state.PlayedByMan1}\",")}""?""]
+                        ""plays"": [{(state.PlayedByMan1.Index == Card.Null.Index ? "" : $"\"{state.PlayedByMan1}\",")}{(state.PlayedByMan2.Index == Card.Null.Index ? "" : $"\"{state.PlayedByMan2}\",")}{(state.PlayedByMan3.Index == Card.Null.Index ? "" : $"\"{state.PlayedByMan3}\",")}""?""]
                     }}
                     ";
                 foreach (var card in cards)
