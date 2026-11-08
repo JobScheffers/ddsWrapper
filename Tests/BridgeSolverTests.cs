@@ -1,4 +1,7 @@
+using Bridge;
 using BridgeSolver;
+using DDS;
+using System.Diagnostics;
 
 namespace Tests
 {
@@ -65,12 +68,74 @@ namespace Tests
         }
 
         [TestMethod]
+        public void BestCards()
+        {
+            var deal = new Deal("N:K95.QJT3.KQJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.AT97.T432");
+
+            var state = new GameState(in deal, 13, Suits.Hearts, Seats.North, Seats.East, Card.Null.Index, Card.Null.Index, Card.Null.Index);
+            var result = BridgeSolverWrapper.BestCards(state, new List<Card>() { Card.Get(Suits.Diamonds, Ranks.Five), Card.Get(Suits.Spades, Ranks.Jack), Card.Get(Suits.Hearts, Ranks.Eight), Card.Get(Suits.Clubs, Ranks.Five) });
+            Assert.AreEqual(3, result[0].Tricks);
+            //Assert.AreEqual(5, result.Count);
+        }
+
+        [TestMethod]
         public void Analyzer_Dispose_DoesNotThrow()
         {
             var analyzer = new BridgeSolverWrapper.Analyzer();
             analyzer.Dispose();
             // Double-dispose must be safe (SafeHandle guarantees this).
             analyzer.Dispose();
+        }
+
+        [TestMethod]
+        public void PossibleTricks_410Deals_5Trumps()
+        {
+            const bool printDeals = false;
+            RandomGenerator.Instance.Repeatable(1);
+            //var baseDeal = new Deal("N:954.QJT3.AJT.QJ6");
+            var baseDeal = new Deal();
+            var deals = new List<Deal>();
+            const int numDeals = 410;
+            for (int i = 0; i < numDeals; i++)
+            {
+                deals.Add(baseDeal.CompletedFromSeed(RandomGenerator.Instance.NextDealBigInteger()));
+                if (printDeals) Trace.WriteLine(deals[i]);
+            }
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
+            TableResults needed = new TableResults();
+            DdsEnum.ForEachHand(seat =>
+            {
+                DdsEnum.ForEachTrump(suit =>
+                {
+                    needed[seat, suit] = 1;
+                });
+            });
+
+            var result = BridgeSolverWrapper.PossibleTricks(deals, needed, maxDuration: 5);
+
+            sw.Stop();
+
+            if (printDeals)
+            {
+                foreach (var deal in result)
+                {
+                    Trace.WriteLine("       C  D  H  S  NT");
+                    DdsEnum.ForEachHand(seat =>
+                    {
+                        Trace.Write($"{seat.ToString().PadRight(5)}");
+                        DdsEnum.ForEachTrump(suit =>
+                        {
+                            Trace.Write($" {deal[seat, suit]:00}");
+                        });
+                        Trace.WriteLine($"");
+                    });
+                }
+            }
+
+            Trace.WriteLine($"{result.Count} deals in {sw.Elapsed.TotalSeconds:F1}s; {sw.Elapsed.TotalSeconds / result.Count:F3}s per deal");
+            //Assert.IsLessThan(12500, sw.ElapsedMilliseconds);
+            Assert.IsGreaterThan(60, result.Count);
         }
     }
 }

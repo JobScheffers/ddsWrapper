@@ -31,7 +31,10 @@
 		<None Update="dds.dll" Pack="true" PackagePath="runtimes/win/native/dds.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-	</ItemGroup>
+    <None Update="bridge-solver\lib\bridgesolver.dll" Pack="true" PackagePath="runtimes/win/native/bridgesolver.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 	
 	<ItemGroup>
 		<_PackageFiles Include="dds.dll">
@@ -46,7 +49,19 @@
 			<BuildAction>None</BuildAction>
 			<PackagePath>runtimes\win\native\</PackagePath>
 		</_PackageFiles>
-	</ItemGroup>
+    <_PackageFiles Include="bridge-solver\lib\bridgesolver.dll">
+      <BuildAction>None</BuildAction>
+      <PackagePath>runtimes\win-x64\native\</PackagePath>
+    </_PackageFiles>
+    <_PackageFiles Include="bridge-solver\lib\bridgesolver.dll">
+      <BuildAction>None</BuildAction>
+      <PackagePath>runtimes\win-x86\native\</PackagePath>
+    </_PackageFiles>
+    <_PackageFiles Include="bridge-solver\lib\bridgesolver.dll">
+      <BuildAction>None</BuildAction>
+      <PackagePath>runtimes\win\native\</PackagePath>
+    </_PackageFiles>
+  </ItemGroup>
 	
 	<ItemGroup>
 	  <Folder Include="Properties\" />

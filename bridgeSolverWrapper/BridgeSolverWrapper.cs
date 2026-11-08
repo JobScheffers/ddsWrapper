@@ -1,6 +1,7 @@
 using Bridge;
 using BridgeSolver.Interop;
 using DDS;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace BridgeSolver
@@ -57,6 +58,86 @@ namespace BridgeSolver
                 }
             }
             return result;
+        }
+
+        private static readonly ThreadLocal<TableResults[]> tablesResults = new(() => new TableResults[1000]);
+        private static readonly ThreadLocal<Stopwatch> stopwatch = new(() => new Stopwatch());
+
+        public static List<TableResults> PossibleTricks(in List<Deal> deals, in TableResults needed, int maxDuration = 5)
+        {
+            var sw = stopwatch.Value!;
+            sw.Restart();
+            int total = deals.Count;
+            var results = tablesResults.Value!;
+            var dealsLocal = deals; // avoid capturing 'in' parameter in lambda
+            var _needed = needed; // avoid capturing 'in' parameter in lambda
+            Parallel.For(0, total, deal =>
+            {
+                // Check timeout before processing next batch
+                var elapsedTime = sw.Elapsed.TotalSeconds;
+                if (elapsedTime > maxDuration)
+                {
+                }
+                else
+                {
+                    var pbn = dealsLocal[deal].ToPBN();
+                    //var check = DdTableTricks(pbn);
+                    for (var trump = Suits.Clubs; trump <= Suits.NoTrump; trump++)
+                    {
+                        for (var declarer = Seats.North; declarer <= Seats.West; declarer++)
+                        {
+                            if (_needed[declarer, trump] > 0)
+                            {
+                                var tricksNS = Solve(pbn, trump.ToXML(), declarer.Next().ToXML());
+                                results[deal][declarer, trump] = declarer.Direction() == Directions.NorthSouth ? tricksNS : (byte)(13 - tricksNS);
+                                //if (results[deal][declarer, trump] != check[declarer, trump])
+                                //{
+                                //    Trace.WriteLine($"Warning: Solve returned 0 tricks for deal {deal}, seat {declarer}, trump {trump}");
+                                //}
+                            }
+                            else
+                            {
+                                results[deal][declarer, trump] = 255;
+                            }
+                        }
+                    }
+                }
+            });
+
+            return [.. results.Where(result => result[0, 0] + result[1, 0] > 0)];
+        }
+
+        public static List<CardPotential> BestCards(in GameState state, in List<Card> cards)
+        {
+            using (var analyzer = new Analyzer())
+            {
+                var response = new List<CardPotential>();
+                var requestJson = @$"
+                    {{
+                        ""dealstr"": ""{state.RemainingCards.ToPBN()}"",
+                        ""trump"": ""{state.Trump.ToXML()}"",
+                        ""declarer"": ""{state.Declarer.ToXML()}"",
+                        ""leader"": ""{state.TrickLeader.ToXML()}"",
+                        ""plays"": [{(state.PlayedByMan1.Index == Bridge.Card.Null.Index ? "" : $"\"{state.PlayedByMan1}\",")}""?""]
+                    }}
+                    ";
+                foreach (var card in cards)
+                {
+                    var responseJson = analyzer.Play(requestJson.Replace("?", card.ToString()));
+                    //     "\"contract_tricks\":10"
+                    // get value of "contract_tricks" from responseJson
+                    var tricks = System.Text.Json.JsonDocument.Parse(responseJson).RootElement.GetProperty("contract_tricks").GetInt32();
+                    if (!state.TrickLeader.IsSameDirection(state.Declarer))
+                    {
+                        tricks = 13 - tricks;
+                    }
+                    response.Add(new CardPotential(card, tricks, true));
+#if DEBUG
+                    //Trace.WriteLine($"{card}:{tricks}");
+#endif
+                }
+                return response;
+            }   
         }
 
         /// <summary>
