@@ -43,7 +43,7 @@ jobs:
  
     - name: Pack
       run: dotnet pack --configuration Release /p:Version=1.0.${{github.run_number}}
-      //if: github.ref == 'refs/heads/main'
+      #if: github.ref == 'refs/heads/main'
       
     # Get a short-lived NuGet API key
     - name: NuGet login (OIDC → temp API key)
@@ -51,12 +51,12 @@ jobs:
       id: login
       with:
         user: sodes
-      //if: github.ref == 'refs/heads/main'
+      #if: github.ref == 'refs/heads/main'
     
     # Push the package
     - name: NuGet push
       run: dotnet nuget push .\ddsWrapper\bin\release\*.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
-      //if: github.ref == 'refs/heads/main'
+      #if: github.ref == 'refs/heads/main'
   
     # - name: Push generated package to NuGet.org
     #   run: dotnet nuget push .\ddsWrapper\bin\release\*.nupkg --source https://api.nuget.org/v3/index.json
