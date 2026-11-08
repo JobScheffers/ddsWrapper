@@ -72,6 +72,8 @@ namespace BridgeSolver
 
             var sw = stopwatch.Value!;
             sw.Restart();
+            int total = deals.Count;
+            var results = tablesResults.Value!;
             var dealsLocal = deals; // avoid capturing 'in' parameter in lambda
             var _needed = needed; // avoid capturing 'in' parameter in lambda
             Parallel.For(0, total, deal =>

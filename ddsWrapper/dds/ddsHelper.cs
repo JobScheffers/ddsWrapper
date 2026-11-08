@@ -5,18 +5,19 @@ using System.Runtime.CompilerServices;
 namespace DDS
 {
     [method: DebuggerStepThrough]
-    public readonly struct GameState(in Deal remainingCards, Suits trump, Seats trickLeader, int playedByMan1, int playedByMan2, int playedByMan3)
+    public readonly struct GameState(in Deal remainingCards, int remainingTricks, Suits trump, Seats declarer, Seats trickLeader, int playedByMan1, int playedByMan2, int playedByMan3)
     {
         public Deal RemainingCards { get; } = remainingCards;
-        public int RemainingTricks { get; } = remainingTricks;
+        public int RemaingTricks { get; } = remainingTricks;
         public Suits Trump { get; } = trump;
+        public Seats Declarer { get; } = declarer;
         public Seats TrickLeader { get; } = trickLeader;
         public Bridge.Card PlayedByMan1 { get; } = Bridge.Card.Get(playedByMan1);
         public Bridge.Card PlayedByMan2 { get; } = Bridge.Card.Get(playedByMan2);
         public Bridge.Card PlayedByMan3 { get; } = Bridge.Card.Get(playedByMan3);
 
         [DebuggerStepThrough]
-        public GameState(in Deal remainingCards, Suits trump, Seats trickLeader) : this(in remainingCards, trump, trickLeader, Bridge.Card.Null.Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index) { }
+        public GameState(in Deal remainingCards, int remainingTricks, Suits trump, Seats declarer, Seats trickLeader) : this(in remainingCards, remainingTricks, trump, declarer, trickLeader, Bridge.Card.Null.Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index) { }
     }
 
     public readonly struct CardPotential(Bridge.Card card, int tricks, bool isPrimary)

@@ -1,6 +1,7 @@
 ﻿using Bridge;
 using DDS.Interop;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -91,20 +92,26 @@ namespace DDS
                     var eqMask = (uint)equalsPtr[i];
 
                     // highest card (primary)
-                    result.Add(new CardPotential(Bridge.Card.Get(suit, DdsEnum.Convert(rank)), score, eqMask == 0));
+                    var card = new CardPotential(Bridge.Card.Get(suit, DdsEnum.Convert(rank)), score, eqMask == 0);
+                    result.Add(card);
+#if DEBUG
+                    //Trace.WriteLine($"{card.ToString()}, firstEqual: {eqMask == 0}");
+#endif
 
                     // iterate equivalent lower ranks using bit scanning
                     if (eqMask != 0)
                     {
-                        bool firstEqual = true;
                         // eqMask uses bit positions for ranks; adjust mapping if needed.
                         while (eqMask != 0)
                         {
                             int bit = BitOperations.TrailingZeroCount(eqMask);
                             eqMask &= eqMask - 1;
                             var eqRank = (Rank)(bit + 2 - (int)Rank.Two);
-                            result.Add(new CardPotential(Bridge.Card.Get(suit, DdsEnum.Convert(eqRank)), score, firstEqual));
-                            firstEqual = false;
+                            card = new CardPotential(Bridge.Card.Get(suit, DdsEnum.Convert(eqRank)), score, eqMask == 0);
+                            result.Add(card);
+#if DEBUG
+                            //Trace.WriteLine($"{card}, firstEqual: {firstEqual}");
+#endif
                         }
                     }
                 }
