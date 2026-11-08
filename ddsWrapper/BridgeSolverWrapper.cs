@@ -76,10 +76,12 @@ namespace BridgeSolver
             var _needed = needed; // avoid capturing 'in' parameter in lambda
             Parallel.For(0, total, deal =>
             {
+                results[deal][0, 0] = 255;      // this result will be ignored if the timeout is exceeded
                 // Check timeout before processing next batch
                 var elapsedTime = sw.Elapsed.TotalSeconds;
                 if (elapsedTime > maxDuration)
                 {
+                    results[deal] = default;
                 }
                 else
                 {
@@ -100,14 +102,14 @@ namespace BridgeSolver
                             }
                             else
                             {
-                                results[deal][declarer, trump] = 255;
+                                results[deal][declarer, trump] = 0;
                             }
                         }
                     }
                 }
             });
 
-            return [.. results.Where(result => result[0, 0] + result[1, 0] > 0)];
+            return [.. results.Take(total).Where(result => result[0, 0] < 255)];
         }
 
         public static List<CardPotential> BestCards(in GameState state, in List<Bridge.Card> cards)

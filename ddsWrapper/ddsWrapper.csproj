@@ -11,6 +11,7 @@
 		<PublicSign>False</PublicSign>
 		<AssemblyOriginatorKeyFile>..\bridge.snk</AssemblyOriginatorKeyFile>
 		<Title>.Net wrapper for DDS</Title>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Authors>Job Scheffers</Authors>
 		<Company> </Company>
 		<Description>A .Net wrapper for the native dds.dll that contains Bo Haglunds double dummy solver</Description>
@@ -35,6 +36,7 @@
 		<None Update="dds.dll" Pack="true" PackagePath="runtimes/win/native/dds.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Include="..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 	
 	<ItemGroup>

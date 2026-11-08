@@ -13,7 +13,12 @@ jobs:
 
     runs-on: windows-latest
 
+    strategy:
+      matrix:
+        dotnet-version: [ '10.0.x' ]
+
     permissions:
+      contents: read
       id-token: write
 
     steps:
