@@ -183,11 +183,11 @@ namespace Tests
 
         void Work(in Deal deal1,in Deal deal2,in Deal deal3)
         {
-            var state1 = new GameState(in deal1, Suits.Spades, Seats.West, Card.Get(Suits.Hearts, Ranks.King).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
+            var state1 = new GameState(in deal1, 13, Suits.Spades, Seats.North, Seats.West, Card.Get(Suits.Hearts, Ranks.King).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
             var result1 = ddsWrapper.BestCards(state1);
-            var state2 = new GameState(in deal2, Suits.Hearts, Seats.South);
+            var state2 = new GameState(in deal2, 13, Suits.Hearts, Seats.North, Seats.South);
             var result2 = ddsWrapper.BestCards(state2);
-            var state3 = new GameState(in deal3, Suits.Spades, Seats.West, Card.Get(Suits.Clubs, Ranks.Seven).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
+            var state3 = new GameState(in deal3, 13, Suits.Spades, Seats.North, Seats.West, Card.Get(Suits.Clubs, Ranks.Seven).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
             var result3 = ddsWrapper.BestCards(in state3);
         }
 

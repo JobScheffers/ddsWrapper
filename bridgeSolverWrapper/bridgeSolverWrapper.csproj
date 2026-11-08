@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <Title>.Net wrapper for bridge-solver</Title>
+    <Authors>Job Scheffers</Authors>
+    <Description>A .Net wrapper for the native bridgesolver.dll (https://github.com/bridge-craftwork/bridge-solver)</Description>
+    <RepositoryUrl>https://github.com/JobScheffers/ddsWrapper</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\ddsWrapper\bridge-solver\lib\bridgesolver.dll" Pack="true">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Link>bridgesolver.dll</Link>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ddsWrapper\ddsWrapper.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_PackageFiles Include="..\ddsWrapper\bridge-solver\lib\bridgesolver.dll">
+      <BuildAction>None</BuildAction>
+      <PackagePath>runtimes\win-x64\native\</PackagePath>
+    </_PackageFiles>
+    <_PackageFiles Include="..\ddsWrapper\bridge-solver\lib\bridgesolver.dll">
+      <BuildAction>None</BuildAction>
+      <PackagePath>runtimes\win-x86\native\</PackagePath>
+    </_PackageFiles>
+    <_PackageFiles Include="..\ddsWrapper\bridge-solver\lib\bridgesolver.dll">
+      <BuildAction>None</BuildAction>
+      <PackagePath>runtimes\win\native\</PackagePath>
+    </_PackageFiles>
+  </ItemGroup>
+
+</Project>

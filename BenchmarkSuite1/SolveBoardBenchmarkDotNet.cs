@@ -24,9 +24,9 @@ public class SolveBoardBench
     [Benchmark]
     public void BestCards_AllStates()
     {
-        var state1 = new GameState(in deal1, Suits.Spades, Seats.West, Card.Get(Suits.Hearts, Ranks.King).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
-        var state2 = new GameState(in deal2, Suits.Hearts, Seats.South);
-        var state3 = new GameState(in deal3, Suits.Spades, Seats.West, Card.Get(Suits.Clubs, Ranks.Seven).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
+        var state1 = new GameState(in deal1, 7, Suits.Spades, Seats.North, Seats.West, Card.Get(Suits.Hearts, Ranks.King).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
+        var state2 = new GameState(in deal2, 12, Suits.Hearts, Seats.North, Seats.South);
+        var state3 = new GameState(in deal3, 9, Suits.Spades, Seats.North, Seats.West, Card.Get(Suits.Clubs, Ranks.Seven).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
 
         var r1 = ddsWrapper.BestCards(state1);
         var r2 = ddsWrapper.BestCards(state2);

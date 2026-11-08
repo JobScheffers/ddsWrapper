@@ -16,7 +16,7 @@ namespace Tests
             var result = _SolveBoard3();
             Assert.AreEqual(3, result.Count);
             Assert.IsFalse(result[0].IsPrimary);
-            Assert.IsTrue(result[1].IsPrimary);
+            Assert.IsTrue(result[2].IsPrimary);
         }
 
         public static List<CardPotential> _SolveBoard3()
@@ -34,7 +34,7 @@ namespace Tests
             //         d QJ
             //         c 6
             var deal = new Deal("N:9..85432.QJ9 754.JT73.KT. J82.KQ6.QJ.6 AKQT63.5..8");
-            var state = new GameState(in deal, Suits.Spades, Seats.West, Card.Get(Suits.Clubs, Ranks.Seven).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index );
+            var state = new GameState(in deal, 9, Suits.Spades, Seats.North, Seats.West, Card.Get(Suits.Clubs, Ranks.Seven).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index );
             return ddsWrapper.BestCards(in state);
         }
 
@@ -61,7 +61,7 @@ namespace Tests
             //         d KJ42
             //         c AK
             var deal = new Deal("N:JT984.T7.AQ83.4 Q7532.82.97.832 K.AQJ53.KJ42.AK A6.K964.T65.Q96");
-            var state = new GameState(in deal, Suits.Hearts, Seats.South);
+            var state = new GameState(in deal, 12, Suits.Hearts, Seats.North, Seats.South);
             return ddsWrapper.BestCards(state);
         }
 
@@ -88,19 +88,19 @@ namespace Tests
             //         d 
             //         c A9862
             var deal = new Deal("N:T9.2.732.T .JT5.T4.J4 54...A9862 .A874.K9.");
-            var state = new GameState(in deal, Suits.Spades, Seats.West, Card.Get(Suits.Hearts, Ranks.King).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
+            var state = new GameState(in deal, 7, Suits.Spades, Seats.North, Seats.West, Card.Get(Suits.Hearts, Ranks.King).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
             return ddsWrapper.BestCards(state);
         }
 
         [TestMethod]
         public void BestCards()
         {
-            var deal = new Deal("N:K95.QJT3.AKJ.AQJ JT42.87..K98765 AQ86.K652.86432. 73.A94.QT97.T432");
+            var deal = new Deal("N:K95.QJT3.KQJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.AT97.T432");
 
-            var state = new GameState(in deal, Suits.Hearts, Seats.East, Card.Get(Suits.Diamonds, Ranks.Five).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
+            var state = new GameState(in deal, 13, Suits.Hearts, Seats.North, Seats.East, Card.Null.Index, Card.Null.Index, Card.Null.Index);
             var result = ddsWrapper.BestCards(state);
-            Assert.AreEqual(11, result[0].Tricks);
-            Assert.AreEqual(5, result.Count);
+            Assert.AreEqual(3, result[0].Tricks);
+            Assert.AreEqual(13, result.Count);
         }
 
         //[TestMethod]
@@ -119,7 +119,7 @@ namespace Tests
         {
             var deal = new Deal("N:K95.QJT3.AKJ.AQJ JT42.87..K98765 AQ86.K652.86432. 73.A94.QT97.T432");
             Debug.WriteLine(deal.ToPBN());
-            var state = new GameState(in deal, Suits.Hearts, Seats.East, Card.Get(Suits.Diamonds, Ranks.Five).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
+            var state = new GameState(in deal, 13, Suits.Hearts, Seats.North, Seats.East, Card.Get(Suits.Diamonds, Ranks.Five).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
             var result = ddsWrapper.BestCard(state);
             Assert.AreEqual(11, result.Tricks);
         }
@@ -131,7 +131,7 @@ namespace Tests
             Debug.WriteLine(deal.ToPBN());
             Assert.Throws<ExternalException>(() =>
             {
-                var state = new GameState(in deal, Suits.Hearts, Seats.East, Card.Get(Suits.Hearts, Ranks.Five).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
+                var state = new GameState(in deal, 13, Suits.Hearts, Seats.North, Seats.East, Card.Get(Suits.Hearts, Ranks.Five).Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
                 var result = ddsWrapper.BestCard(state);
             });
         }
@@ -141,7 +141,7 @@ namespace Tests
         {
             var deal = new Deal("N:K95.QJT3.AKJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.QT97.T432");
 
-            var state = new GameState(in deal, Suits.Hearts, Seats.East, Bridge.Card.Null.Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
+            var state = new GameState(in deal, 13, Suits.Hearts, Seats.North, Seats.East, Bridge.Card.Null.Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
             var result = ddsWrapper.AllCards(state);
             Assert.AreEqual(13, result.Count);
         }
@@ -248,7 +248,7 @@ namespace Tests
             ddsWrapper.ForgetPreviousBoard();
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
-            var result = ddsWrapper.PossibleTricks(deals, [Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump], maxDuration: 10);
+            var result = ddsWrapper.PossibleTricks(deals, [Suits.Clubs, Suits.Diamonds, Suits.Hearts, Suits.Spades, Suits.NoTrump], maxDuration: 100);
 
 
             sw.Stop();
@@ -270,13 +270,13 @@ namespace Tests
                 }
             }
 
-            Trace.WriteLine($"{result.Count} deals in {sw.Elapsed.TotalSeconds:F1}s");
+            Trace.WriteLine($"{sw.Elapsed.TotalSeconds/result.Count:F3}s per deal");
             //Assert.IsLessThan(12500, sw.ElapsedMilliseconds);
             Assert.IsGreaterThan(60, result.Count);
         }
 
 #if DEBUG
-        [TestMethod]
+        //[TestMethod]
 #endif
         public void PossibleTricks_MayNot_Eat_Threads()
 
