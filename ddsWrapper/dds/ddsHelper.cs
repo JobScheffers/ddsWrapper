@@ -8,6 +8,7 @@ namespace DDS
     public readonly struct GameState(in Deal remainingCards, Suits trump, Seats trickLeader, int playedByMan1, int playedByMan2, int playedByMan3)
     {
         public Deal RemainingCards { get; } = remainingCards;
+        public int RemainingTricks { get; } = remainingTricks;
         public Suits Trump { get; } = trump;
         public Seats TrickLeader { get; } = trickLeader;
         public Bridge.Card PlayedByMan1 { get; } = Bridge.Card.Get(playedByMan1);
