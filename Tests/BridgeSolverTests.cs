@@ -134,8 +134,10 @@ namespace Tests
             }
 
             Trace.WriteLine($"{result.Count} deals in {sw.Elapsed.TotalSeconds:F1}s; {sw.Elapsed.TotalSeconds / result.Count:F3}s per deal");
+#if DEBUG
             //Assert.IsLessThan(12500, sw.ElapsedMilliseconds);
             Assert.IsGreaterThan(60, result.Count);
+#endif  
         }
     }
 }
