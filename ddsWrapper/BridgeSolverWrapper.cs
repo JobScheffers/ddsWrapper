@@ -72,19 +72,16 @@ namespace BridgeSolver
 
             var sw = stopwatch.Value!;
             sw.Restart();
+            for (var i = 0; i < total; i++) results[i][0, 0] = 255;      // these result will be ignored if the timeout is exceeded
             var dealsLocal = deals; // avoid capturing 'in' parameter in lambda
             var _needed = needed; // avoid capturing 'in' parameter in lambda
             Parallel.For(0, total, deal =>
             {
-                results[deal][0, 0] = 255;      // this result will be ignored if the timeout is exceeded
                 // Check timeout before processing next batch
                 var elapsedTime = sw.Elapsed.TotalSeconds;
-                if (elapsedTime > maxDuration)
+                if (elapsedTime < maxDuration)
                 {
-                    results[deal] = default;
-                }
-                else
-                {
+                    results[deal][0, 0] = 0;        // mark this result as valid
                     var pbn = dealsLocal[deal].ToPBN();
                     //var check = DdTableTricks(pbn);
                     for (var trump = Suits.Clubs; trump <= Suits.NoTrump; trump++)
