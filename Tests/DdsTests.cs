@@ -16,7 +16,7 @@ namespace Tests
             var result = _SolveBoard3();
             Assert.AreEqual(3, result.Count);
             Assert.IsFalse(result[0].IsPrimary);
-            Assert.IsTrue(result[2].IsPrimary);
+            Assert.IsTrue(result[1].IsPrimary);
         }
 
         public static List<CardPotential> _SolveBoard3()

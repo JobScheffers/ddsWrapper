@@ -92,26 +92,20 @@ namespace DDS
                     var eqMask = (uint)equalsPtr[i];
 
                     // highest card (primary)
-                    var card = new CardPotential(Bridge.Card.Get(suit, DdsEnum.Convert(rank)), score, eqMask == 0);
-                    result.Add(card);
-#if DEBUG
-                    //Trace.WriteLine($"{card.ToString()}, firstEqual: {eqMask == 0}");
-#endif
+                    result.Add(new CardPotential(Bridge.Card.Get(suit, DdsEnum.Convert(rank)), score, eqMask == 0));
 
                     // iterate equivalent lower ranks using bit scanning
                     if (eqMask != 0)
                     {
+                        bool firstEqual = true;
                         // eqMask uses bit positions for ranks; adjust mapping if needed.
                         while (eqMask != 0)
                         {
                             int bit = BitOperations.TrailingZeroCount(eqMask);
                             eqMask &= eqMask - 1;
                             var eqRank = (Rank)(bit + 2 - (int)Rank.Two);
-                            card = new CardPotential(Bridge.Card.Get(suit, DdsEnum.Convert(eqRank)), score, eqMask == 0);
-                            result.Add(card);
-#if DEBUG
-                            //Trace.WriteLine($"{card}, firstEqual: {firstEqual}");
-#endif
+                            result.Add(new CardPotential(Bridge.Card.Get(suit, DdsEnum.Convert(eqRank)), score, firstEqual));
+                            firstEqual = false;
                         }
                     }
                 }
