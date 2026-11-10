@@ -144,7 +144,7 @@ namespace Tests
         public void PossibleTricks_2Deals_ForgetPreviousResults()
         {
             RandomGenerator.Instance.Repeatable(1);
-            var baseDeal = new Deal();
+            var baseDeal = new Deal("N:K95.QJT3.KQJ.AQJ");
             var deals = new List<Deal>();
             const int numDeals = 2;
             for (int i = 0; i < numDeals; i++)
@@ -157,8 +157,9 @@ namespace Tests
             needed[Seats.North, Suits.Diamonds] = 1;
             var result1 = BridgeSolverWrapper.PossibleTricks(deals, needed, maxDuration: 5);
 
-            Assert.IsGreaterThan(0.0, result1[0][Seats.North, Suits.Diamonds]);
-            Assert.IsGreaterThan(0.0, result1[1][Seats.North, Suits.Diamonds]);
+            // given the base deal, North should be able to make more than 2 tricks in diamonds.
+            Assert.IsGreaterThan(2.0, result1[0][Seats.North, Suits.Diamonds]);
+            Assert.IsGreaterThan(2.0, result1[1][Seats.North, Suits.Diamonds]);
 
             needed[Seats.North, Suits.Diamonds] = 0;
             needed[Seats.East, Suits.Hearts] = 1;

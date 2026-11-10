@@ -78,7 +78,7 @@ Solve up to 1,000 deals in parallel, returning only deals where at least one con
 
 ```csharp
 List<Deal> deals = ...; // up to 1000 deals
-TableResults needed = ...; // which contracts to evaluate (255 = skip)
+TableResults needed = ...; // which suits to evaluate (0 = skip, 1 = evaluate)
 
 List<TableResults> results = BridgeSolverWrapper.PossibleTricks(deals, needed, maxDuration: 5);
 ```
