@@ -31,7 +31,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ddsWrapper\ddsWrapper.csproj" />
-    <ProjectReference Include="..\bridgeSolverWrapper\bridgeSolverWrapper.csproj" />
   </ItemGroup>
 
   <ItemGroup>

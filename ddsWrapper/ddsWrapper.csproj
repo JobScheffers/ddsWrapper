@@ -11,6 +11,7 @@
 		<PublicSign>False</PublicSign>
 		<AssemblyOriginatorKeyFile>..\bridge.snk</AssemblyOriginatorKeyFile>
 		<Title>.Net wrapper for DDS</Title>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Authors>Job Scheffers</Authors>
 		<Company> </Company>
 		<Description>A .Net wrapper for the native dds.dll that contains Bo Haglunds double dummy solver</Description>
@@ -28,12 +29,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Update="bridgesolver.dll" Pack="true" PackagePath="runtimes/win/native/bridgesolver.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="dds.dll" Pack="true" PackagePath="runtimes/win/native/dds.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-    <None Update="bridge-solver\lib\bridgesolver.dll" Pack="true" PackagePath="runtimes/win/native/bridgesolver.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+		<None Include="..\README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 	
 	<ItemGroup>
@@ -45,10 +47,10 @@
 			<BuildAction>None</BuildAction>
 			<PackagePath>runtimes\win-x86\native\</PackagePath>
 		</_PackageFiles>
-		<_PackageFiles Include="dds.dll">
+		<!--<_PackageFiles Include="dds.dll">
 			<BuildAction>None</BuildAction>
 			<PackagePath>runtimes\win\native\</PackagePath>
-		</_PackageFiles>
+		</_PackageFiles>-->
     <_PackageFiles Include="bridge-solver\lib\bridgesolver.dll">
       <BuildAction>None</BuildAction>
       <PackagePath>runtimes\win-x64\native\</PackagePath>
@@ -57,10 +59,10 @@
       <BuildAction>None</BuildAction>
       <PackagePath>runtimes\win-x86\native\</PackagePath>
     </_PackageFiles>
-    <_PackageFiles Include="bridge-solver\lib\bridgesolver.dll">
+    <!--<_PackageFiles Include="bridge-solver\lib\bridgesolver.dll">
       <BuildAction>None</BuildAction>
       <PackagePath>runtimes\win\native\</PackagePath>
-    </_PackageFiles>
+    </_PackageFiles>-->
   </ItemGroup>
 	
 	<ItemGroup>

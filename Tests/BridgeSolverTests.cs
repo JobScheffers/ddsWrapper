@@ -72,8 +72,8 @@ namespace Tests
         {
             var deal = new Deal("N:K95.QJT3.KQJ.AQJ JT42.87.5.K98765 AQ86.K652.86432. 73.A94.AT97.T432");
 
-            var state = new GameState(in deal, 13, Suits.Hearts, Seats.North, Seats.East, Card.Null.Index, Card.Null.Index, Card.Null.Index);
-            var result = BridgeSolverWrapper.BestCards(state, new List<Card>() { Card.Get(Suits.Diamonds, Ranks.Five), Card.Get(Suits.Spades, Ranks.Jack), Card.Get(Suits.Hearts, Ranks.Eight), Card.Get(Suits.Clubs, Ranks.Five) });
+            var state = new GameState(in deal, 13, Suits.Hearts, Seats.North, Seats.East, Bridge.Card.Null.Index, Bridge.Card.Null.Index, Bridge.Card.Null.Index);
+            var result = BridgeSolverWrapper.BestCards(state, new List<Bridge.Card>() { Bridge.Card.Get(Suits.Diamonds, Ranks.Five), Bridge.Card.Get(Suits.Spades, Ranks.Jack), Bridge.Card.Get(Suits.Hearts, Ranks.Eight), Bridge.Card.Get(Suits.Clubs, Ranks.Five) });
             Assert.AreEqual(3, result[0].Tricks);
             //Assert.AreEqual(5, result.Count);
         }
@@ -138,6 +138,35 @@ namespace Tests
             //Assert.IsLessThan(12500, sw.ElapsedMilliseconds);
             Assert.IsGreaterThan(60, result.Count);
 #endif  
+        }
+
+        [TestMethod]
+        public void PossibleTricks_2Deals_ForgetPreviousResults()
+        {
+            RandomGenerator.Instance.Repeatable(1);
+            var baseDeal = new Deal("N:K95.QJT3.KQJ.AQJ");
+            var deals = new List<Deal>();
+            const int numDeals = 2;
+            for (int i = 0; i < numDeals; i++)
+            {
+                deals.Add(baseDeal.CompletedFromSeed(RandomGenerator.Instance.NextDealBigInteger()));
+            }
+
+            var needed = new TableResults();
+
+            needed[Seats.North, Suits.Diamonds] = 1;
+            var result1 = BridgeSolverWrapper.PossibleTricks(deals, needed, maxDuration: 5);
+
+            // given the base deal, North should be able to make more than 2 tricks in diamonds.
+            Assert.IsGreaterThan(2.0, result1[0][Seats.North, Suits.Diamonds]);
+            Assert.IsGreaterThan(2.0, result1[1][Seats.North, Suits.Diamonds]);
+
+            needed[Seats.North, Suits.Diamonds] = 0;
+            needed[Seats.East, Suits.Hearts] = 1;
+            var result2 = BridgeSolverWrapper.PossibleTricks(deals, needed, maxDuration: 5);
+
+            Assert.IsLessThanOrEqualTo(0.0, result2[0][Seats.North, Suits.Diamonds]);
+            Assert.IsLessThanOrEqualTo(0.0, result2[1][Seats.North, Suits.Diamonds]);
         }
     }
 }
