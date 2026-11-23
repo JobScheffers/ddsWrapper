@@ -5,8 +5,10 @@ namespace BridgeSolver.Interop
 {
     internal static class BridgeSolverNativeResolver
     {
-        [ModuleInitializer]
-        internal static void Register()
+        #pragma warning disable CA2255
+                [ModuleInitializer]
+        #pragma warning restore CA2255
+                internal static void Register()
         {
             NativeLibrary.SetDllImportResolver(typeof(BridgeSolverNativeResolver).Assembly, (libraryName, assembly, searchPath) =>
             {
