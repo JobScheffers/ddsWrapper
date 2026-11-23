@@ -3,6 +3,23 @@ using System.Runtime.InteropServices;
 
 namespace BridgeSolver.Interop
 {
+    internal static class BridgeSolverNativeResolver
+    {
+        [ModuleInitializer]
+        internal static void Register()
+        {
+            NativeLibrary.SetDllImportResolver(typeof(BridgeSolverNativeResolver).Assembly, (libraryName, assembly, searchPath) =>
+            {
+                if (libraryName != "bridgesolver") return IntPtr.Zero;
+                var baseDir = AppContext.BaseDirectory;
+                var subPath = Path.Combine(baseDir, "bridgesolver.2.2.0.dll");
+                if (File.Exists(subPath) && NativeLibrary.TryLoad(subPath, out var handle))
+                    return handle;
+                return IntPtr.Zero;
+            });
+        }
+    }
+
     internal static partial class BridgeSolverImports
     {
         private const string dllPath = "bridgesolver";

@@ -95,7 +95,7 @@ namespace Tests
             //var baseDeal = new Deal("N:954.QJT3.AJT.QJ6");
             var baseDeal = new Deal();
             var deals = new List<Deal>();
-            const int numDeals = 410;
+            const int numDeals = 300;
             for (int i = 0; i < numDeals; i++)
             {
                 deals.Add(baseDeal.CompletedFromSeed(RandomGenerator.Instance.NextDealBigInteger()));

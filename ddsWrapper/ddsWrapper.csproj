@@ -29,7 +29,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="bridgesolver.dll" Pack="true" PackagePath="runtimes/win/native/bridgesolver.dll">
+		<None Update="bridgesolver.2.2.0.dll" Pack="true" PackagePath="runtimes/win/native/bridgesolver.dll">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="dds.dll" Pack="true" PackagePath="runtimes/win/native/dds.dll">
@@ -47,21 +47,13 @@
 			<BuildAction>None</BuildAction>
 			<PackagePath>runtimes\win-x86\native\</PackagePath>
 		</_PackageFiles>
-		<!--<_PackageFiles Include="dds.dll">
-			<BuildAction>None</BuildAction>
-			<PackagePath>runtimes\win\native\</PackagePath>
-		</_PackageFiles>-->
-    <_PackageFiles Include="bridge-solver\lib\bridgesolver.dll">
+    <!--<_PackageFiles Include="bridge-solver\lib\bridgesolver.dll">
       <BuildAction>None</BuildAction>
       <PackagePath>runtimes\win-x64\native\</PackagePath>
     </_PackageFiles>
     <_PackageFiles Include="bridge-solver\lib\bridgesolver.dll">
       <BuildAction>None</BuildAction>
       <PackagePath>runtimes\win-x86\native\</PackagePath>
-    </_PackageFiles>
-    <!--<_PackageFiles Include="bridge-solver\lib\bridgesolver.dll">
-      <BuildAction>None</BuildAction>
-      <PackagePath>runtimes\win\native\</PackagePath>
     </_PackageFiles>-->
   </ItemGroup>
 	
