@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+  	<PropertyGroup>
 		<TargetFrameworks>net10.0</TargetFrameworks>
 		<!--<LangVersion>12.0</LangVersion>-->
 		<ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+        <Nullable>enable</Nullable>
 		<PackageProjectUrl>https://github.com/JobScheffers/ddsWrapper</PackageProjectUrl>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<SignAssembly>True</SignAssembly>
@@ -24,25 +24,27 @@
 		-->
 	</PropertyGroup>
 
-  <ItemGroup>
+  	<ItemGroup>
 		<PackageReference Include="Bridge.Fundamentals" Version="2026.2.19.1" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="bridgesolver.dll" Pack="true" PackagePath="runtimes/win-x64/native/bridgesolver.dll">
+<!--
+        <None Update="bridgesolver.dll" Pack="true" PackagePath="runtimes/win-x64/native/bridgesolver.dll">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</None>
 		<None Update="bridgesolver.dll" Pack="true" PackagePath="runtimes/win-x86/native/bridgesolver.dll">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</None>
-		<None Update="bridgesolver.dll" Pack="true" PackagePath="runtimes/win/native/bridgesolver.dll">
+-->
+		<None Update="bridgesolver.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="dds.dll" Pack="true" PackagePath="runtimes/win/native/dds.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Include="..\README.md" Pack="true" PackagePath="" />
-  </ItemGroup>
+  	</ItemGroup>
 	
 	<ItemGroup>
 		<_PackageFiles Include="dds.dll">
@@ -53,15 +55,19 @@
 			<BuildAction>None</BuildAction>
 			<PackagePath>runtimes\win-x86\native\</PackagePath>
 		</_PackageFiles>
-    <!--<_PackageFiles Include="bridge-solver\lib\bridgesolver.dll">
-      <BuildAction>None</BuildAction>
-      <PackagePath>runtimes\win-x64\native\</PackagePath>
-    </_PackageFiles>
-    <_PackageFiles Include="bridge-solver\lib\bridgesolver.dll">
-      <BuildAction>None</BuildAction>
-      <PackagePath>runtimes\win-x86\native\</PackagePath>
-    </_PackageFiles>-->
-  </ItemGroup>
+    	<_PackageFiles Include="bridgesolver.dll">
+      		<BuildAction>None</BuildAction>
+      		<PackagePath>runtimes\win\native\</PackagePath>
+    	</_PackageFiles>
+    	<_PackageFiles Include="bridgesolver.dll">
+      		<BuildAction>None</BuildAction>
+      		<PackagePath>runtimes\win-x64\native\</PackagePath>
+    	</_PackageFiles>
+    	<_PackageFiles Include="bridgesolver.dll">
+     		<BuildAction>None</BuildAction>
+      		<PackagePath>runtimes\win-x86\native\</PackagePath>
+    	</_PackageFiles>
+  	</ItemGroup>
 	
 	<ItemGroup>
 	  <Folder Include="Properties\" />
