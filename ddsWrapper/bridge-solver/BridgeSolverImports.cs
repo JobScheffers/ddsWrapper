@@ -3,40 +3,40 @@ using System.Runtime.InteropServices;
 
 namespace BridgeSolver.Interop
 {
-    internal static class BridgeSolverNativeResolver
-    {
-        #pragma warning disable CA2255
-                [ModuleInitializer]
-        #pragma warning restore CA2255
-                internal static void Register()
-        {
-            NativeLibrary.SetDllImportResolver(typeof(BridgeSolverNativeResolver).Assembly, (libraryName, assembly, searchPath) =>
-            {
-                if (libraryName != "bridgesolver") return IntPtr.Zero;
-                var baseDir = AppContext.BaseDirectory;
-                var rid = RuntimeInformation.ProcessArchitecture switch
-                {
-                    Architecture.X64   => "win-x64",
-                    Architecture.X86   => "win-x86",
-                    Architecture.Arm64 => "win-arm64",
-                    _                  => "win"
-                };
-                string[] candidates =
-                [
-                    Path.Combine(baseDir, "runtimes", rid, "native", "bridgesolver.dll"),
-                    Path.Combine(baseDir, "runtimes", "win", "native", "bridgesolver.dll"),
-                    Path.Combine(baseDir, "bridge-solver", "bridgesolver.dll"),
-                    Path.Combine(baseDir, "bridgesolver.dll"),
-                ];
-                foreach (var path in candidates)
-                {
-                    if (File.Exists(path) && NativeLibrary.TryLoad(path, out var handle))
-                        return handle;
-                }
-                return IntPtr.Zero;
-            });
-        }
-    }
+    //internal static class BridgeSolverNativeResolver
+    //{
+    //    #pragma warning disable CA2255
+    //            [ModuleInitializer]
+    //    #pragma warning restore CA2255
+    //            internal static void Register()
+    //    {
+    //        NativeLibrary.SetDllImportResolver(typeof(BridgeSolverNativeResolver).Assembly, (libraryName, assembly, searchPath) =>
+    //        {
+    //            if (libraryName != "bridgesolver") return IntPtr.Zero;
+    //            var baseDir = AppContext.BaseDirectory;
+    //            var rid = RuntimeInformation.ProcessArchitecture switch
+    //            {
+    //                Architecture.X64   => "win-x64",
+    //                Architecture.X86   => "win-x86",
+    //                Architecture.Arm64 => "win-arm64",
+    //                _                  => "win"
+    //            };
+    //            string[] candidates =
+    //            [
+    //                Path.Combine(baseDir, "runtimes", rid, "native", "bridgesolver.dll"),
+    //                Path.Combine(baseDir, "runtimes", "win", "native", "bridgesolver.dll"),
+    //                Path.Combine(baseDir, "bridge-solver", "bridgesolver.dll"),
+    //                Path.Combine(baseDir, "bridgesolver.dll"),
+    //            ];
+    //            foreach (var path in candidates)
+    //            {
+    //                if (File.Exists(path) && NativeLibrary.TryLoad(path, out var handle))
+    //                    return handle;
+    //            }
+    //            return IntPtr.Zero;
+    //        });
+    //    }
+    //}
 
     internal static partial class BridgeSolverImports
     {

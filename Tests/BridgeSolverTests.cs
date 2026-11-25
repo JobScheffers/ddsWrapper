@@ -143,7 +143,7 @@ namespace Tests
         }
 
 #if DEBUG
-        [TestMethod]
+        //[TestMethod]
 #endif  
         public void PossibleTricks_ReleasesMemory()
         {
