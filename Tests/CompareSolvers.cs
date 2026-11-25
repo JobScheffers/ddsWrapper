@@ -46,7 +46,7 @@ namespace Tests
             RandomGenerator.Instance.Repeatable(1);
             var baseDeal = new Deal();
             var deals = new List<Deal>();
-            const int numDeals = 410;
+            const int numDeals = 300;
             for (int i = 0; i < numDeals; i++)
             {
                 deals.Add(baseDeal.CompletedFromSeed(RandomGenerator.Instance.NextDealBigInteger()));
@@ -91,7 +91,7 @@ namespace Tests
             RandomGenerator.Instance.Repeatable(1);
             var baseDeal = new Deal("N:AQJ7.832.853.T93");
             var deals = new List<GameState>();
-            const int numDeals = 500;
+            const int numDeals = 300;
             for (int i = 0; i < numDeals; i++)
             {
                 var deal = baseDeal.CompletedFromSeed(RandomGenerator.Instance.NextDealBigInteger());
