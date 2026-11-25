@@ -60,7 +60,8 @@ namespace BridgeSolver
             return result;
         }
 
-        private static readonly ThreadLocal<TableResults[]> tablesResults = new(() => new TableResults[1000]);
+        private const int maxDeals = 300; // maximum number of deals to process in parallel
+        private static readonly ThreadLocal<TableResults[]> tablesResults = new(() => new TableResults[maxDeals]);
         private static readonly ThreadLocal<Stopwatch> stopwatch = new(() => new Stopwatch());
 
         public static List<TableResults> PossibleTricks(in List<Deal> deals, in TableResults needed, int maxDuration = 5)

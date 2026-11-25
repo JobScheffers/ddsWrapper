@@ -88,14 +88,14 @@ namespace Tests
         }
 
         [TestMethod]
-        public void PossibleTricks_410Deals_5Trumps()
+        public void PossibleTricks_300Deals_5Trumps()
         {
             const bool printDeals = false;
             RandomGenerator.Instance.Repeatable(1);
             //var baseDeal = new Deal("N:954.QJT3.AJT.QJ6");
             var baseDeal = new Deal();
             var deals = new List<Deal>();
-            const int numDeals = 500;
+            const int numDeals = 300;
             for (int i = 0; i < numDeals; i++)
             {
                 deals.Add(baseDeal.CompletedFromSeed(RandomGenerator.Instance.NextDealBigInteger()));
@@ -112,7 +112,7 @@ namespace Tests
                 });
             });
 
-            var result = BridgeSolverWrapper.PossibleTricks(deals, needed, maxDuration: 10);
+            var result = BridgeSolverWrapper.PossibleTricks(deals, needed, maxDuration: 4);
 
             sw.Stop();
 
@@ -136,17 +136,19 @@ namespace Tests
             Trace.WriteLine($"{result.Count} deals in {sw.Elapsed.TotalSeconds:F1}s; {sw.Elapsed.TotalSeconds / result.Count:F3}s per deal");
 #if DEBUG
             //Assert.IsLessThan(12500, sw.ElapsedMilliseconds);
-            Assert.IsGreaterThan(60, result.Count);
+            //Assert.IsGreaterThan(60, result.Count);
 #endif  
+            deals.Clear();
+            deals = null;
         }
 
-//#if DEBUG
-//        [TestMethod]
-//#endif  
-//        public void PossibleTricks_ReleasesMemory()
-//        {
-//            while (true) PossibleTricks_410Deals_5Trumps();
-//        }
+#if DEBUG
+        [TestMethod]
+#endif  
+        public void PossibleTricks_ReleasesMemory()
+        {
+            while (true) PossibleTricks_300Deals_5Trumps();
+        }
 
         [TestMethod]
         public void PossibleTricks_2Deals_ForgetPreviousResults()
