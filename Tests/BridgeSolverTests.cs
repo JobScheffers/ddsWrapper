@@ -95,7 +95,7 @@ namespace Tests
             //var baseDeal = new Deal("N:954.QJT3.AJT.QJ6");
             var baseDeal = new Deal();
             var deals = new List<Deal>();
-            const int numDeals = 300;
+            const int numDeals = 500;
             for (int i = 0; i < numDeals; i++)
             {
                 deals.Add(baseDeal.CompletedFromSeed(RandomGenerator.Instance.NextDealBigInteger()));
@@ -112,7 +112,7 @@ namespace Tests
                 });
             });
 
-            var result = BridgeSolverWrapper.PossibleTricks(deals, needed, maxDuration: 5);
+            var result = BridgeSolverWrapper.PossibleTricks(deals, needed, maxDuration: 10);
 
             sw.Stop();
 
@@ -138,6 +138,14 @@ namespace Tests
             //Assert.IsLessThan(12500, sw.ElapsedMilliseconds);
             Assert.IsGreaterThan(60, result.Count);
 #endif  
+        }
+
+#if DEBUG
+        [TestMethod]
+#endif  
+        public void PossibleTricks_ReleasesMemory()
+        {
+            while (true) PossibleTricks_410Deals_5Trumps();
         }
 
         [TestMethod]

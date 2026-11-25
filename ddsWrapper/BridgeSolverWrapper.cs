@@ -65,48 +65,48 @@ namespace BridgeSolver
 
         public static List<TableResults> PossibleTricks(in List<Deal> deals, in TableResults needed, int maxDuration = 5)
         {
-            int total = deals.Count;
-            var results = tablesResults.Value!;
-            if (deals.Count > results.Length)
-                throw new ArgumentException($"Too many deals: {deals.Count} > {results.Length}", nameof(deals));
+                int total = deals.Count;
+                var results = tablesResults.Value!;
+                if (deals.Count > results.Length)
+                    throw new ArgumentException($"Too many deals: {deals.Count} > {results.Length}", nameof(deals));
 
-            var sw = stopwatch.Value!;
-            sw.Restart();
-            for (var i = 0; i < total; i++) results[i][0, 0] = 255;      // these result will be ignored if the timeout is exceeded
-            var dealsLocal = deals; // avoid capturing 'in' parameter in lambda
-            var _needed = needed; // avoid capturing 'in' parameter in lambda
-            Parallel.For(0, total, deal =>
-            {
-                // Check timeout before processing next batch
-                var elapsedTime = sw.Elapsed.TotalSeconds;
-                if (elapsedTime < maxDuration)
+                var sw = stopwatch.Value!;
+                sw.Restart();
+                for (var i = 0; i < total; i++) results[i][0, 0] = 255;      // these result will be ignored if the timeout is exceeded
+                var dealsLocal = deals; // avoid capturing 'in' parameter in lambda
+                var _needed = needed; // avoid capturing 'in' parameter in lambda
+                Parallel.For(0, total, deal =>
                 {
-                    results[deal][0, 0] = 0;        // mark this result as valid
-                    var pbn = dealsLocal[deal].ToPBN();
-                    //var check = DdTableTricks(pbn);
-                    for (var trump = Suits.Clubs; trump <= Suits.NoTrump; trump++)
+                    // Check timeout before processing next batch
+                    var elapsedTime = sw.Elapsed.TotalSeconds;
+                    if (elapsedTime < maxDuration)
                     {
-                        for (var declarer = Seats.North; declarer <= Seats.West; declarer++)
+                        results[deal][0, 0] = 0;        // mark this result as valid
+                        var pbn = dealsLocal[deal].ToPBN();
+                        //var check = DdTableTricks(pbn);
+                        for (var trump = Suits.Clubs; trump <= Suits.NoTrump; trump++)
                         {
-                            if (_needed[declarer, trump] > 0)
+                            for (var declarer = Seats.North; declarer <= Seats.West; declarer++)
                             {
-                                var tricksNS = Solve(pbn, trump.ToXML(), declarer.Next().ToXML());
-                                results[deal][declarer, trump] = declarer.Direction() == Directions.NorthSouth ? tricksNS : (byte)(13 - tricksNS);
-                                //if (results[deal][declarer, trump] != check[declarer, trump])
-                                //{
-                                //    Trace.WriteLine($"Warning: Solve returned 0 tricks for deal {deal}, seat {declarer}, trump {trump}");
-                                //}
-                            }
-                            else
-                            {
-                                results[deal][declarer, trump] = 0;
+                                if (_needed[declarer, trump] > 0)
+                                {
+                                    var tricksNS = Solve(pbn, trump.ToXML(), declarer.Next().ToXML());
+                                    results[deal][declarer, trump] = declarer.Direction() == Directions.NorthSouth ? tricksNS : (byte)(13 - tricksNS);
+                                    //if (results[deal][declarer, trump] != check[declarer, trump])
+                                    //{
+                                    //    Trace.WriteLine($"Warning: Solve returned 0 tricks for deal {deal}, seat {declarer}, trump {trump}");
+                                    //}
+                                }
+                                else
+                                {
+                                    results[deal][declarer, trump] = 0;
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
 
-            return [.. results.Take(total).Where(result => result[0, 0] < 255)];
+                return [.. results.Take(total).Where(result => result[0, 0] < 255)];
         }
 
         public static List<CardPotential> BestCards(in GameState state, in List<Bridge.Card> cards)
@@ -168,10 +168,17 @@ namespace BridgeSolver
             ArgumentNullException.ThrowIfNull(deal);
             ArgumentNullException.ThrowIfNull(trump);
             ArgumentNullException.ThrowIfNull(leader);
-            int result = BridgeSolverImports.bs_solve(deal, trump, leader);
-            if (result < 0)
-                throw new ExternalException($"bs_solve failed with code {result}.", result);
-            return result;
+            try
+            {
+                int result = BridgeSolverImports.bs_solve(deal, trump, leader);
+                if (result < 0)
+                    throw new ExternalException($"bs_solve failed with code {result}.", result);
+                return result;
+            }
+            finally
+            {
+                ReleaseMemory(); // return the solver's pooled memory to the allocator for this thread
+            }
         }
 
         /// <summary>
