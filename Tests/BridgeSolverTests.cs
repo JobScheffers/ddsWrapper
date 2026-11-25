@@ -140,13 +140,13 @@ namespace Tests
 #endif  
         }
 
-#if DEBUG
-        [TestMethod]
-#endif  
-        public void PossibleTricks_ReleasesMemory()
-        {
-            while (true) PossibleTricks_410Deals_5Trumps();
-        }
+//#if DEBUG
+//        [TestMethod]
+//#endif  
+//        public void PossibleTricks_ReleasesMemory()
+//        {
+//            while (true) PossibleTricks_410Deals_5Trumps();
+//        }
 
         [TestMethod]
         public void PossibleTricks_2Deals_ForgetPreviousResults()
