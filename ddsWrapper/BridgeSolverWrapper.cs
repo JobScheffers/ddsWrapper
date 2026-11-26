@@ -61,17 +61,15 @@ namespace BridgeSolver
         }
 
         private const int maxDeals = 300; // maximum number of deals to process in parallel
-        private static readonly ThreadLocal<TableResults[]> tablesResults = new(() => new TableResults[maxDeals]);
-        private static readonly ThreadLocal<Stopwatch> stopwatch = new(() => new Stopwatch());
 
         public static List<TableResults> PossibleTricks(in List<Deal> deals, in TableResults needed, int maxDuration = 5)
         {
             int total = deals.Count;
-            var results = tablesResults.Value!;
+            var results = new TableResults[maxDeals];
             if (deals.Count > results.Length)
                 throw new ArgumentException($"Too many deals: {deals.Count} > {results.Length}", nameof(deals));
 
-            var sw = stopwatch.Value!;
+            var sw = new Stopwatch();
             sw.Restart();
             for (var i = 0; i < total; i++) results[i][0, 0] = 255;      // these result will be ignored if the timeout is exceeded
             var dealsLocal = deals; // avoid capturing 'in' parameter in lambda
