@@ -14,9 +14,25 @@ namespace DDS
 
         private static readonly Lazy<int> _maxThreads = new(() =>
         {
-            DDSInfo info = default;
-            GetDDSInfo(ref info);
-            return info.noOfThreads > ddsMaxThreads ? ddsMaxThreads : info.noOfThreads;
+            try
+            {
+                DDSInfo info = default;
+                GetDDSInfo(ref info);
+
+                // In some hosted environments (for example ASP.NET), DDS may report 0 here.
+                // Fall back to processor count and clamp to DDS limits.
+                var reportedThreads = info.noOfThreads;
+                var effectiveThreads = reportedThreads > 0 ? reportedThreads : Environment.ProcessorCount;
+                return Math.Clamp(effectiveThreads, 1, ddsMaxThreads);
+            }
+            catch (Exception ex) when (
+                ex is DllNotFoundException ||
+                ex is BadImageFormatException ||
+                ex is EntryPointNotFoundException)
+            {
+                // Keep initialization resilient even if probing API details are unavailable.
+                return Math.Clamp(Environment.ProcessorCount, 1, ddsMaxThreads);
+            }
         });
 
         public static int MaxThreads => _maxThreads.Value;

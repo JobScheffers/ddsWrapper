@@ -29,13 +29,17 @@ namespace DDS
 
         static ddsWrapper()
         {
-            maxThreads = ddsImports.MaxThreads;
-            if (maxThreads <= 0 || maxThreads > 32)
-            {
-                throw new InvalidOperationException($"ddsImports.MaxThreads ({maxThreads}) must be between 1 and 32");
-            }
+            maxThreads = Math.Clamp(ddsImports.MaxThreads, 1, ddsImports.ddsMaxThreads);
 
-            ddsImports.SetResources(1000, maxThreads);
+            try
+            {
+                ddsImports.SetResources(1000, maxThreads);
+            }
+            catch (EntryPointNotFoundException)
+            {
+                // Compatibility fallback for older DDS builds that expose SetMaxThreads but not SetResources.
+                ddsImports.SetMaxThreads(maxThreads);
+            }
 
             // initialize low-contention pool
             threadSemaphore = new SemaphoreSlim(maxThreads, maxThreads);
